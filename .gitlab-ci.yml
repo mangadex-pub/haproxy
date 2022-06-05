@@ -60,7 +60,7 @@ stages:
         --destination "$IMAGE_PATH:$IMAGE_TAG_UNIQUE" \
         --destination "$IMAGE_PATH:$IMAGE_TAG_ROLLING_COMMIT" \
         --destination "$IMAGE_PATH:$IMAGE_TAG_ROLLING_GITREF" \
-        --destination "$IMAGE_PATH:$IMAGE_TAG_ROLLING_DEB"
+        --destination "$IMAGE_PATH:$IMAGE_TAG_VERSIONS"
     )
 
 mainline:
