@@ -2,7 +2,7 @@ stages:
   - build
 
 .docker-build: &docker-build
-  stage: Build
+  stage: build
   image:
     name: gcr.io/kaniko-project/executor:debug
     entrypoint: [ "" ]
