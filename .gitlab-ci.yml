@@ -16,8 +16,10 @@ stages:
   script: |
     set -eu
 
-    . "common.config"
-    . "$BUILD_TYPE.config"
+    ls -alh
+
+    source "common.config"
+    source "$BUILD_TYPE.config"
     
     export JOB_TIMESTAMP="$(date -D '%Y-%m-%dT%H:%M:%S%Z' -d "$CI_JOB_STARTED_AT" +'%Y%m%d-%H%M')"
 
