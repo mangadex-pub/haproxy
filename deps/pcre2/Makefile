@@ -4,6 +4,7 @@ PCRE2_TARBALL = pcre2-$(PCRE2_VERSION).tar.gz
 PCRE2_BUILDIR = src
 PCRE2_DESTDIR = dist
 PCRE2_DESTDIR_ABS = $(shell realpath $(PCRE2_DESTDIR))
+PCRE2_ARCHIVE = pcre2-dist.tar.gz
 
 all: build dist
 
@@ -18,13 +19,17 @@ build: $(PCRE2_BUILDIR)/pcre2-$(PCRE2_VERSION).tar.gz
 	if [ -f "$(PCRE2_BUILDIR)/CmakeCache.txt" ]; then rm -v "$(PCRE2_BUILDIR)/CmakeCache.txt"; fi
 	cd "$(PCRE2_BUILDIR)" && cmake -DPCRE2_STATIC_PIC=ON -DPCRE2_SUPPORT_JIT=ON -DCMAKE_INSTALL_PREFIX="$(PCRE2_DESTDIR_ABS)" . && make
 
-dist: build
+$(PCRE2_DESTDIR): build
 	if ! [ -d "$(PCRE2_DESTDIR)" ]; then mkdir -v "$(PCRE2_DESTDIR)"; fi
 	cd "$(PCRE2_BUILDIR)" && make install
+
+$(PCRE2_ARCHIVE): $(PCRE2_DESTDIR)
+	tar -C "$(PCRE2_DESTDIR)" -cjf "$(PCRE2_ARCHIVE)" $$(ls -1 $(PCRE2_DESTDIR))
 
 clean:
 	rm -rf "$(PCRE2_BUILDIR)"
 	rm -rf "$(PCRE2_DESTDIR)"
 	rm -fv "$(PCRE2_TARBALL)"
+	rm -fv "$(PCRE2_ARCHIVE)"
 
-.PHONY: clean build dist
+.PHONY: clean build

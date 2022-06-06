@@ -4,7 +4,7 @@ HAPROXY_REPOSRC = http://git.haproxy.org/git/haproxy-$(HAPROXY_VERSION).git
 HAPROXY_BUILDIR = src
 HAPROXY_DESTDIR = dist
 HAPROXY_DESTDIR_ABS = $(shell realpath $(HAPROXY_DESTDIR))
-HAPROXY_ARCHIVE = haproxy-$(HAPROXY_VERSION)-dist.tar.gz
+HAPROXY_ARCHIVE = haproxy-dist.tar.gz
 
 DEP_ROOT_LUA = ../deps/lua
 DEP_ROOT_PCRE2 = ../deps/pcre2
