@@ -25,6 +25,7 @@ HAPROXY_MAKE_ARGS := DEBUG="-DDEBUG_STRICT -DDEBUG_MEMORY_POOLS" \
                      USE_OPENSSL=1 \
                      SSL_INC="../$(DEP_ROOT_QUICTLS)/dist/opt/quictls/include" \
                      SSL_LIB="../$(DEP_ROOT_QUICTLS)/dist/opt/quictls/lib" \
+                     ADDINC="-lcrypt" \
                      USE_PCRE2=1 \
                      USE_PCRE2_JIT=1 \
                      USE_STATIC_PCRE2=1 \
