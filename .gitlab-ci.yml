@@ -39,7 +39,7 @@ quictls:
   script: make -C deps/quictls
   artifacts:
     expire_in: 14 days
-    paths: [ "deps/quictls/dist", "quictls-*-dist.tar.gz" ]
+    paths: [ "deps/quictls/dist", "deps/quictls/quictls-*-dist.tar.gz" ]
 
 haproxy:
   <<: *build-job
