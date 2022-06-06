@@ -2,7 +2,13 @@
 
 Build scripts for HAProxy with QUIC
 
-## Get started
+**PROJECT STATUS**: Alpha, untested, probably unstable
+
+## Quickstart
+
+    docker run -it -v /path/to/haproxy.cfg:/etc/haproxy/haproxy.cfg:ro registry.gitlab.com/mangadex-pub/haproxy:2.6-bullseye
+
+## Build it
 
 You will need the following dependencies (Debian/Ubuntu packages given as example):
 

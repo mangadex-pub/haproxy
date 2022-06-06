@@ -38,3 +38,5 @@ RUN apt -q update && \
     apt -qq -y --purge autoremove && \
     apt -qq -y clean && \
     rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* /var/cache/* /var/log/*
+
+CMD [ "/usr/local/sbin/haproxy", "-W", "-db", "-f", "/etc/haproxy/haproxy.cfg" ]
