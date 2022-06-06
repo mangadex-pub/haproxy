@@ -1,5 +1,48 @@
 stages:
-  - build
+  - quictls
+  - haproxy
+
+.default-vars: &default-vars
+  TZ: "UTC"
+  GIT_DEPTH: "1"
+  QUICTLS_VERSION: "3.0.3"
+  QUICTLS_ARCHIVE: "$CI_PROJECT_DIR/quictls/quictls.tar.gz"
+
+quictls:build:
+  image: docker.io/library/debian:bullseye
+  stage: quictls
+  needs: [ ]
+  before_script:
+    - apt -qq update
+    - apt install -y --no-install-recommends -qq build-essential ca-certificates curl tar
+  script:
+    - cd quictls || exit 1
+    - make clone
+    - make dist
+    - make archive
+  variables:
+    <<: *default-vars
+    BUILDDIR: "$CI_PROJECT_DIR/quictls/build"
+    DESTDIR: "$CI_PROJECT_DIR/quictls/dist"
+  artifacts:
+    expire_in: 14 days
+    paths: [ "$QUICTLS_ARCHIVE" ]
+
+quictls:upload:
+  image: docker.io/curlimages/curl:latest
+  stage: quictls
+  needs:
+    - job: quictls:build
+      artifacts: true
+  script: |
+    set -eu
+    curl \
+      -H"JOB-TOKEN: $CI_JOB_TOKEN" \
+      --upload-file "$QUICTLS_ARCHIVE" \
+      "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/quictls/$QUICTLS_VERSION/quictls.tar.gz"
+  variables:
+    <<: *default-vars
+    GIT_STRATEGY: none
 
 .docker-build: &docker-build
   stage: build
