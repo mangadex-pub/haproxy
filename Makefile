@@ -14,4 +14,10 @@ deps/quictls:
 haproxy:
 	$(MAKE) -C "haproxy"
 
+clean:
+	$(MAKE) -C "deps/lua" clean
+	$(MAKE) -C "deps/pcre2" clean
+	$(MAKE) -C "deps/quictls" clean
+	$(MAKE) -C "haproxy" clean
+
 .PHONY: deps/* haproxy

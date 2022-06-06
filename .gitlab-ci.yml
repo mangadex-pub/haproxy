@@ -40,7 +40,9 @@ quictls:
 haproxy:
   <<: *build-job
   stage: haproxy
-  script: make -C haproxy
+  script:
+    - apt install -y --no-install-recommends -qq git
+    - make -C haproxy
   needs:
     - job: lua
       artifacts: true
