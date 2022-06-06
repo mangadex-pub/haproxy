@@ -67,10 +67,12 @@ docker:
     set -eu
 
     export HAPROXY_VER="2.6"
+    export DEBIAN_CODENAME="bullseye"
+
     export JOB_TIMESTAMP="$(date -D '%Y-%m-%dT%H:%M:%S%Z' -d "$CI_JOB_STARTED_AT" +'%Y%m%d-%H%M')"
 
     echo "Building image with"
-    echo "  -> haproxy version: 2.6"
+    echo "  -> haproxy version: $HAPROXY_VER"
     echo "  -> debian codename: $DEBIAN_CODENAME"
     echo "  -> git commit hash: $CI_COMMIT_SHORT_SHA"
     echo "  -> build timestamp: $JOB_TIMESTAMP"
