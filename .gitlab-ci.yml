@@ -52,4 +52,4 @@ haproxy:
       artifacts: true
   artifacts:
     expire_in: 14 days
-    paths: [ "haproxy/dist" ]
+    paths: [ "haproxy/dist", "haproxy/haproxy-*-dist.tar.gz" ]
