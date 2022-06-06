@@ -2,11 +2,13 @@
 
 Build scripts for HAProxy with QUIC
 
-**PROJECT STATUS**: Alpha, untested, probably unstable
+**PROJECT STATUS: Alpha, __not exhaustively tested yet__**
 
 ## Quickstart
 
-    docker run -it -v /path/to/haproxy.cfg:/etc/haproxy/haproxy.cfg:ro registry.gitlab.com/mangadex-pub/haproxy:2.6-bullseye
+    docker run -it \
+        -v /path/to/haproxy.cfg:/usr/local/etc/haproxy/haproxy.cfg:ro \
+        registry.gitlab.com/mangadex-pub/haproxy:2.6-bullseye
 
 ## Build it
 

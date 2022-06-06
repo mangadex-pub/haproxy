@@ -37,6 +37,7 @@ RUN apt -q update && \
       zlib1g && \
     apt -qq -y --purge autoremove && \
     apt -qq -y clean && \
-    rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* /var/cache/* /var/log/*
+    rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* /var/cache/* /var/log/* && \
+    groupadd "haproxy" && useradd -g "haproxy" "haproxy"
 
-CMD [ "/usr/local/sbin/haproxy", "-W", "-db", "-f", "/etc/haproxy/haproxy.cfg" ]
+CMD [ "/usr/local/sbin/haproxy", "-W", "-db", "-f", "/usr/local/etc/haproxy/haproxy.cfg" ]
