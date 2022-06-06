@@ -11,14 +11,12 @@ variables:
   needs: [ ]
   before_script:
     - apt -qq update
-    - apt install -y --no-install-recommends -qq build-essential ca-certificates curl tar
+    - apt install -y --no-install-recommends -qq build-essential ca-certificates cmake curl libreadline-dev libsystemd-dev tar
 
 lua:
   <<: *build-job
   stage: dependencies
-  script:
-    - apt -qq update && apt install -qq -y --no-install-recommends libreadline-dev
-    - make -C deps/lua
+  script: make -C deps/lua
   artifacts:
     expire_in: 14 days
     paths: [ "deps/lua/dist" ]
@@ -26,9 +24,7 @@ lua:
 pcre2:
   <<: *build-job
   stage: dependencies
-  script:
-    - apt -qq update && apt install -qq -y --no-install-recommends cmake
-    - make -C deps/pcre2
+  script: make -C deps/pcre2
   artifacts:
     expire_in: 14 days
     paths: [ "deps/pcre2/dist" ]
@@ -44,9 +40,7 @@ quictls:
 haproxy:
   <<: *build-job
   stage: haproxy
-  script:
-    - apt -qq update && apt install -qq -y --no-install-recommends git libsystemd-dev
-    - make -C haproxy
+  script: make -C haproxy
   needs:
     - job: lua
       artifacts: true

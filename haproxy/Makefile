@@ -25,7 +25,7 @@ HAPROXY_MAKE_ARGS := DEBUG="-DDEBUG_STRICT -DDEBUG_MEMORY_POOLS" \
                      USE_PCRE2_JIT=1 \
                      USE_STATIC_PCRE2=1 \
                      PCRE2_INC="../$(DEP_ROOT_PCRE2)/dist/include" \
-                     PCRE2_LIB="../$(DEP_ROOT_PCRE2)/dist/lib64" \
+                     PCRE2_LIB="../$(DEP_ROOT_PCRE2)/dist/lib" \
                      USE_PROMEX=1 \
                      USE_QUIC=1 \
                      USE_SLZ=1 \
