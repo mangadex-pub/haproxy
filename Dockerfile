@@ -1,16 +1,16 @@
 FROM docker.io/library/debian:bullseye as base
 
-# This stage is mostly to import and unpack the dists
+# This stage is mostly to import and unpack the dists in a docker-friendly fashion
 FROM base as dists
 
 RUN apt -qq update && apt install -qq -y bzip2
 
 WORKDIR /tmp/quictls
-COPY ./deps/quictls/quictls-OpenSSL_1_1_1o-dist.tar.gz /tmp/quictls/quictls.tar.gz
+COPY ./deps/quictls/quictls-dist.tar.gz /tmp/quictls/quictls.tar.gz
 RUN ls -alh && tar xf quictls.tar.gz
 
 WORKDIR /tmp/haproxy
-COPY ./haproxy/haproxy-2.6-dist.tar.gz /tmp/haproxy/haproxy.tar.gz
+COPY ./haproxy/haproxy-dist.tar.gz /tmp/haproxy/haproxy.tar.gz
 RUN ls -alh && tar xf haproxy.tar.gz
 
 FROM base
