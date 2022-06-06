@@ -6,9 +6,31 @@ Build scripts for HAProxy with QUIC
 
 ## Quickstart
 
-    docker run -it \
-        -v /path/to/haproxy.cfg:/usr/local/etc/haproxy/haproxy.cfg:ro \
-        registry.gitlab.com/mangadex-pub/haproxy:2.6-bullseye
+**NOTE FOR QUIC:** docker and docker-compose require explicit UDP protocol port mapping, otherwise they assume only-TCP. See below.
+
+```shell
+docker run -it \
+    -v /path/to/haproxy.cfg:/usr/local/etc/haproxy/haproxy.cfg:ro \
+    -p "80:80" \
+    -p "443:443/tcp" \
+    -p "443:443/udp" \
+    registry.gitlab.com/mangadex-pub/haproxy:2.6-bullseye
+```
+
+Here's a sample configuration (requires you to figure out the certificate) to test HTTP/3.0 support. The first connection should be over HTTP/1.1 or HTTP/2, and
+after a few refreshes it should be over HTTP/3.
+
+See [Announcing HAProxy 2.6](https://www.haproxy.com/blog/announcing-haproxy-2-6/) for more info.
+
+```haproxy
+...
+frontend https
+    bind       :443 ssl crt /usr/local/etc/haproxy/cert.pem alpn h2,http/1.1
+    bind quic4@:443 ssl crt /usr/local/etc/haproxy/cert.pem alpn h3
+    
+    http-after-response set-header alt-svc 'h3=":443"; ma=86400'
+    http-request return status 200 content-type text/plain lf-string "Connected via %HV"
+```
 
 ## Build it
 
