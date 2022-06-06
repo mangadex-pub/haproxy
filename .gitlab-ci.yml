@@ -131,7 +131,7 @@ pkg:quictls:
       echo "Git reference $CI_COMMIT_REF_NAME is not the default branch. Setting version to $PKG_VER"
     fi
     
-    curl \
+    curl -sS \
       -H"JOB-TOKEN: $CI_JOB_TOKEN" \
       --upload-file "deps/quictls/quictls-dist.tar.gz" \
       "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/quictls/$PKG_VER/quictls.tar.gz"
@@ -153,7 +153,7 @@ pkg:haproxy:
       echo "Git reference $CI_COMMIT_REF_NAME is not the default branch. Setting version to $PKG_VER"
     fi
     
-    curl \
+    curl -sS \
       -H"JOB-TOKEN: $CI_JOB_TOKEN" \
       --upload-file "haproxy/haproxy-dist.tar.gz" \
       "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/haproxy/$PKG_VER/haproxy.tar.gz"
