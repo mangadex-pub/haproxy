@@ -11,7 +11,7 @@ variables:
   needs: [ ]
   before_script:
     - apt -qq update
-    - apt install -y --no-install-recommends -qq build-essential ca-certificates curl git tar
+    - apt install -y --no-install-recommends -qq build-essential ca-certificates cmake curl git libreadline-dev tar
 
 lua:
   <<: *build-job
