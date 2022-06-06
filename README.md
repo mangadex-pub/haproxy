@@ -15,10 +15,10 @@ You will need the following dependencies (Debian/Ubuntu packages given as exampl
 
 Then just run `make` and the build should pass.
 
-You then need to unpack `deps/quictls/quictls-OpenSSL_1_1_1o-dist.tar.gz` so
-that it expands in `/opt/quictls`, which is where HAProxy will look for OpenSSL.
+First, `deps/quictls/quictls-dist.tar.gz` should be expanded so it matches the host's
+`/opt/quictls` when expanding, as it is where HAProxy will look for OpenSSL.
 
-And finally you can expand `haproxy/haproxy-2.6-dist.tar.gz` wherever you please.
+And finally `haproxy/haproxy-dist.tar.gz` can be expanded anywhere.
 
 ## Should I use this repo?
 
