@@ -6,7 +6,7 @@ PCRE2_DESTDIR = dist
 PCRE2_DESTDIR_ABS = $(shell realpath $(PCRE2_DESTDIR))
 PCRE2_ARCHIVE = pcre2-dist.tar.gz
 
-all: build dist
+all: build $(PCRE2_DESTDIR) $(PCRE2_ARCHIVE)
 
 $(PCRE2_BUILDIR):
 	@if ! [ -d "$(PCRE2_BUILDIR)" ]; then mkdir -v "$(PCRE2_BUILDIR)"; fi
