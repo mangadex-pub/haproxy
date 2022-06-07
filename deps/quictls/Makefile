@@ -6,16 +6,16 @@ QUICTLS_DESTDIR = dist
 QUICTLS_DESTDIR_ABS = $(shell realpath $(QUICTLS_DESTDIR))
 QUICTLS_ARCHIVE = quictls-dist.tar.gz
 
-all: $(QUICTLS_DESTDIR) $(QUICTLS_ARCHIVE)
+all: build $(QUICTLS_DESTDIR) $(QUICTLS_ARCHIVE)
 
-$(QUICTLS_BUILDIR):
+$(QUICTLS_TARBALL):
+	curl -sfS -o "$(QUICTLS_TARBALL)" "$(QUICTLS_SOURCES)"
+
+$(QUICTLS_BUILDIR): $(QUICTLS_TARBALL)
 	@if ! [ -d "$(QUICTLS_BUILDIR)" ]; then mkdir -v "$(QUICTLS_BUILDIR)"; fi
-
-$(QUICTLS_BUILDIR)/quictls-$(QUICTLS_VERSION).tar.gz: $(QUICTLS_BUILDIR)
-	curl -sSL -o "$(QUICTLS_TARBALL)" "$(QUICTLS_SOURCES)"
-
-build: $(QUICTLS_BUILDIR)/quictls-$(QUICTLS_VERSION).tar.gz
 	tar -C $(QUICTLS_BUILDIR) --strip-components=1 -xf "$(QUICTLS_TARBALL)"
+
+build: $(QUICTLS_BUILDIR)
 	cd "$(QUICTLS_BUILDIR)" && ./config --prefix="/opt/quictls" --openssldir="/opt/quictls" no-shared
 	$(MAKE) -C "$(QUICTLS_BUILDIR)" -j "$(shell nproc)"
 	ldd "$(QUICTLS_BUILDIR)/apps/openssl" || true
@@ -30,9 +30,9 @@ $(QUICTLS_ARCHIVE): $(QUICTLS_DESTDIR)
 	tar -C "$(QUICTLS_DESTDIR)" -cjf "$(QUICTLS_ARCHIVE)" "opt"
 
 clean:
+	rm -fv "$(QUICTLS_TARBALL)"
 	rm -rf "$(QUICTLS_BUILDIR)"
 	rm -rf "$(QUICTLS_DESTDIR)"
-	rm -rf "$(QUICTLS_TARBALL)"
 	rm -fv "$(QUICTLS_ARCHIVE)"
 
 .PHONY: clean build

@@ -1,6 +1,9 @@
-HAPROXY_VERSION = 2.6
-HAPROXY_REPOSRC = http://git.haproxy.org/git/haproxy-$(HAPROXY_VERSION).git
+HAPROXY_VERSION = 2.6.0
+HAPROXY_VERSION_TAG = v$(HAPROXY_VERSION)
+HAPROXY_VERSION_MINOR = $(shell echo "$(HAPROXY_VERSION)" | cut -d'.' -f1-2)
 
+HAPROXY_SOURCES = https://git.haproxy.org/?p=haproxy-$(HAPROXY_VERSION_MINOR).git;a=snapshot;h=$(HAPROXY_VERSION_TAG);sf=tgz
+HAPROXY_TARBALL = haproxy-$(HAPROXY_VERSION).tar.gz
 HAPROXY_BUILDIR = src
 HAPROXY_DESTDIR = dist
 HAPROXY_DESTDIR_ABS = $(shell realpath $(HAPROXY_DESTDIR))
@@ -41,16 +44,20 @@ HAPROXY_MAKE_ARGS := DEBUG="-DDEBUG_STRICT -DDEBUG_MEMORY_POOLS" \
                      USE_TFO=1 \
                      USE_SYSTEMD=1
 
-all: build $(HAPROXY_DESTDIR) $(HAPROXY_ARCHIVE)
+all: dist-bin
 
-$(HAPROXY_BUILDIR):
-	git clone "$(HAPROXY_REPOSRC)" $(HAPROXY_BUILDIR)
-	git -C "$(HAPROXY_BUILDIR)" checkout "master"
+dist-bin: build $(HAPROXY_DESTDIR) $(HAPROXY_ARCHIVE)
+
+$(HAPROXY_TARBALL):
+	curl -sfS -o "$(HAPROXY_TARBALL)" "$(HAPROXY_SOURCES)"
+
+$(HAPROXY_BUILDIR): $(HAPROXY_TARBALL)
+	@if ! [ -d "$(HAPROXY_BUILDIR)" ]; then mkdir -v "$(HAPROXY_BUILDIR)"; fi
+	tar -C "$(HAPROXY_BUILDIR)" --strip-components=1 -xf "$(HAPROXY_TARBALL)"
 
 build: $(HAPROXY_BUILDIR)
-	make -C "$(HAPROXY_BUILDIR)" -j "$(shell nproc)" clean
-	make -C "$(HAPROXY_BUILDIR)" -j "$(shell nproc)" $(HAPROXY_MAKE_ARGS) opts
-	make -C "$(HAPROXY_BUILDIR)" -j "$(shell nproc)" $(HAPROXY_MAKE_ARGS)
+	$(MAKE) -C "$(HAPROXY_BUILDIR)" -j "$(shell nproc)" $(HAPROXY_MAKE_ARGS) opts
+	$(MAKE) -C "$(HAPROXY_BUILDIR)" -j "$(shell nproc)" $(HAPROXY_MAKE_ARGS)
 
 $(HAPROXY_DESTDIR):
 	@if ! [ -d "$(HAPROXY_DESTDIR)" ]; then mkdir -v "$(HAPROXY_DESTDIR)"; fi
@@ -60,8 +67,9 @@ $(HAPROXY_ARCHIVE): $(HAPROXY_DESTDIR)
 	tar -C "$(HAPROXY_DESTDIR)" -cjf "$(HAPROXY_ARCHIVE)" "usr"
 
 clean:
+	rm -fv "$(HAPROXY_TARBALL)"
 	rm -rf "$(HAPROXY_BUILDIR)"
 	rm -rf "$(HAPROXY_DESTDIR)"
 	rm -fv "$(HAPROXY_ARCHIVE)"
 
-.PHONY: clean build $(HAPROXY_DESTDIR)
+.PHONY: clean build

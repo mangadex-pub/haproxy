@@ -2,12 +2,11 @@
 
 Build scripts for HAProxy with QUIC
 
-**PROJECT STATUS: Alpha, __not exhaustively tested yet__**
+**PROJECT STATUS: ALPHA**. Seriously, it has __not__ been well tested yet
+
+[__TOC__]
 
 ## Quickstart
-
-**NOTE FOR QUIC:** docker and docker-compose require explicit UDP protocol port
-mapping, otherwise they assume only-TCP. See below.
 
 ```shell
 docker run -it \
@@ -17,6 +16,11 @@ docker run -it \
     -p "443:443/udp" \
     registry.gitlab.com/mangadex-pub/haproxy:2.6-bullseye
 ```
+
+## HTTP/3 and QUIC
+
+**NOTE FOR QUIC:** docker and docker-compose require explicit UDP protocol port
+mapping, otherwise they assume only-TCP. See the explicit port-mapping above.
 
 Here's a sample configuration (requires you to figure out the certificate) to
 test HTTP/3.0 support. The first connection should be over HTTP/1.1 or HTTP/2,

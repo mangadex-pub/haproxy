@@ -124,14 +124,14 @@ pkg:quictls:
       artifacts: true
   script: |
     set -eu
-    
+
     PKG_VER=1.1.1o
     if [ "$CI_COMMIT_REF_NAME" != "$CI_DEFAULT_BRANCH" ]; then
       export PKG_VER="branch-$CI_COMMIT_REF_SLUG"
       echo "Git reference $CI_COMMIT_REF_NAME is not the default branch. Setting version to $PKG_VER"
     fi
-    
-    curl -sS \
+
+    curl -fsSL \
       -H"JOB-TOKEN: $CI_JOB_TOKEN" \
       --upload-file "deps/quictls/quictls-dist.tar.gz" \
       "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/quictls/$PKG_VER/quictls.tar.gz"
@@ -146,14 +146,14 @@ pkg:haproxy:
       artifacts: true
   script: |
     set -eu
-    
+
     PKG_VER=2.6.0
     if [ "$CI_COMMIT_REF_NAME" != "$CI_DEFAULT_BRANCH" ]; then
       export PKG_VER="branch-$CI_COMMIT_REF_SLUG"
       echo "Git reference $CI_COMMIT_REF_NAME is not the default branch. Setting version to $PKG_VER"
     fi
-    
-    curl -sS \
+
+    curl -fsSL \
       -H"JOB-TOKEN: $CI_JOB_TOKEN" \
       --upload-file "haproxy/haproxy-dist.tar.gz" \
       "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/haproxy/$PKG_VER/haproxy.tar.gz"
