@@ -4,7 +4,7 @@ Build scripts for HAProxy with QUIC
 
 **PROJECT STATUS: ALPHA**. Seriously, it has __not__ been well tested yet
 
-[__TOC__]
+[[_TOC_]]
 
 ## Quickstart
 
