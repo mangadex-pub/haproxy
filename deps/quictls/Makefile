@@ -1,6 +1,10 @@
-QUICTLS_VERSION = OpenSSL_1_1_1o
-QUICTLS_SOURCES = https://codeload.github.com/quictls/openssl/tar.gz/$(QUICTLS_VERSION)+quic
-QUICTLS_TARBALL = quictls-$(QUICTLS_VERSION).tar.gz
+OPENSSL_VERSION = 1.1.1o
+BUILD_VERSION_REPOSHA = $(shell git rev-parse --short HEAD)
+QUICTLS_BRANCH = OpenSSL_$(subst .,_,$(OPENSSL_VERSION))
+QUICTLS_BUILD_VERSION = $(OPENSSL_VERSION)+quic-mangadex-$(BUILD_VERSION_REPOSHA)
+
+QUICTLS_SOURCES = https://codeload.github.com/quictls/openssl/tar.gz/$(QUICTLS_BRANCH)+quic
+QUICTLS_TARBALL = quictls-$(OPENSSL_VERSION).tar.gz
 QUICTLS_BUILDIR = src
 QUICTLS_DESTDIR = dist
 QUICTLS_DESTDIR_ABS = $(shell realpath $(QUICTLS_DESTDIR))
@@ -16,8 +20,9 @@ $(QUICTLS_BUILDIR): $(QUICTLS_TARBALL)
 	tar -C $(QUICTLS_BUILDIR) --strip-components=1 -xf "$(QUICTLS_TARBALL)"
 
 build: $(QUICTLS_BUILDIR)
+	cd "$(QUICTLS_BUILDIR)" && sed -i 's/^# define OPENSSL_VERSION_TEXT.*$\/# define OPENSSL_VERSION_TEXT "OpenSSL $(subst +,\+,$(QUICTLS_BUILD_VERSION)) $(shell date -u +'%e %b %Y')"/g' "include/openssl/opensslv.h"
 	cd "$(QUICTLS_BUILDIR)" && ./config --prefix="/opt/quictls" --openssldir="/opt/quictls" no-shared
-	$(MAKE) -C "$(QUICTLS_BUILDIR)" -j "$(shell nproc)"
+	$(MAKE) -C "$(QUICTLS_BUILDIR)" -j "$(shell nproc)" VERSION=$(OPENSSL_VERSION)+quic-mangadex-$(BUILD_VERSION_REPOSHA)
 	ldd "$(QUICTLS_BUILDIR)/apps/openssl" || true
 	"$(QUICTLS_BUILDIR)/apps/openssl" version
 
