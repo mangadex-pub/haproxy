@@ -163,12 +163,27 @@ pkg:haproxy:
 deb:haproxy:
   <<: *build-job
   stage: build
+  only:
+    refs:
+      - main
   script:
     - apt install -y --no-install-recommends -qq bzip2 devscripts debhelper git pkg-config
     - mkdir deps/lua/dist     && tar -C deps/lua/dist     -xf deps/lua/lua-dist.tar.gz
     - mkdir deps/pcre2/dist   && tar -C deps/pcre2/dist   -xf deps/pcre2/pcre2-dist.tar.gz
     - mkdir deps/quictls/dist && tar -C deps/quictls/dist -xf deps/quictls/quictls-dist.tar.gz
-    - make -C haproxy
+    - make -C haproxy dist-deb
+    - |
+      set -euo pipefail
+      DEB_VERSION="$(cat haproxy/*.dsc | grep -E '^Version:' | cut -d' ' -f2-)"
+      echo "Publishing Debian package version ${DEB_VERSION}"
+      for artifact in haproxy/haproxy*.deb; do
+        artifact_filename=$(basename "${artifact}")
+        echo "Uploading to haproxy-debian@${DEB_VERSION} - ${artifact_filename} ..."
+        curl -fsSL -H"JOB-TOKEN: $CI_JOB_TOKEN" \
+          --upload-file "${artifact}" \
+          "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/haproxy-debian/${DEB_VERSION}/${artifact_filename}"
+        echo "OK"
+      done
   needs:
     - job: lua
       artifacts: true
@@ -176,3 +191,6 @@ deb:haproxy:
       artifacts: true
     - job: quictls
       artifacts: true
+  artifacts:
+    expire_in: 7 days
+    paths: [ "haproxy/haproxy*" ]
