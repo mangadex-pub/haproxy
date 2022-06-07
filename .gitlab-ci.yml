@@ -174,14 +174,18 @@ deb:haproxy:
     - make -C haproxy dist-deb
     - |
       set -euo pipefail
+
       DEB_VERSION="$(cat haproxy/*.dsc | grep -E '^Version:' | cut -d' ' -f2-)"
-      echo "Publishing Debian package version ${DEB_VERSION}"
+      GITLAB_IS_LAME_DEB_VERSION=$(echo "${DEB_VERSION}" | tr '~' '-')
+      echo "Publishing Debian package version ${DEB_VERSION} to haproxy-debian@${GITLAB_IS_LAME_DEB_VERSION}"
+
       for artifact in haproxy/haproxy*.deb; do
         artifact_filename=$(basename "${artifact}")
-        echo "Uploading to haproxy-debian@${DEB_VERSION} - ${artifact_filename} ..."
+        gitlab_is_lame_artifact_filename=$(echo "${artifact_filename}" | tr '~' '-' | tr '+' '-')
+        echo "Uploading to haproxy-debian@${DEB_VERSION}... ${artifact_filename} -> ${gitlab_is_lame_artifact_filename}"
         curl -fsSL -H"JOB-TOKEN: $CI_JOB_TOKEN" \
           --upload-file "${artifact}" \
-          "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/haproxy-debian/${DEB_VERSION}/${artifact_filename}"
+          "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/haproxy-debian/${GITLAB_IS_LAME_DEB_VERSION}/${gitlab_is_lame_artifact_filename}"
         echo "OK"
       done
   needs:
