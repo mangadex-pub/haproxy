@@ -1,0 +1,25 @@
+Source: haproxy
+Section: net
+Priority: optional
+Maintainer: MangaDex <opensource@mangadex.org>
+Uploaders: Tristan <tristan@mangadex.org>
+Standards-Version: 4.4.1
+Build-Depends: debhelper-compat (= 12),
+               libsystemd-dev [linux-any],
+               pkg-config
+Homepage: http://www.haproxy.org/
+Vcs-Git: https://gitlab.com/mangadex-pub/haproxy.git
+Vcs-Browser: https://gitlab.com/mangadex-pub/haproxy
+
+Package: haproxy
+Architecture: any
+Depends: ${perl:Depends}, ${shlibs:Depends}, ${misc:Depends}, adduser, lsb-base (>= 3.0-6)
+Pre-Depends: dpkg (>= 1.17.14), ${misc:Pre-Depends}
+Description: fast and reliable load balancing reverse proxy
+ HAProxy is a TCP/HTTP reverse proxy which is particularly suited for high
+ availability environments. It features connection persistence through HTTP
+ cookies, load balancing, header addition, modification, deletion both ways. It
+ has request blocking capabilities and provides interface to display server
+ status.
+ This package specifically adds the QuicTLS fork of OpenSSL and enables QUIC
+ frontend support in HAProxy

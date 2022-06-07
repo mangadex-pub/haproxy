@@ -114,6 +114,15 @@ Then we want HAProxy to not use the system's OpenSSL but rather our QuicTLS
 build, which
 it will look for at the `/opt/quictls` prefix.
 
+## About Debian packaging
+
+The content of [haproxy/debian](haproxy/debian) is a slightly modified version
+of the Debian HAProxy Team's work and essentially all credits wrt that is due to
+them.
+
+It is sourced
+from [haproxy-team/haproxy:experimental-2.6](https://salsa.debian.org/haproxy-team/haproxy/-/tree/experimental-2.6)
+
 ## Notes
 
 Since we're building our own binaries, we also increase MAX_SESS_STKCTR to 5

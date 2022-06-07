@@ -1,3 +1,10 @@
 **/dist
 **/src
+**/*.build
+**/*.dsc
 **/*.tar.gz
+**/*.xz
+
+# deb build artifacts
+haproxy/haproxy_*~*
+haproxy/haproxy-dbg*_*~*
