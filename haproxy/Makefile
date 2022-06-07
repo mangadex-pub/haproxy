@@ -20,7 +20,7 @@ MAKEARGS = DEBUG="-DDEBUG_STRICT -DDEBUG_MEMORY_POOLS" \
            IGNOREGIT=true \
            LDFLAGS="-Wl,-rpath,/opt/quictls/lib" \
            TARGET="linux-glibc" \
-           EXTRAVERSION="+mangadex/$(BUILD_VERSION_REPOSHA)" \
+           EXTRAVERSION="+mangadex-$(BUILD_VERSION_REPOSHA)" \
            VERDATE="$(shell date -u -I'minutes')" \
            USE_DL=1 \
            USE_GETADDRINFO=1 \
@@ -74,6 +74,8 @@ $(HAPROXY_DEBORIG): $(HAPROXY_TARBALL)
 build-deb: $(HAPROXY_DEBORIG) $(HAPROXY_BUILDIR)
 	cp -rf debian $(HAPROXY_BUILDIR)/
 	cd $(HAPROXY_BUILDIR) && debuild -us -uc
+	rm -fv $(HAPROXY_TARBALL)
+	rm -rf $(HAPROXY_BUILDIR)
 
 clean:
 	rm -fv "$(HAPROXY_TARBALL)"

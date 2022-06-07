@@ -11,7 +11,7 @@ MAKEARGS = DEBUG="-DDEBUG_STRICT -DDEBUG_MEMORY_POOLS" \
            IGNOREGIT=true \
            LDFLAGS="-Wl,-rpath,/opt/quictls/lib" \
            TARGET="linux-glibc" \
-           EXTRAVERSION="+mangadex/$(BUILD_VERSION_REPOSHA)" \
+           EXTRAVERSION="+mangadex-$(BUILD_VERSION_REPOSHA)" \
            VERDATE="$(shell date -u -I'minutes')" \
            USE_DL=1 \
            USE_GETADDRINFO=1 \
