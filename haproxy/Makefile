@@ -10,10 +10,13 @@ DEP_ROOT_LUA = ../deps/lua
 DEP_ROOT_PCRE2 = ../deps/pcre2
 DEP_ROOT_QUICTLS = ../deps/quictls
 
+BUILD_VERSION_REPOSHA = $(shell git rev-parse --short HEAD)
+
 HAPROXY_MAKE_ARGS := DEBUG="-DDEBUG_STRICT -DDEBUG_MEMORY_POOLS" \
+					 DEFINE="-DMAX_SESS_STKCTR=5" \
                      LDFLAGS="-Wl,-rpath,/opt/quictls/lib" \
                      TARGET="linux-glibc" \
-                     EXTRAVERSION="+mangadex" \
+                     EXTRAVERSION="+mangadex/$(BUILD_VERSION_REPOSHA)" \
                      VERDATE="$$(date -u -I'minutes')" \
                      USE_DL=1 \
                      USE_GETADDRINFO=1 \
@@ -45,6 +48,7 @@ $(HAPROXY_BUILDIR):
 	git -C "$(HAPROXY_BUILDIR)" checkout "master"
 
 build: $(HAPROXY_BUILDIR)
+	make -C "$(HAPROXY_BUILDIR)" -j "$(shell nproc)" clean
 	make -C "$(HAPROXY_BUILDIR)" -j "$(shell nproc)" $(HAPROXY_MAKE_ARGS) opts
 	make -C "$(HAPROXY_BUILDIR)" -j "$(shell nproc)" $(HAPROXY_MAKE_ARGS)
 
