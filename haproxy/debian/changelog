@@ -1,3 +1,9 @@
+haproxy (2.6.0-a1efc04-1~mangadex+1) experimental; urgency=medium
+
+  * Upgrade to OpenSSL 3.0.3 (QuicTLS 3.0.3+quic)
+
+ -- MangaDex <opensource@mangadex.org>  Tue, 11 Jun 2022 08:30:00 +0200
+
 haproxy (2.6.0-100~mangadex+1) experimental; urgency=medium
 
   * Initial release. Packaging version is set to N+100 to ensure it's higher priority
