@@ -163,9 +163,6 @@ pkg:haproxy:
 deb:haproxy:
   <<: *build-job
   stage: build
-  only:
-    refs:
-      - main
   script:
     - apt install -y --no-install-recommends -qq bzip2 devscripts debhelper git pkg-config
     - mkdir deps/lua/dist     && tar -C deps/lua/dist     -xf deps/lua/lua-dist.tar.gz
