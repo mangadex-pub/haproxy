@@ -175,7 +175,14 @@ deb:haproxy:
     - |
       set -euo pipefail
 
+      PACKAGE_NAME="haproxy-debian"
       DEB_VERSION="$(cat haproxy/*.dsc | grep -E '^Version:' | cut -d' ' -f2-)"
+      if [ "$CI_COMMIT_REF_NAME" != "$CI_DEFAULT_BRANCH" ]; then
+        export PACKAGE_NAME="haproxy-debian-branches"
+        export DEB_VERSION="branch-$CI_COMMIT_REF_SLUG"
+        echo "Git reference $CI_COMMIT_REF_NAME is not the default branch. Setting coordinates to $PACKAGE_NAME/$DEB_VERSION"
+      fi
+
       GITLAB_IS_LAME_DEB_VERSION=$(echo "${DEB_VERSION}" | tr '~' '-')
       echo "Publishing Debian package version ${DEB_VERSION} to haproxy-debian@${GITLAB_IS_LAME_DEB_VERSION}"
 
@@ -185,7 +192,7 @@ deb:haproxy:
         echo "Uploading to haproxy-debian@${DEB_VERSION}... ${artifact_filename} -> ${gitlab_is_lame_artifact_filename}"
         curl -fsSL -H"JOB-TOKEN: $CI_JOB_TOKEN" \
           --upload-file "${artifact}" \
-          "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/haproxy-debian/${GITLAB_IS_LAME_DEB_VERSION}/${gitlab_is_lame_artifact_filename}"
+          "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/${PACKAGE_NAME}/${GITLAB_IS_LAME_DEB_VERSION}/${gitlab_is_lame_artifact_filename}"
         echo "OK"
       done
   needs:
