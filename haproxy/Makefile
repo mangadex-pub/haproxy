@@ -15,6 +15,10 @@ DEP_DIST_ROOT_QUICTLS = $(shell realpath ../deps/quictls/dist)
 
 BUILD_VERSION_REPOSHA = $(shell git rev-parse --short HEAD)
 
+BUILD_PATCHES_DIR = $(shell realpath patches)
+BUILD_PATCHES_FILES = $(shell ls -1 $(BUILD_PATCHES_DIR))
+DEBIAN_PATCHES_DIR = "$(HAPROXY_BUILDIR)/debian/patches"
+
 MAKEARGS = DEBUG="-DDEBUG_STRICT -DDEBUG_MEMORY_POOLS" \
            DEFINE="-DMAX_SESS_STKCTR=5" \
            IGNOREGIT=true \
@@ -57,7 +61,10 @@ $(HAPROXY_BUILDIR): $(HAPROXY_TARBALL)
 	@if ! [ -d "$(HAPROXY_BUILDIR)" ]; then mkdir -v "$(HAPROXY_BUILDIR)"; fi
 	tar -C "$(HAPROXY_BUILDIR)" --strip-components=1 -xf "$(HAPROXY_TARBALL)"
 
-build: $(HAPROXY_BUILDIR)
+patches: $(HAPROXY_BUILDIR)
+	cd "$(HAPROXY_BUILDIR)" && for patch in $(BUILD_PATCHES_FILES); do patch -p1 --forward < "$(BUILD_PATCHES_DIR)/$${patch}" || true; done
+
+build: $(HAPROXY_BUILDIR) patches
 	$(MAKE) -C "$(HAPROXY_BUILDIR)" -j "$(shell nproc)" $(MAKEARGS) opts
 	$(MAKE) -C "$(HAPROXY_BUILDIR)" -j "$(shell nproc)" $(MAKEARGS)
 
@@ -73,6 +80,8 @@ $(HAPROXY_DEBORIG): $(HAPROXY_TARBALL)
 
 build-deb: $(HAPROXY_DEBORIG) $(HAPROXY_BUILDIR)
 	cp -rf debian $(HAPROXY_BUILDIR)/
+	for patch in $(BUILD_PATCHES_FILES); do cp -v "$(BUILD_PATCHES_DIR)/$${patch}" "$(DEBIAN_PATCHES_DIR)/$${patch}"; done
+	for patch in $(BUILD_PATCHES_FILES); do echo "$${patch}" >> "$(DEBIAN_PATCHES_DIR)/series"; done
 	cd $(HAPROXY_BUILDIR) && debuild -us -uc
 	rm -fv $(HAPROXY_TARBALL)
 	rm -rf $(HAPROXY_BUILDIR)
@@ -86,4 +95,4 @@ clean:
 	rm -fv "haproxy_$(HAPROXY_VERSION)"*
 	rm -fv "haproxy-dbgsym_$(HAPROXY_VERSION)"*
 
-.PHONY: clean build
+.PHONY: clean build patches

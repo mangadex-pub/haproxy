@@ -12,7 +12,7 @@ variables:
   needs: [ ]
   before_script:
     - apt -qq update
-    - apt install -y --no-install-recommends -qq build-essential ca-certificates cmake curl libreadline-dev libsystemd-dev tar
+    - apt install -y --no-install-recommends -qq build-essential ca-certificates cmake curl git libreadline-dev libsystemd-dev tar
 
 lua:
   <<: *build-job
@@ -164,7 +164,7 @@ deb:haproxy:
   <<: *build-job
   stage: build
   script:
-    - apt install -y --no-install-recommends -qq bzip2 devscripts debhelper git pkg-config
+    - apt install -y --no-install-recommends -qq bzip2 devscripts debhelper pkg-config
     - mkdir deps/lua/dist     && tar -C deps/lua/dist     -xf deps/lua/lua-dist.tar.gz
     - mkdir deps/pcre2/dist   && tar -C deps/pcre2/dist   -xf deps/pcre2/pcre2-dist.tar.gz
     - mkdir deps/quictls/dist && tar -C deps/quictls/dist -xf deps/quictls/quictls-dist.tar.gz
