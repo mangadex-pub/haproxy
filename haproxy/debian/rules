@@ -6,8 +6,8 @@ DEP_DIST_ROOT_QUICTLS = $(shell realpath ../../deps/quictls/dist)
 
 BUILD_VERSION_REPOSHA = $(shell git rev-parse --short HEAD)
 
-MAKEARGS = DEBUG="-DDEBUG_STRICT -DDEBUG_MEMORY_POOLS" \
-           DEFINE="-DMAX_SESS_STKCTR=5" \
+MAKEARGS = DEBUG="-DDEBUG_MEMORY_POOLS -DDEBUG_STRICT" \
+           DEFINE="-DMAX_SESS_STKCTR=5 -DOPENSSL_API_COMPAT=0x10100000L -DOPENSSL_NO_DEPRECATED" \
            IGNOREGIT=true \
            LDFLAGS="-Wl,-rpath,/opt/quictls/lib" \
            TARGET="linux-glibc" \

@@ -8,7 +8,7 @@ variables:
   GIT_DEPTH: "1"
 
 .build-job: &build-job
-  image: docker.io/library/debian:buster
+  image: registry.gitlab.com/mangadex-pub/debuilder/buster:main
   needs: [ ]
   before_script:
     - apt -qq update
@@ -69,25 +69,27 @@ docker:
   script: |
     set -eu
 
-    export HAPROXY_VER="2.6"
     export DEBIAN_CODENAME="bullseye"
-
     export JOB_TIMESTAMP="$(date -D '%Y-%m-%dT%H:%M:%S%Z' -d "$CI_JOB_STARTED_AT" +'%Y%m%d-%H%M')"
 
+    export HAPROXY_VERSION="$(cat haproxy/Makefile | head -n1 | cut -d'=' -f2 | tr -d ' ')"
+    export HAPROXY_SHORTVER="$(echo "$(HAPROXY_VERSION)" | cut -d'.' -f1-2)"
     echo "Building image with"
-    echo "  -> haproxy version: $HAPROXY_VER"
+    echo "  -> haproxy version: $HAPROXY_VERSION ($HAPROXY_SHORTVER)"
     echo "  -> debian codename: $DEBIAN_CODENAME"
     echo "  -> git commit hash: $CI_COMMIT_SHORT_SHA"
     echo "  -> build timestamp: $JOB_TIMESTAMP"
 
-    export IMAGE_TAG_UNIQUE="$HAPROXY_VER-$DEBIAN_CODENAME-$CI_COMMIT_SHORT_SHA-$JOB_TIMESTAMP"
+    export IMAGE_TAG_UNIQUE="$HAPROXY_VERSION-$DEBIAN_CODENAME-$CI_COMMIT_SHORT_SHA-$JOB_TIMESTAMP"
     export IMAGE_TAG_ROLLING_COMMIT="git-$CI_COMMIT_SHORT_SHA"
     export IMAGE_TAG_ROLLING_GITREF="$CI_COMMIT_REF_SLUG"
 
-    export IMAGE_TAG_VERSIONS="$HAPROXY_VER-$DEBIAN_CODENAME"
+    export IMAGE_TAG_VERSIONS="$HAPROXY_VERSION-$DEBIAN_CODENAME"
+    export IMAGE_TAG_SHORTVER="$HAPROXY_SHORTVER-$DEBIAN_CODENAME"
     if [ "$CI_COMMIT_REF_NAME" != "$CI_DEFAULT_BRANCH" ]; then
       export IMAGE_TAG_VERSIONS="branch-$CI_COMMIT_REF_SLUG-$IMAGE_TAG_VERSIONS"
-      echo "Git reference $CI_COMMIT_REF_NAME is not the default branch. Rewriting git rolling tag as $IMAGE_TAG_VERSIONS"
+      export IMAGE_TAG_SHORTVER="branch-$CI_COMMIT_REF_SLUG-$IMAGE_TAG_SHORTVER"
+      echo "Git reference $CI_COMMIT_REF_NAME is not the default branch. Rewriting git rolling tag as $IMAGE_TAG_VERSIONS / $IMAGE_TAG_SHORTVER"
     fi
 
     echo "***"
@@ -96,6 +98,7 @@ docker:
     echo "- $CI_REGISTRY_IMAGE:$IMAGE_TAG_ROLLING_COMMIT"
     echo "- $CI_REGISTRY_IMAGE:$IMAGE_TAG_ROLLING_GITREF"
     echo "- $CI_REGISTRY_IMAGE:$IMAGE_TAG_VERSIONS"
+    echo "- $CI_REGISTRY_IMAGE:$IMAGE_TAG_SHORTVER"
     echo "***"
 
     (
@@ -108,6 +111,7 @@ docker:
         --destination "$CI_REGISTRY_IMAGE:$IMAGE_TAG_ROLLING_COMMIT" \
         --destination "$CI_REGISTRY_IMAGE:$IMAGE_TAG_ROLLING_GITREF" \
         --destination "$CI_REGISTRY_IMAGE:$IMAGE_TAG_VERSIONS" \
+        --destination "$CI_REGISTRY_IMAGE:$IMAGE_TAG_SHORTVER" \
         --single-snapshot
     )
   needs:
@@ -125,7 +129,7 @@ pkg:quictls:
   script: |
     set -eu
 
-    PKG_VER=1.1.1o
+    PKG_VER="$(cat deps/quictls/Makefile | head -n1 | cut -d'=' -f2 | tr -d ' ')"
     if [ "$CI_COMMIT_REF_NAME" != "$CI_DEFAULT_BRANCH" ]; then
       export PKG_VER="branch-$CI_COMMIT_REF_SLUG"
       echo "Git reference $CI_COMMIT_REF_NAME is not the default branch. Setting version to $PKG_VER"
@@ -135,8 +139,6 @@ pkg:quictls:
       -H"JOB-TOKEN: $CI_JOB_TOKEN" \
       --upload-file "deps/quictls/quictls-dist.tar.gz" \
       "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/quictls/$PKG_VER/quictls.tar.gz"
-  variables:
-    GIT_STRATEGY: none
 
 pkg:haproxy:
   image: docker.io/curlimages/curl:latest
@@ -147,7 +149,7 @@ pkg:haproxy:
   script: |
     set -eu
 
-    PKG_VER=2.6.0
+    PKG_VER="$(cat haproxy/Makefile | head -n1 | cut -d'=' -f2 | tr -d ' ')"
     if [ "$CI_COMMIT_REF_NAME" != "$CI_DEFAULT_BRANCH" ]; then
       export PKG_VER="branch-$CI_COMMIT_REF_SLUG"
       echo "Git reference $CI_COMMIT_REF_NAME is not the default branch. Setting version to $PKG_VER"
@@ -157,8 +159,6 @@ pkg:haproxy:
       -H"JOB-TOKEN: $CI_JOB_TOKEN" \
       --upload-file "haproxy/haproxy-dist.tar.gz" \
       "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/haproxy/$PKG_VER/haproxy.tar.gz"
-  variables:
-    GIT_STRATEGY: none
 
 deb:haproxy:
   <<: *build-job

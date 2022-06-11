@@ -1,9 +1,11 @@
 HAPROXY_VERSION = 2.6.0
+HAPROXY_GITREF = a1efc048bf8a5e14466dbe7317e73117e8d66176
+HAPROXY_SHORTSHA = $(shell echo "$(HAPROXY_GITREF)" | grep -Eo '^.{7}' || exit 1)
 HAPROXY_VERSION_MINOR = $(shell echo "$(HAPROXY_VERSION)" | cut -d'.' -f1-2)
 
-HAPROXY_SOURCES = https://www.haproxy.org/download/$(HAPROXY_VERSION_MINOR)/src/haproxy-$(HAPROXY_VERSION).tar.gz
-HAPROXY_TARBALL = haproxy-$(HAPROXY_VERSION).tar.gz
-HAPROXY_DEBORIG = haproxy_$(HAPROXY_VERSION).orig.tar.gz
+HAPROXY_SOURCES = https://git.haproxy.org/?p=haproxy.git;a=snapshot;h=$(HAPROXY_GITREF);sf=tgz
+HAPROXY_TARBALL = haproxy-$(HAPROXY_VERSION)-$(HAPROXY_SHORTSHA).tar.gz
+HAPROXY_DEBORIG = haproxy_$(HAPROXY_VERSION)-$(HAPROXY_SHORTSHA).orig.tar.gz
 HAPROXY_BUILDIR = src
 HAPROXY_DESTDIR = dist
 HAPROXY_DESTDIR_ABS = $(shell realpath $(HAPROXY_DESTDIR))
@@ -19,8 +21,8 @@ BUILD_PATCHES_DIR = $(shell realpath patches)
 BUILD_PATCHES_FILES = $(shell ls -1 $(BUILD_PATCHES_DIR))
 DEBIAN_PATCHES_DIR = "$(HAPROXY_BUILDIR)/debian/patches"
 
-MAKEARGS = DEBUG="-DDEBUG_STRICT -DDEBUG_MEMORY_POOLS" \
-           DEFINE="-DMAX_SESS_STKCTR=5" \
+MAKEARGS = DEBUG="-DDEBUG_MEMORY_POOLS -DDEBUG_STRICT" \
+           DEFINE="-DMAX_SESS_STKCTR=5 -DOPENSSL_API_COMPAT=0x10100000L -DOPENSSL_NO_DEPRECATED" \
            IGNOREGIT=true \
            LDFLAGS="-Wl,-rpath,/opt/quictls/lib" \
            TARGET="linux-glibc" \
@@ -62,7 +64,7 @@ $(HAPROXY_BUILDIR): $(HAPROXY_TARBALL)
 	tar -C "$(HAPROXY_BUILDIR)" --strip-components=1 -xf "$(HAPROXY_TARBALL)"
 
 patches: $(HAPROXY_BUILDIR)
-	cd "$(HAPROXY_BUILDIR)" && for patch in $(BUILD_PATCHES_FILES); do patch -p1 --forward < "$(BUILD_PATCHES_DIR)/$${patch}" || true; done
+	@cd "$(HAPROXY_BUILDIR)" && for patch in $(BUILD_PATCHES_FILES); do patch -p1 --forward < "$(BUILD_PATCHES_DIR)/$${patch}" || true; done
 
 build: $(HAPROXY_BUILDIR) patches
 	$(MAKE) -C "$(HAPROXY_BUILDIR)" -j "$(shell nproc)" $(MAKEARGS) opts
@@ -80,8 +82,8 @@ $(HAPROXY_DEBORIG): $(HAPROXY_TARBALL)
 
 build-deb: $(HAPROXY_DEBORIG) $(HAPROXY_BUILDIR)
 	cp -rf debian $(HAPROXY_BUILDIR)/
-	for patch in $(BUILD_PATCHES_FILES); do cp -v "$(BUILD_PATCHES_DIR)/$${patch}" "$(DEBIAN_PATCHES_DIR)/$${patch}"; done
-	for patch in $(BUILD_PATCHES_FILES); do echo "$${patch}" >> "$(DEBIAN_PATCHES_DIR)/series"; done
+	@for patch in $(BUILD_PATCHES_FILES); do cp -v "$(BUILD_PATCHES_DIR)/$${patch}" "$(DEBIAN_PATCHES_DIR)/$${patch}"; done
+	@for patch in $(BUILD_PATCHES_FILES); do echo "$${patch}" >> "$(DEBIAN_PATCHES_DIR)/series"; done
 	cd $(HAPROXY_BUILDIR) && debuild -us -uc
 	rm -fv $(HAPROXY_TARBALL)
 	rm -rf $(HAPROXY_BUILDIR)
@@ -92,7 +94,7 @@ clean:
 	rm -rf "$(HAPROXY_BUILDIR)"
 	rm -rf "$(HAPROXY_DESTDIR)"
 	rm -fv "$(HAPROXY_ARCHIVE)"
-	rm -fv "haproxy_$(HAPROXY_VERSION)"*
-	rm -fv "haproxy-dbgsym_$(HAPROXY_VERSION)"*
+	rm -fv "haproxy_"*
+	rm -fv "haproxy-dbgsym_"*
 
 .PHONY: clean build patches
