@@ -73,7 +73,7 @@ docker:
     export JOB_TIMESTAMP="$(date -D '%Y-%m-%dT%H:%M:%S%Z' -d "$CI_JOB_STARTED_AT" +'%Y%m%d-%H%M')"
 
     export HAPROXY_VERSION="$(cat haproxy/Makefile | head -n1 | cut -d'=' -f2 | tr -d ' ')"
-    export HAPROXY_SHORTVER="$(echo "$(HAPROXY_VERSION)" | cut -d'.' -f1-2)"
+    export HAPROXY_SHORTVER="$(echo "${HAPROXY_VERSION}" | cut -d'.' -f1-2)"
     echo "Building image with"
     echo "  -> haproxy version: $HAPROXY_VERSION ($HAPROXY_SHORTVER)"
     echo "  -> debian codename: $DEBIAN_CODENAME"
