@@ -3,10 +3,9 @@ stages:
   - build
   - publish
 
-variables: &default-variables
+variables:
   TZ: "UTC"
   GIT_DEPTH: "1"
-  HAPROXY_VERSION: "2.6.0"
 
 .build-job: &build-job
   image: docker.io/library/debian:buster
@@ -73,6 +72,7 @@ docker:
     export DEBIAN_CODENAME="bullseye"
     export JOB_TIMESTAMP="$(date -D '%Y-%m-%dT%H:%M:%S%Z' -d "$CI_JOB_STARTED_AT" +'%Y%m%d-%H%M')"
 
+    export HAPROXY_VERSION="$(cat haproxy/Makefile | head -n1 | cut -d'=' -f2 | tr -d ' ')"
     export HAPROXY_SHORTVER="$(echo "$(HAPROXY_VERSION)" | cut -d'.' -f1-2)"
     echo "Building image with"
     echo "  -> haproxy version: $HAPROXY_VERSION ($HAPROXY_SHORTVER)"
@@ -129,7 +129,7 @@ pkg:quictls:
   script: |
     set -eu
 
-    PKG_VER=1.1.1o
+    PKG_VER="$(cat deps/quictls/Makefile | head -n1 | cut -d'=' -f2 | tr -d ' ')"
     if [ "$CI_COMMIT_REF_NAME" != "$CI_DEFAULT_BRANCH" ]; then
       export PKG_VER="branch-$CI_COMMIT_REF_SLUG"
       echo "Git reference $CI_COMMIT_REF_NAME is not the default branch. Setting version to $PKG_VER"
@@ -139,8 +139,6 @@ pkg:quictls:
       -H"JOB-TOKEN: $CI_JOB_TOKEN" \
       --upload-file "deps/quictls/quictls-dist.tar.gz" \
       "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/quictls/$PKG_VER/quictls.tar.gz"
-  variables:
-    GIT_STRATEGY: none
 
 pkg:haproxy:
   image: docker.io/curlimages/curl:latest
@@ -151,7 +149,7 @@ pkg:haproxy:
   script: |
     set -eu
 
-    PKG_VER=$HAPROXY_VERSION
+    PKG_VER="$(cat haproxy/Makefile | head -n1 | cut -d'=' -f2 | tr -d ' ')"
     if [ "$CI_COMMIT_REF_NAME" != "$CI_DEFAULT_BRANCH" ]; then
       export PKG_VER="branch-$CI_COMMIT_REF_SLUG"
       echo "Git reference $CI_COMMIT_REF_NAME is not the default branch. Setting version to $PKG_VER"
@@ -161,9 +159,6 @@ pkg:haproxy:
       -H"JOB-TOKEN: $CI_JOB_TOKEN" \
       --upload-file "haproxy/haproxy-dist.tar.gz" \
       "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/haproxy/$PKG_VER/haproxy.tar.gz"
-  variables:
-    <<: *default-variables
-    GIT_STRATEGY: none
 
 deb:haproxy:
   <<: *build-job
