@@ -8,7 +8,7 @@ variables:
   GIT_DEPTH: "1"
 
 .build-job: &build-job
-  image: docker.io/library/debian:buster
+  image: registry.gitlab.com/mangadex-pub/debuilder/buster:main
   needs: [ ]
   before_script:
     - apt -qq update
