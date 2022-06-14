@@ -7,23 +7,21 @@ DEP_DIST_ROOT_QUICTLS = $(shell realpath ../../deps/quictls/dist)
 BUILD_VERSION_REPOSHA = $(shell git rev-parse --short HEAD)
 
 MAKEARGS = DEBUG="-DDEBUG_MEMORY_POOLS -DDEBUG_STRICT" \
-           DEFINE="-DMAX_SESS_STKCTR=5 -DOPENSSL_API_COMPAT=0x10100000L -DOPENSSL_NO_DEPRECATED" \
+           DEFINE="-DMAX_SESS_STKCTR=5" \
            IGNOREGIT=true \
-           LDFLAGS="-Wl,-rpath,/opt/quictls/lib" \
+           ADDLIB="-Wl,-rpath,/opt/quictls/lib" \
            TARGET="linux-glibc" \
            EXTRAVERSION="+mangadex-$(BUILD_VERSION_REPOSHA)" \
            VERDATE="$(shell date -u -I'minutes')" \
-           USE_DL=1 \
-           USE_GETADDRINFO=1 \
-           USE_LINUX_TPROXY=1 \
+           USE_LIBCRYPT=1 \
            USE_LUA=1 \
            LUA_INC="$(DEP_DIST_ROOT_LUA)/include" \
            LUA_LIB="$(DEP_DIST_ROOT_LUA)/lib" \
            LUA_LIB_NAME="lua" \
+           USE_NS=1 \
            USE_OPENSSL=1 \
            SSL_INC="$(DEP_DIST_ROOT_QUICTLS)/opt/quictls/include" \
            SSL_LIB="$(DEP_DIST_ROOT_QUICTLS)/opt/quictls/lib" \
-           ADDINC="-lcrypt" \
            USE_PCRE2=1 \
            USE_PCRE2_JIT=1 \
            USE_STATIC_PCRE2=1 \
@@ -79,5 +77,7 @@ override_dh_installsystemd:
 override_dh_strip:
 	dh_strip --dbgsym-migration="haproxy-dbg"
 
+# see https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=933541, still not shipped in buster
+# and don't want to update to bullseye because of GCC version diff with Ubuntu 20.04... *sigh*
 override_dh_dwz:
-	dh_dwz --exclude="openssl"
+	dh_dwz --no-dwz-multifile --exclude="openssl"

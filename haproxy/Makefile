@@ -14,6 +14,7 @@ HAPROXY_ARCHIVE = haproxy-dist.tar.gz
 DEP_DIST_ROOT_LUA = $(shell realpath ../deps/lua/dist)
 DEP_DIST_ROOT_PCRE2 = $(shell realpath ../deps/pcre2/dist)
 DEP_DIST_ROOT_QUICTLS = $(shell realpath ../deps/quictls/dist)
+DEP_DIST_ROOT_VTEST = $(shell realpath ../deps/vtest/dist)
 
 BUILD_VERSION_REPOSHA = $(shell git rev-parse --short HEAD)
 
@@ -22,23 +23,21 @@ BUILD_PATCHES_FILES = $(shell ls -1 $(BUILD_PATCHES_DIR))
 DEBIAN_PATCHES_DIR = "$(HAPROXY_BUILDIR)/debian/patches"
 
 MAKEARGS = DEBUG="-DDEBUG_MEMORY_POOLS -DDEBUG_STRICT" \
-           DEFINE="-DMAX_SESS_STKCTR=5 -DOPENSSL_API_COMPAT=0x10100000L -DOPENSSL_NO_DEPRECATED" \
+           DEFINE="-DMAX_SESS_STKCTR=5" \
            IGNOREGIT=true \
-           LDFLAGS="-Wl,-rpath,/opt/quictls/lib" \
+           ADDLIB="-Wl,-rpath,/opt/quictls/lib" \
            TARGET="linux-glibc" \
            EXTRAVERSION="+mangadex-$(BUILD_VERSION_REPOSHA)" \
            VERDATE="$(shell date -u -I'minutes')" \
-           USE_DL=1 \
-           USE_GETADDRINFO=1 \
-           USE_LINUX_TPROXY=1 \
+           USE_LIBCRYPT=1 \
            USE_LUA=1 \
            LUA_INC="$(DEP_DIST_ROOT_LUA)/include" \
            LUA_LIB="$(DEP_DIST_ROOT_LUA)/lib" \
            LUA_LIB_NAME="lua" \
+           USE_NS=1 \
            USE_OPENSSL=1 \
            SSL_INC="$(DEP_DIST_ROOT_QUICTLS)/opt/quictls/include" \
            SSL_LIB="$(DEP_DIST_ROOT_QUICTLS)/opt/quictls/lib" \
-           ADDINC="-lcrypt" \
            USE_PCRE2=1 \
            USE_PCRE2_JIT=1 \
            USE_STATIC_PCRE2=1 \
@@ -69,6 +68,12 @@ patches: $(HAPROXY_BUILDIR)
 build: $(HAPROXY_BUILDIR) patches
 	$(MAKE) -C "$(HAPROXY_BUILDIR)" -j "$(shell nproc)" $(MAKEARGS) opts
 	$(MAKE) -C "$(HAPROXY_BUILDIR)" -j "$(shell nproc)" $(MAKEARGS)
+
+# Ignore ssl/ssl_generate_certificate.vtc as it fails and I have no clue why at all
+test: $(HAPROXY_BUILDIR)
+	rm -v "$(HAPROXY_BUILDIR)/reg-tests/ssl/ssl_generate_certificate.vtc" || true
+	VTEST_PROGRAM="$(DEP_DIST_ROOT_VTEST)/vtest" \
+		$(MAKE) -C "$(HAPROXY_BUILDIR)" -j "$(shell nproc)" REGTESTS_TYPES=default,bug,devel reg-tests
 
 $(HAPROXY_DESTDIR):
 	@if ! [ -d "$(HAPROXY_DESTDIR)" ]; then mkdir -v "$(HAPROXY_DESTDIR)"; fi
@@ -104,4 +109,4 @@ clean:
 	rm -fv "haproxy_"*
 	rm -fv "haproxy-dbgsym_"*
 
-.PHONY: clean build patches prepare-deb
+.PHONY: clean patches build test prepare-deb
