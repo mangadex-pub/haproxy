@@ -21,8 +21,8 @@ $(QUICTLS_BUILDIR): $(QUICTLS_TARBALL)
 build: $(QUICTLS_BUILDIR)
 	cd "$(QUICTLS_BUILDIR)" && sed -i 's/^BUILD_METADATA.*/BUILD_METADATA=$(QUICTLS_BUILD_VERSION)/g' "VERSION.dat"
 	cd "$(QUICTLS_BUILDIR)" && sed -i 's/^RELEASE_DATE.*/RELEASE_DATE="$(shell date -u +'%e %b %Y')"/g' "VERSION.dat"
-	cd "$(QUICTLS_BUILDIR)" && ./Configure --prefix="/opt/quictls" --openssldir="/opt/quictls" --libdir="lib" --release -static no-deprecated no-shared
-	$(MAKE) -C "$(QUICTLS_BUILDIR)" -j "$(shell nproc)" VERSION=$(OPENSSL_VERSION)+quic-mangadex-$(BUILD_VERSION_REPOSHA)
+	cd "$(QUICTLS_BUILDIR)" && ./Configure --prefix="/opt/quictls" --openssldir="/opt/quictls" --libdir="lib" -DPURIFY no-shared
+	$(MAKE) -C "$(QUICTLS_BUILDIR)" -j "$(shell nproc)" VERSION=$(OPENSSL_VERSION)+quic-mangadex-$(BUILD_VERSION_REPOSHA) build_sw
 	ldd "$(QUICTLS_BUILDIR)/apps/openssl" || true
 	"$(QUICTLS_BUILDIR)/apps/openssl" version
 
