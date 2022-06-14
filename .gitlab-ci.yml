@@ -48,6 +48,7 @@ quictls:
       set -eu
 
       PKG_VER="$(cat deps/quictls/Makefile | head -n1 | cut -d'=' -f2 | tr -d ' ')"
+      QUICTLS_VER="$PKG_VER"
       if [ "$CI_COMMIT_REF_NAME" != "$CI_DEFAULT_BRANCH" ]; then
         export PKG_VER="branch-$CI_COMMIT_REF_SLUG"
         echo "Git reference $CI_COMMIT_REF_NAME is not the default branch. Setting version to $PKG_VER"
@@ -56,7 +57,7 @@ quictls:
       curl -fsSL \
         -H"JOB-TOKEN: $CI_JOB_TOKEN" \
         --upload-file "deps/quictls/quictls-dist.tar.gz" \
-        "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/quictls/$PKG_VER/quictls.tar.gz"
+        "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/quictls/$PKG_VER/quictls-$QUICTLS_VER.tar.gz"
   artifacts:
     expire_in: 7 days
     paths: [ "deps/quictls/quictls-dist.tar.gz" ]
@@ -75,14 +76,14 @@ quictls:
 
       PKG_VER=$HAPROXY_VERSION
       if [ "$CI_COMMIT_REF_NAME" != "$CI_DEFAULT_BRANCH" ]; then
-        export PKG_VER="branch-$CI_COMMIT_REF_SLUG"
+        export PKG_VER="branch-$CI_COMMIT_REF_SLUG-$HAPROXY_VERSION-$HAPROXY_GITREF"
         echo "Git reference $CI_COMMIT_REF_NAME is not the default branch. Setting version to $PKG_VER"
       fi
 
       curl -fsSL \
         -H"JOB-TOKEN: $CI_JOB_TOKEN" \
         --upload-file "haproxy/haproxy-dist.tar.gz" \
-        "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/haproxy/$PKG_VER/haproxy.tar.gz"
+        "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/haproxy/$PKG_VER/haproxy-$HAPROXY_VERSION.tar.gz"
   needs:
     - job: lua
       artifacts: true
@@ -132,12 +133,12 @@ haproxy:dev:
     echo "  -> git commit hash: $CI_COMMIT_SHORT_SHA"
     echo "  -> build timestamp: $JOB_TIMESTAMP"
 
-    export IMAGE_TAG_UNIQUE="$HAPROXY_SHORTVER-$HAPROXY_GITREF-$CI_COMMIT_SHORT_SHA-$JOB_TIMESTAMP"
-    export IMAGE_TAG_ROLLING_COMMIT="git-$CI_COMMIT_SHORT_SHA"
-    export IMAGE_TAG_ROLLING_GITREF="$CI_COMMIT_REF_SLUG"
+    export IMAGE_TAG_UNIQUE="$CI_COMMIT_SHORT_SHA-$JOB_TIMESTAMP-$HAPROXY_SHORTVER-$HAPROXY_GITREF"
+    export IMAGE_TAG_ROLLING_COMMIT="git-$CI_COMMIT_SHORT_SHA-$HAPROXY_VERSION"
+    export IMAGE_TAG_ROLLING_GITREF="$CI_COMMIT_REF_SLUG-$HAPROXY_VERSION"
 
-    export IMAGE_TAG_VERSIONS="$HAPROXY_VERSION-$HAPROXY_GITREF"
-    export IMAGE_TAG_SHORTVER="$HAPROXY_SHORTVER-$HAPROXY_GITREF"
+    export IMAGE_TAG_VERSIONS="$HAPROXY_VERSION"
+    export IMAGE_TAG_SHORTVER="$HAPROXY_SHORTVER"
     if [ "$CI_COMMIT_REF_NAME" != "$CI_DEFAULT_BRANCH" ]; then
       export IMAGE_TAG_VERSIONS="branch-$CI_COMMIT_REF_SLUG-$IMAGE_TAG_VERSIONS"
       export IMAGE_TAG_SHORTVER="branch-$CI_COMMIT_REF_SLUG-$IMAGE_TAG_SHORTVER"
