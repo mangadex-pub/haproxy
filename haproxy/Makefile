@@ -1,6 +1,6 @@
 HAPROXY_VERSION = 2.6.0
 HAPROXY_GITREF = a1efc048bf8a5e14466dbe7317e73117e8d66176
-HAPROXY_SHORTSHA = $(shell echo "$(HAPROXY_GITREF)" | grep -Eo '^.{7}' || exit 1)
+HAPROXY_SHORTSHA = $(shell echo "$(HAPROXY_GITREF)" | grep -Eo '^.{7}' || echo "$(HAPROXY_GITREF)")
 HAPROXY_VERSION_MINOR = $(shell echo "$(HAPROXY_VERSION)" | cut -d'.' -f1-2)
 
 HAPROXY_SOURCES = https://git.haproxy.org/?p=haproxy.git;a=snapshot;h=$(HAPROXY_GITREF);sf=tgz
@@ -80,10 +80,17 @@ $(HAPROXY_ARCHIVE): $(HAPROXY_DESTDIR)
 $(HAPROXY_DEBORIG): $(HAPROXY_TARBALL)
 	cp -fv "$(HAPROXY_TARBALL)" "$(HAPROXY_DEBORIG)"
 
-build-deb: $(HAPROXY_DEBORIG) $(HAPROXY_BUILDIR)
+prepare-deb: $(HAPROXY_DEBORIG) $(HAPROXY_BUILDIR)
 	cp -rf debian $(HAPROXY_BUILDIR)/
 	@for patch in $(BUILD_PATCHES_FILES); do cp -v "$(BUILD_PATCHES_DIR)/$${patch}" "$(DEBIAN_PATCHES_DIR)/$${patch}"; done
 	@for patch in $(BUILD_PATCHES_FILES); do echo "$${patch}" >> "$(DEBIAN_PATCHES_DIR)/series"; done
+	export BUILD_DATE="$(shell date -u +'%a, %e %b %Y %H:%m:%S %z')" && \
+		export BUILD_VERSION="$(HAPROXY_VERSION)-$(HAPROXY_SHORTSHA)-1~mangadex+$(BUILD_VERSION_REPOSHA)" && \
+		export BUILD_MESSAGE="$${BUILD_MESSAGE:-"No build changelog message"}" && \
+		envsubst < changelog.debian | tee "$(HAPROXY_BUILDIR)/debian/changelog" && \
+		cat debian/changelog >> "$(HAPROXY_BUILDIR)/debian/changelog"
+
+build-deb: prepare-deb
 	cd $(HAPROXY_BUILDIR) && debuild -us -uc
 	rm -fv $(HAPROXY_TARBALL)
 	rm -rf $(HAPROXY_BUILDIR)
@@ -97,4 +104,4 @@ clean:
 	rm -fv "haproxy_"*
 	rm -fv "haproxy-dbgsym_"*
 
-.PHONY: clean build patches
+.PHONY: clean build patches prepare-deb

@@ -3,9 +3,18 @@ stages:
   - build
   - publish
 
-variables:
+variables: &default-variables
   TZ: "UTC"
   GIT_DEPTH: "1"
+
+.haproxy_stable: &haproxy-stable
+  HAPROXY_VERSION: 2.6.0
+  HAPROXY_GITREF: v2.6.0
+
+.haproxy_dev: &haproxy-dev
+  HAPROXY_VERSION: 2.7-dev
+  # https://git.haproxy.org/?p=haproxy.git;a=commit;h=040955fb39f8df183adda6fa19761a1ede36f624
+  HAPROXY_GITREF: 040955fb39f8df183adda6fa19761a1ede36f624
 
 .build-job: &build-job
   image: registry.gitlab.com/mangadex-pub/debuilder/buster:main
@@ -33,12 +42,26 @@ pcre2:
 quictls:
   <<: *build-job
   stage: dependencies
-  script: make -C deps/quictls
+  script:
+    - make -C deps/quictls
+    - |
+      set -eu
+
+      PKG_VER="$(cat deps/quictls/Makefile | head -n1 | cut -d'=' -f2 | tr -d ' ')"
+      if [ "$CI_COMMIT_REF_NAME" != "$CI_DEFAULT_BRANCH" ]; then
+        export PKG_VER="branch-$CI_COMMIT_REF_SLUG"
+        echo "Git reference $CI_COMMIT_REF_NAME is not the default branch. Setting version to $PKG_VER"
+      fi
+
+      curl -fsSL \
+        -H"JOB-TOKEN: $CI_JOB_TOKEN" \
+        --upload-file "deps/quictls/quictls-dist.tar.gz" \
+        "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/quictls/$PKG_VER/quictls.tar.gz"
   artifacts:
     expire_in: 7 days
     paths: [ "deps/quictls/quictls-dist.tar.gz" ]
 
-haproxy:
+.haproxy-build: &haproxy-build
   <<: *build-job
   stage: build
   script:
@@ -46,7 +69,20 @@ haproxy:
     - mkdir deps/lua/dist     && tar -C deps/lua/dist     -xf deps/lua/lua-dist.tar.gz
     - mkdir deps/pcre2/dist   && tar -C deps/pcre2/dist   -xf deps/pcre2/pcre2-dist.tar.gz
     - mkdir deps/quictls/dist && tar -C deps/quictls/dist -xf deps/quictls/quictls-dist.tar.gz
-    - make -C haproxy
+    - make -C haproxy HAPROXY_VERSION=$HAPROXY_VERSION HAPROXY_GITREF=$HAPROXY_GITREF
+    - |
+      set -eu
+
+      PKG_VER=$HAPROXY_VERSION
+      if [ "$CI_COMMIT_REF_NAME" != "$CI_DEFAULT_BRANCH" ]; then
+        export PKG_VER="branch-$CI_COMMIT_REF_SLUG"
+        echo "Git reference $CI_COMMIT_REF_NAME is not the default branch. Setting version to $PKG_VER"
+      fi
+
+      curl -fsSL \
+        -H"JOB-TOKEN: $CI_JOB_TOKEN" \
+        --upload-file "haproxy/haproxy-dist.tar.gz" \
+        "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/haproxy/$PKG_VER/haproxy.tar.gz"
   needs:
     - job: lua
       artifacts: true
@@ -58,7 +94,19 @@ haproxy:
     expire_in: 7 days
     paths: [ "haproxy/dist", "haproxy/haproxy-dist.tar.gz" ]
 
-docker:
+haproxy:stable:
+  <<: *haproxy-build
+  variables:
+    <<: *default-variables
+    <<: *haproxy-stable
+
+haproxy:dev:
+  <<: *haproxy-build
+  variables:
+    <<: *default-variables
+    <<: *haproxy-dev
+
+.docker: &docker
   stage: publish
   image:
     name: gcr.io/kaniko-project/executor:debug
@@ -72,20 +120,24 @@ docker:
     export DEBIAN_CODENAME="bullseye"
     export JOB_TIMESTAMP="$(date -D '%Y-%m-%dT%H:%M:%S%Z' -d "$CI_JOB_STARTED_AT" +'%Y%m%d-%H%M')"
 
-    export HAPROXY_VERSION="$(cat haproxy/Makefile | head -n1 | cut -d'=' -f2 | tr -d ' ')"
-    export HAPROXY_SHORTVER="$(echo "${HAPROXY_VERSION}" | cut -d'.' -f1-2)"
+    # A.B.C -> A.B, otherwise preserve original; so 2.7-dev -> 2.7-dev
+    if echo "$HAPROXY_VERSION" | grep -E '([0-9]\.){2}[0-9]'; then
+      export HAPROXY_SHORTVER="$(echo "$HAPROXY_VERSION" | cut -d'.' -f1-2)"
+    else
+      export HAPROXY_SHORTVER=$HAPROXY_VERSION
+    fi
     echo "Building image with"
     echo "  -> haproxy version: $HAPROXY_VERSION ($HAPROXY_SHORTVER)"
     echo "  -> debian codename: $DEBIAN_CODENAME"
     echo "  -> git commit hash: $CI_COMMIT_SHORT_SHA"
     echo "  -> build timestamp: $JOB_TIMESTAMP"
 
-    export IMAGE_TAG_UNIQUE="$HAPROXY_VERSION-$DEBIAN_CODENAME-$CI_COMMIT_SHORT_SHA-$JOB_TIMESTAMP"
+    export IMAGE_TAG_UNIQUE="$HAPROXY_SHORTVER-$HAPROXY_GITREF-$CI_COMMIT_SHORT_SHA-$JOB_TIMESTAMP"
     export IMAGE_TAG_ROLLING_COMMIT="git-$CI_COMMIT_SHORT_SHA"
     export IMAGE_TAG_ROLLING_GITREF="$CI_COMMIT_REF_SLUG"
 
-    export IMAGE_TAG_VERSIONS="$HAPROXY_VERSION-$DEBIAN_CODENAME"
-    export IMAGE_TAG_SHORTVER="$HAPROXY_SHORTVER-$DEBIAN_CODENAME"
+    export IMAGE_TAG_VERSIONS="$HAPROXY_VERSION-$HAPROXY_GITREF"
+    export IMAGE_TAG_SHORTVER="$HAPROXY_SHORTVER-$HAPROXY_GITREF"
     if [ "$CI_COMMIT_REF_NAME" != "$CI_DEFAULT_BRANCH" ]; then
       export IMAGE_TAG_VERSIONS="branch-$CI_COMMIT_REF_SLUG-$IMAGE_TAG_VERSIONS"
       export IMAGE_TAG_SHORTVER="branch-$CI_COMMIT_REF_SLUG-$IMAGE_TAG_SHORTVER"
@@ -114,53 +166,30 @@ docker:
         --destination "$CI_REGISTRY_IMAGE:$IMAGE_TAG_SHORTVER" \
         --single-snapshot
     )
+
+docker:stable:
+  <<: *docker
+  variables:
+    <<: *default-variables
+    <<: *haproxy-stable
   needs:
     - job: quictls
       artifacts: true
-    - job: haproxy
+    - job: "haproxy:stable"
       artifacts: true
 
-pkg:quictls:
-  image: docker.io/curlimages/curl:latest
-  stage: publish
+docker:dev:
+  <<: *docker
+  variables:
+    <<: *default-variables
+    <<: *haproxy-dev
   needs:
     - job: quictls
       artifacts: true
-  script: |
-    set -eu
-
-    PKG_VER="$(cat deps/quictls/Makefile | head -n1 | cut -d'=' -f2 | tr -d ' ')"
-    if [ "$CI_COMMIT_REF_NAME" != "$CI_DEFAULT_BRANCH" ]; then
-      export PKG_VER="branch-$CI_COMMIT_REF_SLUG"
-      echo "Git reference $CI_COMMIT_REF_NAME is not the default branch. Setting version to $PKG_VER"
-    fi
-
-    curl -fsSL \
-      -H"JOB-TOKEN: $CI_JOB_TOKEN" \
-      --upload-file "deps/quictls/quictls-dist.tar.gz" \
-      "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/quictls/$PKG_VER/quictls.tar.gz"
-
-pkg:haproxy:
-  image: docker.io/curlimages/curl:latest
-  stage: publish
-  needs:
-    - job: haproxy
+    - job: "haproxy:dev"
       artifacts: true
-  script: |
-    set -eu
 
-    PKG_VER="$(cat haproxy/Makefile | head -n1 | cut -d'=' -f2 | tr -d ' ')"
-    if [ "$CI_COMMIT_REF_NAME" != "$CI_DEFAULT_BRANCH" ]; then
-      export PKG_VER="branch-$CI_COMMIT_REF_SLUG"
-      echo "Git reference $CI_COMMIT_REF_NAME is not the default branch. Setting version to $PKG_VER"
-    fi
-
-    curl -fsSL \
-      -H"JOB-TOKEN: $CI_JOB_TOKEN" \
-      --upload-file "haproxy/haproxy-dist.tar.gz" \
-      "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/haproxy/$PKG_VER/haproxy.tar.gz"
-
-deb:haproxy:
+.debiab: &debian
   <<: *build-job
   stage: build
   script:
@@ -168,7 +197,8 @@ deb:haproxy:
     - mkdir deps/lua/dist     && tar -C deps/lua/dist     -xf deps/lua/lua-dist.tar.gz
     - mkdir deps/pcre2/dist   && tar -C deps/pcre2/dist   -xf deps/pcre2/pcre2-dist.tar.gz
     - mkdir deps/quictls/dist && tar -C deps/quictls/dist -xf deps/quictls/quictls-dist.tar.gz
-    - make -C haproxy dist-deb
+    - export BUILD_MESSAGE="$CI_COMMIT_MESSAGE"
+    - make -C haproxy dist-deb HAPROXY_VERSION=$HAPROXY_VERSION HAPROXY_GITREF=$HAPROXY_GITREF
     - |
       set -euo pipefail
 
@@ -202,3 +232,15 @@ deb:haproxy:
   artifacts:
     expire_in: 7 days
     paths: [ "haproxy/haproxy*" ]
+
+debian:stable:
+  <<: *debian
+  variables:
+    <<: *default-variables
+    <<: *haproxy-stable
+
+debian:dev:
+  <<: *debian
+  variables:
+    <<: *default-variables
+    <<: *haproxy-dev

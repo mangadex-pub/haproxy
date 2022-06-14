@@ -1,0 +1,6 @@
+haproxy ($BUILD_VERSION) experimental; urgency=medium
+
+  * $BUILD_MESSAGE
+
+ -- MangaDex <opensource@mangadex.org>  $BUILD_DATE
+
