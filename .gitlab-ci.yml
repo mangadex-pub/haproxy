@@ -190,7 +190,7 @@ docker:dev:
     - job: "haproxy:dev"
       artifacts: true
 
-.debiab: &debian
+.debian: &debian
   <<: *build-job
   stage: build
   script:
