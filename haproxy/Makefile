@@ -1,9 +1,10 @@
-HAPROXY_VERSION = 2.6.0
-HAPROXY_GITREF = a1efc048bf8a5e14466dbe7317e73117e8d66176
+HAPROXY_GITREPO = https://git.haproxy.org/?p=haproxy-2.6.git
+HAPROXY_VERSION = 2.6.1
+HAPROXY_GITREF = 4b5779ef800cc7982f1b65ff318e4b04fe59cd18
 HAPROXY_SHORTSHA = $(shell echo "$(HAPROXY_GITREF)" | grep -Eo '^.{7}' || echo "$(HAPROXY_GITREF)")
 HAPROXY_VERSION_MINOR = $(shell echo "$(HAPROXY_VERSION)" | cut -d'.' -f1-2)
 
-HAPROXY_SOURCES = https://git.haproxy.org/?p=haproxy.git;a=snapshot;h=$(HAPROXY_GITREF);sf=tgz
+HAPROXY_SOURCES = $(HAPROXY_GITREPO);a=snapshot;h=$(HAPROXY_GITREF);sf=tgz
 HAPROXY_TARBALL = haproxy-$(HAPROXY_VERSION)-$(HAPROXY_SHORTSHA).tar.gz
 HAPROXY_DEBORIG = haproxy_$(HAPROXY_VERSION)-$(HAPROXY_SHORTSHA).orig.tar.gz
 HAPROXY_BUILDIR = src
