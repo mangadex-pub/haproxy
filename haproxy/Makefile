@@ -101,7 +101,7 @@ prepare-deb: $(HAPROXY_DEBORIG) $(HAPROXY_BUILDIR)
 	@for patch in $(BUILD_PATCHES_FILES); do echo "$${patch}" >> "$(DEBIAN_PATCHES_DIR)/series"; done
 	export BUILD_DATE="$(shell date -u +'%a, %e %b %Y %H:%m:%S %z')" && \
 		export BUILD_VERSION="$(HAPROXY_VERSION)-$(HAPROXY_SHORTSHA)-1~mangadex+$(BUILD_VERSION_REPOSHA)" && \
-		export BUILD_MESSAGE="$${BUILD_MESSAGE:-"No build changelog message"}" && \
+		export BUILD_MESSAGE=$(echo "$${BUILD_MESSAGE:-"No build changelog message"}" | head -n1) && \
 		envsubst < changelog.debian | tee "$(HAPROXY_BUILDIR)/debian/changelog" && \
 		cat debian/changelog >> "$(HAPROXY_BUILDIR)/debian/changelog"
 
