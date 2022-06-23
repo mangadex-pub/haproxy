@@ -19,15 +19,26 @@ $(QUICTLS_BUILDIR): $(QUICTLS_TARBALL)
 	tar -C $(QUICTLS_BUILDIR) --strip-components=1 -xf "$(QUICTLS_TARBALL)"
 
 build: $(QUICTLS_BUILDIR)
-	cd "$(QUICTLS_BUILDIR)" && sed -i 's/^BUILD_METADATA.*/BUILD_METADATA=$(QUICTLS_BUILD_VERSION)/g' "VERSION.dat"
-	cd "$(QUICTLS_BUILDIR)" && sed -i 's/^RELEASE_DATE.*/RELEASE_DATE="$(shell date -u +'%e %b %Y')"/g' "VERSION.dat"
+	cd "$(QUICTLS_BUILDIR)" && ! [ -f "VERSION.dat.orig" ] && mv -fv "VERSION.dat" "VERSION.dat.orig" || true
+	cd "$(QUICTLS_BUILDIR)" && sed 's/^BUILD_METADATA.*/BUILD_METADATA=$(QUICTLS_BUILD_VERSION)/g' "VERSION.dat.orig" > "VERSION.dat.meta"
+	cd "$(QUICTLS_BUILDIR)" && sed 's/^RELEASE_DATE.*/RELEASE_DATE="$(shell date -u +'%e %b %Y')"/g' "VERSION.dat.meta" > "VERSION.dat"
 	cd "$(QUICTLS_BUILDIR)" && ./Configure --prefix="/opt/quictls" --openssldir="/opt/quictls" --libdir="lib" -DPURIFY no-shared
 	$(MAKE) -C "$(QUICTLS_BUILDIR)" -j "$(shell nproc)" VERSION=$(OPENSSL_VERSION)+quic-mangadex-$(BUILD_VERSION_REPOSHA) build_sw
-	ldd "$(QUICTLS_BUILDIR)/apps/openssl" || true
 	"$(QUICTLS_BUILDIR)/apps/openssl" version
+	$(MAKE) buildinfo_$(shell uname -s)
+
+.PHONY: buildinfo_Linux
+buildinfo_Linux:
+	@echo "Checking shared libraries openssl is linked against (Linux):"
+	@ldd "$(QUICTLS_BUILDIR)/apps/openssl" || true
+
+.PHONY: buildinfo_Darwin
+buildinfo_Darwin:
+	@echo "Checking shared libraries openssl is linked against (Darwin):"
+	@otool -L "$(QUICTLS_BUILDIR)/apps/openssl" || true
 
 $(QUICTLS_DESTDIR): build
-	if ! [ -d "$(QUICTLS_DESTDIR)" ]; then mkdir -v "$(QUICTLS_DESTDIR)"; fi
+	@if ! [ -d "$(QUICTLS_DESTDIR)" ]; then mkdir -v "$(QUICTLS_DESTDIR)"; fi
 	$(MAKE) -C "$(QUICTLS_BUILDIR)" -j "$(shell nproc)" DESTDIR="$(QUICTLS_DESTDIR_ABS)" install_sw
 
 # Take a moment to hate on how fucking shit the `tar` CLI is with me, especially regarding the awkward dance of path prefixes. Press S.

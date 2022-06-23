@@ -16,7 +16,15 @@ $(LUA_BUILDIR): $(LUA_TARBALL)
 	tar -C $(LUA_BUILDIR) --strip-components=1 -xf "$(LUA_TARBALL)"
 
 build: $(LUA_BUILDIR)
+	$(MAKE) build_$(shell uname -s)
+
+.PHONY: build_Linux
+build_Linux:
 	$(MAKE) -C $(LUA_BUILDIR) -j$(shell nproc) linux
+
+.PHONY: build_Darwin
+build_Darwin:
+	$(MAKE) -C $(LUA_BUILDIR) -j$(shell nproc) macosx
 
 $(LUA_DESTDIR): build
 	if ! [ -d "$(LUA_DESTDIR)" ]; then mkdir -v "$(LUA_DESTDIR)"; fi

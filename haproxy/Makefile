@@ -67,8 +67,17 @@ patches: $(HAPROXY_BUILDIR)
 	@cd "$(HAPROXY_BUILDIR)" && for patch in $(BUILD_PATCHES_FILES); do patch -p1 --forward < "$(BUILD_PATCHES_DIR)/$${patch}" || true; done
 
 build: $(HAPROXY_BUILDIR) patches
+	$(MAKE) build_$(shell uname -s)
+
+.PHONY: build_Linux
+build_Linux:
 	$(MAKE) -C "$(HAPROXY_BUILDIR)" -j "$(shell nproc)" $(MAKEARGS) opts
 	$(MAKE) -C "$(HAPROXY_BUILDIR)" -j "$(shell nproc)" $(MAKEARGS)
+
+.PHONY: build_Darwin
+build_Darwin:
+	BREW_CLANG="$(shell brew --prefix llvm)/bin/clang" && $(MAKE) -C "$(HAPROXY_BUILDIR)" -j "$(shell nproc)" CC="$${BREW_CLANG}" LD="$${BREW_CLANG}" $(MAKEARGS) TARGET=osx opts
+	BREW_CLANG="$(shell brew --prefix llvm)/bin/clang" && $(MAKE) -C "$(HAPROXY_BUILDIR)" -j "$(shell nproc)" CC="$${BREW_CLANG}" LD="$${BREW_CLANG}" $(MAKEARGS) TARGET=osx
 
 # Ignore ssl/ssl_generate_certificate.vtc as it fails and I have no clue why at all
 test: $(HAPROXY_BUILDIR)
