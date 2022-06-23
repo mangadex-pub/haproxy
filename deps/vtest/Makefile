@@ -14,6 +14,16 @@ $(VTEST_BUILDIR): $(VTEST_TARBALL)
 	tar -C $(VTEST_BUILDIR) --strip-components=1 -xf "$(VTEST_TARBALL)"
 
 build: $(VTEST_BUILDIR)
+	$(MAKE) build_$(shell uname -s)
+
+.PHONY: build_Darwin
+build_Darwin:
+	$(MAKE) -C "$(VTEST_BUILDIR)" -j "$(shell nproc)" \
+		INCS="-Isrc -Ilib -I$$(brew --prefix pcre2)/include -pthread" \
+		LIBS="-L$$(brew --prefix pcre2)/lib -lm -lpcre2-8 -lz"
+
+.PHONY: build_Linux
+build_Linux: $(VTEST_BUILDIR)
 	$(MAKE) -C "$(VTEST_BUILDIR)" -j "$(shell nproc)"
 
 $(VTEST_DESTDIR): build
