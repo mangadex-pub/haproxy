@@ -2,7 +2,9 @@
 
 Build scripts for HAProxy with QUIC
 
-**PROJECT STATUS: ALPHA**. Seriously, it has __not__ been well tested yet
+**PROJECT STATUS: BETA**. It will generally work fine and we've been using it in
+production ourselves, but please be careful and pin versions explicitly for now.
+We don't exactly have time to triple check everything to never mess up (yet).
 
 [[_TOC_]]
 
