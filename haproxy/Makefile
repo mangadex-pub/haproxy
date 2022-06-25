@@ -35,21 +35,28 @@ MAKEARGS = DEBUG="-DDEBUG_MEMORY_POOLS -DDEBUG_STRICT" \
            LUA_INC="$(DEP_DIST_ROOT_LUA)/include" \
            LUA_LIB="$(DEP_DIST_ROOT_LUA)/lib" \
            LUA_LIB_NAME="lua" \
-           USE_NS=1 \
            USE_OPENSSL=1 \
            SSL_INC="$(DEP_DIST_ROOT_QUICTLS)/opt/quictls/include" \
            SSL_LIB="$(DEP_DIST_ROOT_QUICTLS)/opt/quictls/lib" \
            USE_PCRE2=1 \
-           USE_PCRE2_JIT=1 \
-           USE_STATIC_PCRE2=1 \
-           PCRE2_INC="$(DEP_DIST_ROOT_PCRE2)/include" \
-           PCRE2_LIB="$(DEP_DIST_ROOT_PCRE2)/lib64" \
-           PCRE2_CONFIG="$(DEP_DIST_ROOT_PCRE2)/bin/pcre2-config" \
            USE_PROMEX=1 \
            USE_QUIC=1 \
            USE_SLZ=1 \
-           USE_TFO=1 \
-           USE_SYSTEMD=1
+           USE_TFO=1
+
+MAKEARGS_LINUX = $(MAKEARGS) \
+				 PCRE2_LIB="$(DEP_DIST_ROOT_PCRE2)/lib64" \
+				 PCRE2_INC="$(DEP_DIST_ROOT_PCRE2)/include" \
+                 PCRE2_CONFIG="$(DEP_DIST_ROOT_PCRE2)/bin/pcre2-config" \
+           		 USE_PCRE2_JIT=1 \
+           		 USE_STATIC_PCRE2=1 \
+				 USE_NS=1 \
+				 USE_SYSTEMD=1
+
+MAKEARGS_DARWIN = $(MAKEARGS) \
+				  CC=$(shell brew --prefix llvm)/bin/clang \
+				  LD=$(shell brew --prefix llvm)/bin/clang \
+				  TARGET=osx
 
 all: dist-bin
 
@@ -71,13 +78,13 @@ build: $(HAPROXY_BUILDIR) patches
 
 .PHONY: build_Linux
 build_Linux:
-	$(MAKE) -C "$(HAPROXY_BUILDIR)" -j "$(shell nproc)" $(MAKEARGS) opts
-	$(MAKE) -C "$(HAPROXY_BUILDIR)" -j "$(shell nproc)" $(MAKEARGS)
+	$(MAKE) -C "$(HAPROXY_BUILDIR)" -j "$(shell nproc)" $(MAKEARGS_LINUX) opts
+	$(MAKE) -C "$(HAPROXY_BUILDIR)" -j "$(shell nproc)" $(MAKEARGS_LINUX)
 
 .PHONY: build_Darwin
 build_Darwin:
-	BREW_CLANG="$(shell brew --prefix llvm)/bin/clang" && $(MAKE) -C "$(HAPROXY_BUILDIR)" -j "$(shell nproc)" CC="$${BREW_CLANG}" LD="$${BREW_CLANG}" $(MAKEARGS) TARGET=osx opts
-	BREW_CLANG="$(shell brew --prefix llvm)/bin/clang" && $(MAKE) -C "$(HAPROXY_BUILDIR)" -j "$(shell nproc)" CC="$${BREW_CLANG}" LD="$${BREW_CLANG}" $(MAKEARGS) TARGET=osx
+	$(MAKE) -C "$(HAPROXY_BUILDIR)" -j "$(shell nproc)" $(MAKEARGS_DARWIN) opts
+	$(MAKE) -C "$(HAPROXY_BUILDIR)" -j "$(shell nproc)" $(MAKEARGS_DARWIN)
 
 # Ignore ssl/ssl_generate_certificate.vtc as it fails and I have no clue why at all
 test: $(HAPROXY_BUILDIR)
@@ -86,7 +93,8 @@ test: $(HAPROXY_BUILDIR)
 		$(MAKE) -C "$(HAPROXY_BUILDIR)" -j "$(shell nproc)" REGTESTS_TYPES=default,bug,devel reg-tests
 
 $(HAPROXY_DESTDIR):
-	@if ! [ -d "$(HAPROXY_DESTDIR)" ]; then mkdir -v "$(HAPROXY_DESTDIR)"; fi
+	@if [ -d "$(HAPROXY_DESTDIR)" ]; then rm -rf $(HAPROXY_DESTDIR); fi
+	@mkdir -pv "$(HAPROXY_DESTDIR)"
 	$(MAKE) -C "$(HAPROXY_BUILDIR)" -j "$(shell nproc)" DESTDIR="$(HAPROXY_DESTDIR_ABS)" install
 
 $(HAPROXY_ARCHIVE): $(HAPROXY_DESTDIR)
