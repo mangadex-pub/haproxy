@@ -7,6 +7,8 @@ stages:
 variables: &default-variables
   TZ: "UTC"
   GIT_DEPTH: "1"
+  KUBERNETES_MEMORY_REQUEST: 4Gi
+  KUBERNETES_MEMORY_LIMIT: 4Gi
 
 .haproxy_stable: &haproxy-stable
   HAPROXY_GITREPO: "https://git.haproxy.org/?p=haproxy-2.6.git"
