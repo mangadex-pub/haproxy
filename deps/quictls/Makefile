@@ -22,7 +22,7 @@ build: $(QUICTLS_BUILDIR)
 	cd "$(QUICTLS_BUILDIR)" && ! [ -f "VERSION.dat.orig" ] && mv -fv "VERSION.dat" "VERSION.dat.orig" || true
 	cd "$(QUICTLS_BUILDIR)" && sed 's/^BUILD_METADATA.*/BUILD_METADATA=$(QUICTLS_BUILD_VERSION)/g' "VERSION.dat.orig" > "VERSION.dat.meta"
 	cd "$(QUICTLS_BUILDIR)" && sed 's/^RELEASE_DATE.*/RELEASE_DATE="$(shell date -u +'%e %b %Y')"/g' "VERSION.dat.meta" > "VERSION.dat"
-	cd "$(QUICTLS_BUILDIR)" && ./Configure --prefix="/opt/quictls" --openssldir="/opt/quictls" --libdir="lib" -DPURIFY no-shared
+	cd "$(QUICTLS_BUILDIR)" && CC=cc ./Configure --prefix="/opt/quictls" --openssldir="/opt/quictls" --libdir="lib" -DPURIFY no-shared
 	$(MAKE) -C "$(QUICTLS_BUILDIR)" -j "$(shell nproc)" VERSION=$(OPENSSL_VERSION)+quic-mangadex-$(BUILD_VERSION_REPOSHA) build_sw
 	"$(QUICTLS_BUILDIR)/apps/openssl" version
 	$(MAKE) buildinfo_$(shell uname -s)
@@ -40,8 +40,8 @@ buildinfo_Darwin:
 $(QUICTLS_DESTDIR): build
 	@if ! [ -d "$(QUICTLS_DESTDIR)" ]; then mkdir -v "$(QUICTLS_DESTDIR)"; fi
 	$(MAKE) -C "$(QUICTLS_BUILDIR)" -j "$(shell nproc)" DESTDIR="$(QUICTLS_DESTDIR_ABS)" install_sw
+	$(QUICTLS_DESTDIR_ABS)/opt/quictls/bin/openssl version
 
-# Take a moment to hate on how fucking shit the `tar` CLI is with me, especially regarding the awkward dance of path prefixes. Press S.
 $(QUICTLS_ARCHIVE): $(QUICTLS_DESTDIR)
 	tar -C "$(QUICTLS_DESTDIR)" -cjf "$(QUICTLS_ARCHIVE)" "opt"
 
