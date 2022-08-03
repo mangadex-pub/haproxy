@@ -24,7 +24,7 @@ BUILD_PATCHES_FILES = $(shell ls -1 $(BUILD_PATCHES_DIR))
 DEBIAN_PATCHES_DIR = "$(HAPROXY_BUILDIR)/debian/patches"
 
 MAKEARGS = DEBUG="-DDEBUG_MEMORY_POOLS -DDEBUG_STRICT" \
-           DEBUG_CFLAGS="-ggdb3" \
+           DEBUG_CFLAGS="-ggdb3  -gdwarf-4" \
            DEFINE="-DMAX_SESS_STKCTR=5" \
            IGNOREGIT=true \
            ADDLIB="-Wl,-rpath,/opt/quictls/lib" \

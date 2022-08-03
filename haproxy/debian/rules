@@ -7,7 +7,7 @@ DEP_DIST_ROOT_QUICTLS = $(shell realpath ../../deps/quictls/dist)
 BUILD_VERSION_REPOSHA = $(shell git rev-parse --short HEAD)
 
 MAKEARGS = DEBUG="-DDEBUG_MEMORY_POOLS -DDEBUG_STRICT" \
-           DEBUG_CFLAGS="-ggdb3" \
+           DEBUG_CFLAGS="-ggdb3 -gdwarf-4" \
            DEFINE="-DMAX_SESS_STKCTR=5" \
            IGNOREGIT=true \
            ADDLIB="-Wl,-rpath,/opt/quictls/lib" \
