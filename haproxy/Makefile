@@ -92,10 +92,12 @@ test: $(HAPROXY_BUILDIR)
 	VTEST_PROGRAM="$(DEP_DIST_ROOT_VTEST)/vtest" \
 		$(MAKE) -C "$(HAPROXY_BUILDIR)" -j "$(shell nproc)" REGTESTS_TYPES=default,bug,devel reg-tests
 
+.PHONY: $(HAPROXY_DESTDIR)
 $(HAPROXY_DESTDIR):
 	@if [ -d "$(HAPROXY_DESTDIR)" ]; then rm -rf $(HAPROXY_DESTDIR); fi
 	@mkdir -pv "$(HAPROXY_DESTDIR)"
 	$(MAKE) -C "$(HAPROXY_BUILDIR)" -j "$(shell nproc)" DESTDIR="$(HAPROXY_DESTDIR_ABS)" install
+	$(HAPROXY_DESTDIR_ABS)/usr/local/sbin/haproxy -vv
 
 $(HAPROXY_ARCHIVE): $(HAPROXY_DESTDIR)
 	tar -C "$(HAPROXY_DESTDIR)" -cjf "$(HAPROXY_ARCHIVE)" "usr"
