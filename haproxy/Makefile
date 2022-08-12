@@ -76,6 +76,7 @@ patches: $(HAPROXY_BUILDIR)
 
 build: $(HAPROXY_BUILDIR) patches
 	$(MAKE) build_$(shell uname -s)
+	if [ -d "$(HAPROXY_BUILDIR)/dev/haring" ]; then $(MAKE) -C "$(HAPROXY_BUILDIR)" -j "$(shell nproc)" dev/haring/haring; fi
 
 .PHONY: build_Linux
 build_Linux:
@@ -98,6 +99,7 @@ $(HAPROXY_DESTDIR):
 	@if [ -d "$(HAPROXY_DESTDIR)" ]; then rm -rf $(HAPROXY_DESTDIR); fi
 	@mkdir -pv "$(HAPROXY_DESTDIR)"
 	$(MAKE) -C "$(HAPROXY_BUILDIR)" -j "$(shell nproc)" DESTDIR="$(HAPROXY_DESTDIR_ABS)" install
+	if [ -f "$(HAPROXY_BUILDIR)/dev/haring/haring" ]; then install -m 0755 -D "$(HAPROXY_BUILDIR)/dev/haring/haring" "$(HAPROXY_DESTDIR_ABS)/usr/local/sbin/haring"; fi
 	$(HAPROXY_DESTDIR_ABS)/usr/local/sbin/haproxy -vv
 
 $(HAPROXY_ARCHIVE): $(HAPROXY_DESTDIR)
