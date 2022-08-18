@@ -22,6 +22,10 @@ variables: &default-variables
   # https://git.haproxy.org/?p=haproxy.git;a=commit;h=b29a1dc2f4a334c1c7fea76c59abb4097422c05c
   HAPROXY_GITREF: b29a1dc2f4a334c1c7fea76c59abb4097422c05c
 
+.haproxy_dev_slowdebug: &haproxy-dev-slowdebug
+  <<: *haproxy-dev
+  HAPROXY_SLOWDEBUG: "true"
+
 .build-job: &build-job
   image: registry.gitlab.com/mangadex-pub/debuilder/buster:main
   needs: [ ]
@@ -86,7 +90,7 @@ vtest:
     - mkdir deps/lua/dist     && tar -C deps/lua/dist     -xf deps/lua/lua-dist.tar.gz
     - mkdir deps/pcre2/dist   && tar -C deps/pcre2/dist   -xf deps/pcre2/pcre2-dist.tar.gz
     - mkdir deps/quictls/dist && tar -C deps/quictls/dist -xf deps/quictls/quictls-dist.tar.gz
-    - make -C haproxy HAPROXY_GITREPO="$HAPROXY_GITREPO" HAPROXY_VERSION="$HAPROXY_VERSION" HAPROXY_GITREF="$HAPROXY_GITREF"
+    - make -C haproxy HAPROXY_GITREPO="$HAPROXY_GITREPO" HAPROXY_VERSION="$HAPROXY_VERSION" HAPROXY_GITREF="$HAPROXY_GITREF" HAPROXY_SLOWDEBUG="${HAPROXY_SLOWDEBUG:-false}"
   needs: *needs-dependencies
   artifacts:
     expire_in: 7 days
@@ -115,7 +119,7 @@ vtest:
     - mkdir deps/pcre2/dist   && tar -C deps/pcre2/dist   -xf deps/pcre2/pcre2-dist.tar.gz
     - mkdir deps/quictls/dist && tar -C deps/quictls/dist -xf deps/quictls/quictls-dist.tar.gz
     - export BUILD_MESSAGE="$CI_COMMIT_MESSAGE"
-    - make -C haproxy dist-deb HAPROXY_GITREPO="$HAPROXY_GITREPO" HAPROXY_VERSION="$HAPROXY_VERSION" HAPROXY_GITREF="$HAPROXY_GITREF"
+    - make -C haproxy dist-deb HAPROXY_GITREPO="$HAPROXY_GITREPO" HAPROXY_VERSION="$HAPROXY_VERSION" HAPROXY_GITREF="$HAPROXY_GITREF" HAPROXY_SLOWDEBUG="${HAPROXY_SLOWDEBUG:-false}"
     - |
       set -euo pipefail
 
@@ -127,8 +131,13 @@ vtest:
         echo "Git reference $CI_COMMIT_REF_NAME is not the default branch. Setting coordinates to $PACKAGE_NAME/$DEB_VERSION"
       fi
 
-      GITLAB_IS_LAME_DEB_VERSION=$(echo "${DEB_VERSION}" | tr '~' '-')
-      echo "Publishing Debian package version ${DEB_VERSION} to haproxy-debian@${GITLAB_IS_LAME_DEB_VERSION}"
+      GITLAB_PACKAGE_VERSION=$(echo "${DEB_VERSION}" | tr '~' '-')
+      if ${HAPROXY_SLOWDEBUG:-false}; then
+        echo "Appending slowdebug to package version"
+        GITLAB_PACKAGE_VERSION="${GITLAB_PACKAGE_VERSION}-slowdebug"
+      fi
+
+      echo "Publishing Debian package version ${DEB_VERSION} to haproxy-debian@${GITLAB_PACKAGE_VERSION}"
 
       for artifact in haproxy/haproxy*.deb; do
         artifact_filename=$(basename "${artifact}")
@@ -136,7 +145,7 @@ vtest:
         echo "Uploading to haproxy-debian@${DEB_VERSION}... ${artifact_filename} -> ${gitlab_is_lame_artifact_filename}"
         curl -fsSL -H"JOB-TOKEN: $CI_JOB_TOKEN" \
           --upload-file "${artifact}" \
-          "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/${PACKAGE_NAME}/${GITLAB_IS_LAME_DEB_VERSION}/${gitlab_is_lame_artifact_filename}"
+          "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/${PACKAGE_NAME}/${GITLAB_PACKAGE_VERSION}/${gitlab_is_lame_artifact_filename}"
         echo "OK"
       done
   artifacts:
@@ -155,6 +164,10 @@ vtest:
       echo "Git reference $CI_COMMIT_REF_NAME is not the default branch. Setting version to $PKG_VER"
     fi
 
+    if ${HAPROXY_SLOWDEBUG:-false}; then
+      echo "Appending slowdebug to package version"
+      PKG_VER="$PKG_VER-slowdebug"
+    fi
     curl -fsSL \
       -H"JOB-TOKEN: $CI_JOB_TOKEN" \
       --upload-file "haproxy/haproxy-dist.tar.gz" \
@@ -172,7 +185,7 @@ vtest:
     set -eu
 
     export DEBIAN_CODENAME="bullseye"
-    export JOB_TIMESTAMP="$(date -D '%Y-%m-%dT%H:%M:%S%Z' -d "$CI_JOB_STARTED_AT" +'%Y%m%d-%H%M')"
+    export JOB_TIMESTAMP="$(date -D '%Y-%m-%dT%H:%M:%S' -d "$CI_JOB_STARTED_AT" +'%Y%m%d-%H%M')"
 
     # A.B.C -> A.B, otherwise preserve original; so 2.7-dev -> 2.7-dev
     if echo "$HAPROXY_VERSION" | grep -E '([0-9]\.){2}[0-9]'; then
@@ -180,6 +193,14 @@ vtest:
     else
       export HAPROXY_SHORTVER=$HAPROXY_VERSION
     fi
+
+    # Append slowdebug if relevant
+    if ${HAPROXY_SLOWDEBUG:-false}; then
+      echo "Appending slowdebug to package version"
+      HAPROXY_VERSION="$HAPROXY_VERSION-slowdebug"
+      HAPROXY_SHORTVER="$HAPROXY_SHORTVER-slowdebug"
+    fi
+
     echo "Building image with"
     echo "  -> haproxy version: $HAPROXY_VERSION ($HAPROXY_SHORTVER)"
     echo "  -> debian codename: $DEBIAN_CODENAME"
@@ -237,6 +258,12 @@ build:dev:
     <<: *default-variables
     <<: *haproxy-dev
 
+build:dev:slowdebug:
+  <<: *haproxy-build
+  variables:
+    <<: *default-variables
+    <<: *haproxy-dev-slowdebug
+
 regtests:stable:
   <<: *haproxy-regtests
   variables:
@@ -248,6 +275,12 @@ regtests:dev:
   variables:
     <<: *default-variables
     <<: *haproxy-dev
+
+regtests:dev:slowdebug:
+  <<: *haproxy-regtests
+  variables:
+    <<: *default-variables
+    <<: *haproxy-dev-slowdebug
 
 haproxy-tarball:stable:
   <<: *haproxy-tarball
@@ -269,6 +302,17 @@ haproxy-tarball:dev:
     - job: "regtests:dev"
       artifacts: false
     - job: "build:dev"
+      artifacts: true
+
+haproxy-tarball:dev:slowdebug:
+  <<: *haproxy-tarball
+  variables:
+    <<: *default-variables
+    <<: *haproxy-dev-slowdebug
+  needs:
+    - job: "regtests:dev:slowdebug"
+      artifacts: false
+    - job: "build:dev:slowdebug"
       artifacts: true
 
 docker:stable:
@@ -297,6 +341,19 @@ docker:dev:
     - job: "build:dev"
       artifacts: true
 
+docker:dev:slowdebug:
+  <<: *haproxy-docker
+  variables:
+    <<: *default-variables
+    <<: *haproxy-dev-slowdebug
+  needs:
+    - job: "quictls"
+      artifacts: true
+    - job: "regtests:dev:slowdebug"
+      artifacts: false
+    - job: "build:dev:slowdebug"
+      artifacts: true
+
 debian:stable:
   <<: *haproxy-debian
   variables:
@@ -315,6 +372,16 @@ debian:dev:
   needs:
     - *needs-dependencies
     - job: "regtests:dev"
+      artifacts: false
+
+debian:dev:slowdebug:
+  <<: *haproxy-debian
+  variables:
+    <<: *default-variables
+    <<: *haproxy-dev-slowdebug
+  needs:
+    - *needs-dependencies
+    - job: "regtests:dev:slowdebug"
       artifacts: false
 
 quictls:tarball:
