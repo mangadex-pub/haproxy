@@ -23,8 +23,15 @@ BUILD_PATCHES_DIR = $(shell realpath patches)
 BUILD_PATCHES_FILES = $(shell ls -1 $(BUILD_PATCHES_DIR))
 DEBIAN_PATCHES_DIR = "$(HAPROXY_BUILDIR)/debian/patches"
 
+HAPROXY_SLOWDEBUG = false
+
+DEBUG_CFLAGS = -ggdb3 -gdwarf-4
+ifeq ($(HAPROXY_SLOWDEBUG), true)
+	DEBUG_CFLAGS += -O0
+endif
+
 MAKEARGS = DEBUG="-DDEBUG_MEMORY_POOLS -DDEBUG_STRICT" \
-           DEBUG_CFLAGS="-ggdb3 -gdwarf-4" \
+           DEBUG_CFLAGS="$(DEBUG_CFLAGS)"\
            DEFINE="-DMAX_SESS_STKCTR=5" \
            IGNOREGIT=true \
            ADDLIB="-Wl,-rpath,/opt/quictls/lib" \
@@ -114,12 +121,12 @@ prepare-deb: $(HAPROXY_DEBORIG) $(HAPROXY_BUILDIR)
 	@for patch in $(BUILD_PATCHES_FILES); do echo "$${patch}" >> "$(DEBIAN_PATCHES_DIR)/series"; done
 	export BUILD_DATE="$(shell date -u +'%a, %e %b %Y %H:%m:%S %z')" && \
 		export BUILD_VERSION="$(HAPROXY_VERSION)-$(HAPROXY_SHORTSHA)-1~mangadex+$(BUILD_VERSION_REPOSHA)" && \
-		export BUILD_MESSAGE=$(echo "$${BUILD_MESSAGE:-"No build changelog message"}" | head -n1) && \
+		export BUILD_MESSAGE="$(shell echo "$${BUILD_MESSAGE:-"No build message"}" | head -n1)" && \
 		envsubst < changelog.debian | tee "$(HAPROXY_BUILDIR)/debian/changelog" && \
 		cat debian/changelog >> "$(HAPROXY_BUILDIR)/debian/changelog"
 
 build-deb: prepare-deb
-	cd $(HAPROXY_BUILDIR) && debuild -us -uc
+	cd $(HAPROXY_BUILDIR) && debuild -e HAPROXY_SLOWDEBUG="$(HAPROXY_SLOWDEBUG)" -us -uc
 	rm -fv $(HAPROXY_TARBALL)
 	rm -rf $(HAPROXY_BUILDIR)
 
