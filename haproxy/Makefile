@@ -1,6 +1,6 @@
 HAPROXY_GITREPO = https://git.haproxy.org/?p=haproxy-2.6.git
-HAPROXY_VERSION = 2.6.2
-HAPROXY_GITREF = 16a3646fdff7315802913184a4e12c2a32344aed
+HAPROXY_VERSION = 2.6.3
+HAPROXY_GITREF = 76f187b36b77cc58cca73df2c5b90eec3f32ac12
 HAPROXY_SHORTSHA = $(shell echo "$(HAPROXY_GITREF)" | grep -Eo '^.{7}' || echo "$(HAPROXY_GITREF)")
 HAPROXY_VERSION_MINOR = $(shell echo "$(HAPROXY_VERSION)" | cut -d'.' -f1-2)
 
@@ -97,7 +97,6 @@ build_Darwin:
 
 # Ignore ssl/ssl_generate_certificate.vtc as it fails and I have no clue why at all
 test: $(HAPROXY_BUILDIR)
-	rm -v "$(HAPROXY_BUILDIR)/reg-tests/ssl/ssl_generate_certificate.vtc" || true
 	VTEST_PROGRAM="$(DEP_DIST_ROOT_VTEST)/vtest" \
 		$(MAKE) -C "$(HAPROXY_BUILDIR)" -j "$(shell nproc)" REGTESTS_TYPES=default,bug,devel reg-tests
 
