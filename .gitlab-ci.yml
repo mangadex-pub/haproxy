@@ -4,6 +4,17 @@ stages:
   - test
   - publish
 
+default:
+  retry:
+    max: 2
+    when:
+      - api_failure
+      - runner_system_failure
+      - scheduler_failure
+      - stale_schedule
+      - stuck_or_timeout_failure
+      - unknown_failure
+
 variables: &default-variables
   TZ: "UTC"
   GIT_DEPTH: "1"
@@ -19,8 +30,8 @@ variables: &default-variables
 .haproxy_dev: &haproxy-dev
   HAPROXY_GITREPO: "https://git.haproxy.org/?p=haproxy.git"
   HAPROXY_VERSION: 2.7-dev
-  # https://git.haproxy.org/?p=haproxy.git;a=commit;h=da9c441886dbfa02840a93e367f65fd6d312c835
-  HAPROXY_GITREF: da9c441886dbfa02840a93e367f65fd6d312c835
+  # https://git.haproxy.org/?p=haproxy.git;a=commit;h=8bd146d8af78371f97b66e50cac718666eb93388
+  HAPROXY_GITREF: 8bd146d8af78371f97b66e50cac718666eb93388
 
 .haproxy_dev_slowdebug: &haproxy-dev-slowdebug
   <<: *haproxy-dev
