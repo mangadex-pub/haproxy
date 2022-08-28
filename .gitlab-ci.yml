@@ -30,8 +30,8 @@ variables: &default-variables
 .haproxy_dev: &haproxy-dev
   HAPROXY_GITREPO: "https://git.haproxy.org/?p=haproxy.git"
   HAPROXY_VERSION: 2.7-dev
-  # https://git.haproxy.org/?p=haproxy.git;a=commit;h=e35463c767d693d24fc26b6575749e8594e56204
-  HAPROXY_GITREF: e35463c767d693d24fc26b6575749e8594e56204
+  # https://git.haproxy.org/?p=haproxy.git;a=commit;h=149c531fa185f418def681fbe044d48fca1db66c
+  HAPROXY_GITREF: 149c531fa185f418def681fbe044d48fca1db66c
 
 .haproxy_dev_slowdebug: &haproxy-dev-slowdebug
   <<: *haproxy-dev
