@@ -23,12 +23,7 @@ BUILD_PATCHES_DIR = $(shell realpath patches)
 BUILD_PATCHES_FILES = $(shell ls -1 $(BUILD_PATCHES_DIR))
 DEBIAN_PATCHES_DIR = "$(HAPROXY_BUILDIR)/debian/patches"
 
-HAPROXY_SLOWDEBUG = false
-
 DEBUG_CFLAGS = -ggdb3 -gdwarf-4
-ifeq ($(HAPROXY_SLOWDEBUG), true)
-	DEBUG_CFLAGS += -O0
-endif
 
 MAKEARGS = DEBUG="-DDEBUG_MEMORY_POOLS -DDEBUG_STRICT" \
            DEBUG_CFLAGS="$(DEBUG_CFLAGS)"\
@@ -125,7 +120,7 @@ prepare-deb: $(HAPROXY_DEBORIG) $(HAPROXY_BUILDIR)
 		cat debian/changelog >> "$(HAPROXY_BUILDIR)/debian/changelog"
 
 build-deb: prepare-deb
-	cd $(HAPROXY_BUILDIR) && debuild -e HAPROXY_SLOWDEBUG="$(HAPROXY_SLOWDEBUG)" -us -uc
+	cd $(HAPROXY_BUILDIR) && debuild -us -uc
 	rm -fv $(HAPROXY_TARBALL)
 	rm -rf $(HAPROXY_BUILDIR)
 

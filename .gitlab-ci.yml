@@ -33,10 +33,6 @@ variables: &default-variables
   # https://git.haproxy.org/?p=haproxy.git;a=commit;h=7941ead3aa00c9e83fadf70a1d6d515d20421ad0
   HAPROXY_GITREF: 7941ead3aa00c9e83fadf70a1d6d515d20421ad0
 
-.haproxy_dev_slowdebug: &haproxy-dev-slowdebug
-  <<: *haproxy-dev
-  HAPROXY_SLOWDEBUG: "true"
-
 .build-job: &build-job
   image: registry.gitlab.com/mangadex-pub/debuilder/buster:main
   needs: [ ]
@@ -101,7 +97,7 @@ vtest:
     - mkdir deps/lua/dist     && tar -C deps/lua/dist     -xf deps/lua/lua-dist.tar.gz
     - mkdir deps/pcre2/dist   && tar -C deps/pcre2/dist   -xf deps/pcre2/pcre2-dist.tar.gz
     - mkdir deps/quictls/dist && tar -C deps/quictls/dist -xf deps/quictls/quictls-dist.tar.gz
-    - make -C haproxy HAPROXY_GITREPO="$HAPROXY_GITREPO" HAPROXY_VERSION="$HAPROXY_VERSION" HAPROXY_GITREF="$HAPROXY_GITREF" HAPROXY_SLOWDEBUG="${HAPROXY_SLOWDEBUG:-false}"
+    - make -C haproxy HAPROXY_GITREPO="$HAPROXY_GITREPO" HAPROXY_VERSION="$HAPROXY_VERSION" HAPROXY_GITREF="$HAPROXY_GITREF"
   needs: *needs-dependencies
   artifacts:
     expire_in: 7 days
@@ -130,7 +126,7 @@ vtest:
     - mkdir deps/pcre2/dist   && tar -C deps/pcre2/dist   -xf deps/pcre2/pcre2-dist.tar.gz
     - mkdir deps/quictls/dist && tar -C deps/quictls/dist -xf deps/quictls/quictls-dist.tar.gz
     - export BUILD_MESSAGE="$CI_COMMIT_MESSAGE"
-    - make -C haproxy dist-deb HAPROXY_GITREPO="$HAPROXY_GITREPO" HAPROXY_VERSION="$HAPROXY_VERSION" HAPROXY_GITREF="$HAPROXY_GITREF" HAPROXY_SLOWDEBUG="${HAPROXY_SLOWDEBUG:-false}"
+    - make -C haproxy dist-deb HAPROXY_GITREPO="$HAPROXY_GITREPO" HAPROXY_VERSION="$HAPROXY_VERSION" HAPROXY_GITREF="$HAPROXY_GITREF"
     - |
       set -euo pipefail
 
@@ -143,11 +139,6 @@ vtest:
       fi
 
       GITLAB_PACKAGE_VERSION=$(echo "${DEB_VERSION}" | tr '~' '-')
-      if ${HAPROXY_SLOWDEBUG:-false}; then
-        echo "Appending slowdebug to package version"
-        GITLAB_PACKAGE_VERSION="${GITLAB_PACKAGE_VERSION}-slowdebug"
-      fi
-
       echo "Publishing Debian package version ${DEB_VERSION} to haproxy-debian@${GITLAB_PACKAGE_VERSION}"
 
       for artifact in haproxy/haproxy*.deb; do
@@ -175,10 +166,6 @@ vtest:
       echo "Git reference $CI_COMMIT_REF_NAME is not the default branch. Setting version to $PKG_VER"
     fi
 
-    if ${HAPROXY_SLOWDEBUG:-false}; then
-      echo "Appending slowdebug to package version"
-      PKG_VER="$PKG_VER-slowdebug"
-    fi
     curl -fsSL \
       -H"JOB-TOKEN: $CI_JOB_TOKEN" \
       --upload-file "haproxy/haproxy-dist.tar.gz" \
@@ -203,13 +190,6 @@ vtest:
       export HAPROXY_SHORTVER="$(echo "$HAPROXY_VERSION" | cut -d'.' -f1-2)"
     else
       export HAPROXY_SHORTVER=$HAPROXY_VERSION
-    fi
-
-    # Append slowdebug if relevant
-    if ${HAPROXY_SLOWDEBUG:-false}; then
-      echo "Appending slowdebug to package version"
-      HAPROXY_VERSION="$HAPROXY_VERSION-slowdebug"
-      HAPROXY_SHORTVER="$HAPROXY_SHORTVER-slowdebug"
     fi
 
     echo "Building image with"
@@ -269,12 +249,6 @@ build:dev:
     <<: *default-variables
     <<: *haproxy-dev
 
-build:dev:slowdebug:
-  <<: *haproxy-build
-  variables:
-    <<: *default-variables
-    <<: *haproxy-dev-slowdebug
-
 regtests:stable:
   <<: *haproxy-regtests
   variables:
@@ -286,12 +260,6 @@ regtests:dev:
   variables:
     <<: *default-variables
     <<: *haproxy-dev
-
-regtests:dev:slowdebug:
-  <<: *haproxy-regtests
-  variables:
-    <<: *default-variables
-    <<: *haproxy-dev-slowdebug
 
 haproxy-tarball:stable:
   <<: *haproxy-tarball
@@ -313,17 +281,6 @@ haproxy-tarball:dev:
     - job: "regtests:dev"
       artifacts: false
     - job: "build:dev"
-      artifacts: true
-
-haproxy-tarball:dev:slowdebug:
-  <<: *haproxy-tarball
-  variables:
-    <<: *default-variables
-    <<: *haproxy-dev-slowdebug
-  needs:
-    - job: "regtests:dev:slowdebug"
-      artifacts: false
-    - job: "build:dev:slowdebug"
       artifacts: true
 
 docker:stable:
@@ -352,19 +309,6 @@ docker:dev:
     - job: "build:dev"
       artifacts: true
 
-docker:dev:slowdebug:
-  <<: *haproxy-docker
-  variables:
-    <<: *default-variables
-    <<: *haproxy-dev-slowdebug
-  needs:
-    - job: "quictls"
-      artifacts: true
-    - job: "regtests:dev:slowdebug"
-      artifacts: false
-    - job: "build:dev:slowdebug"
-      artifacts: true
-
 debian:stable:
   <<: *haproxy-debian
   variables:
@@ -383,16 +327,6 @@ debian:dev:
   needs:
     - *needs-dependencies
     - job: "regtests:dev"
-      artifacts: false
-
-debian:dev:slowdebug:
-  <<: *haproxy-debian
-  variables:
-    <<: *default-variables
-    <<: *haproxy-dev-slowdebug
-  needs:
-    - *needs-dependencies
-    - job: "regtests:dev:slowdebug"
       artifacts: false
 
 quictls:tarball:

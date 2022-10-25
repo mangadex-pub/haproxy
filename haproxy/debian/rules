@@ -7,9 +7,6 @@ DEP_DIST_ROOT_QUICTLS = $(shell realpath ../../deps/quictls/dist)
 BUILD_VERSION_REPOSHA = $(shell git rev-parse --short HEAD)
 
 DEBUG_CFLAGS = -ggdb3 -gdwarf-4
-ifeq ($(HAPROXY_SLOWDEBUG), true)
-	DEBUG_CFLAGS += -O0
-endif
 
 MAKEARGS = DEBUG="-DDEBUG_MEMORY_POOLS -DDEBUG_STRICT" \
            DEBUG_CFLAGS="$(DEBUG_CFLAGS)" \
@@ -53,7 +50,6 @@ MAKEARGS += DOCDIR=/usr/share/doc/haproxy
 override_dh_auto_configure:
 
 override_dh_auto_build-arch:
-	@if ${HAPROXY_SLOWDEBUG}; then echo "slowdebug enabled"; else echo "slowdebug disabled"; fi
 	$(MAKE) -j $(shell nproc) $(MAKEARGS)
 	if [ -d "dev/haring" ]; then $(MAKE) -j $(shell nproc) dev/haring/haring; fi
 	$(MAKE) -j $(shell nproc) -C admin/systemd $(MAKEARGS)
