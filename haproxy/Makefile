@@ -54,7 +54,8 @@ MAKEARGS_LINUX = $(MAKEARGS) \
            		 USE_PCRE2_JIT=1 \
            		 USE_STATIC_PCRE2=1 \
 				 USE_NS=1 \
-				 USE_SYSTEMD=1
+				 USE_SYSTEMD=1 \
+				 TARGET=linux-glibc
 
 MAKEARGS_DARWIN = $(MAKEARGS) \
 				  CC=$(shell brew --prefix llvm)/bin/clang \
