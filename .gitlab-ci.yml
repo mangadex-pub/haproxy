@@ -30,8 +30,8 @@ variables: &default-variables
 .haproxy_dev: &haproxy-dev
   HAPROXY_GITREPO: "https://git.haproxy.org/?p=haproxy.git"
   HAPROXY_VERSION: 2.7-dev
-  # https://git.haproxy.org/?p=haproxy.git;a=commit;h=a0abec8bc0f5ac547cd2ee2c7af9f7d911549c78
-  HAPROXY_GITREF: "a0abec8bc0f5ac547cd2ee2c7af9f7d911549c78"
+  # https://git.haproxy.org/?p=haproxy.git;a=commit;h=c8601507b27db9df3c6e406c6d90c473c6976619
+  HAPROXY_GITREF: "c8601507b27db9df3c6e406c6d90c473c6976619"
 
 .build-job: &build-job
   image: registry.gitlab.com/mangadex-pub/debuilder/buster:main
