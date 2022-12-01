@@ -2,9 +2,9 @@
 
 Build scripts for HAProxy with QUIC
 
-**PROJECT STATUS: BETA**. It will generally work fine and we've been using it in
-production ourselves, but please be careful and pin versions explicitly for now.
-We don't exactly have time to triple check everything to never mess up (yet).
+**PROJECT STATUS: STABLE**. We have been using it in our own production systems
+for months now without issues. If you rely on it for critical purposes, maintain
+your own fork, so that a potential tagging/CI issue doesn't cause you problems.
 
 [[_TOC_]]
 
@@ -16,7 +16,7 @@ docker run -it \
     -p "80:80" \
     -p "443:443/tcp" \
     -p "443:443/udp" \
-    registry.gitlab.com/mangadex-pub/haproxy:2.6-bullseye
+    registry.gitlab.com/mangadex-pub/haproxy:2.7-bullseye
 ```
 
 ## HTTP/3 and QUIC
