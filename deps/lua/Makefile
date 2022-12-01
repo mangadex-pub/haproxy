@@ -1,4 +1,4 @@
-LUA_VERSION = 5.3.6
+LUA_VERSION = 5.4.4
 LUA_SOURCES = https://www.lua.org/ftp/lua-$(LUA_VERSION).tar.gz
 LUA_TARBALL = lua-$(LUA_VERSION).tar.gz
 LUA_BUILDIR = src

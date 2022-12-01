@@ -22,16 +22,16 @@ variables: &default-variables
   KUBERNETES_MEMORY_LIMIT: 4Gi
 
 .haproxy_stable: &haproxy-stable
-  HAPROXY_GITREPO: "https://git.haproxy.org/?p=haproxy-2.6.git"
-  HAPROXY_VERSION: 2.6.6
-  # https://git.haproxy.org/?p=haproxy-2.6.git;a=commit;h=274d1a4dffe332885bce12f04ac0e452c5f512b2
-  HAPROXY_GITREF: "274d1a4dffe332885bce12f04ac0e452c5f512b2"
+  HAPROXY_GITREPO: "https://git.haproxy.org/?p=haproxy-2.7.git"
+  HAPROXY_VERSION: 2.7.0
+  # https://git.haproxy.org/?p=haproxy-2.7.git;a=commit;h=75443c64e611077619c02b5b762bc8047535aceb
+  HAPROXY_GITREF: "75443c64e611077619c02b5b762bc8047535aceb"
 
 .haproxy_dev: &haproxy-dev
   HAPROXY_GITREPO: "https://git.haproxy.org/?p=haproxy.git"
-  HAPROXY_VERSION: 2.7-dev
-  # https://git.haproxy.org/?p=haproxy.git;a=commit;h=061a098c5c2b559a2b208d9c67145d98400ada2d
-  HAPROXY_GITREF: "061a098c5c2b559a2b208d9c67145d98400ada2d"
+  HAPROXY_VERSION: 2.8-dev
+  # https://git.haproxy.org/?p=haproxy.git;a=commit;h=a7b61ecd57825931c163812dafa1cb6d07667bdd
+  HAPROXY_GITREF: "a7b61ecd57825931c163812dafa1cb6d07667bdd"
 
 .build-job: &build-job
   image: registry.gitlab.com/mangadex-pub/debuilder/buster:main
@@ -185,7 +185,7 @@ vtest:
     export DEBIAN_CODENAME="bullseye"
     export JOB_TIMESTAMP="$(date -D '%Y-%m-%dT%H:%M:%S' -d "$CI_JOB_STARTED_AT" +'%Y%m%d-%H%M')"
 
-    # A.B.C -> A.B, otherwise preserve original; so 2.7-dev -> 2.7-dev
+    # A.B.C -> A.B, otherwise preserve original (eg 2.x-dev -> 2.x-dev)
     if echo "$HAPROXY_VERSION" | grep -E '([0-9]\.){2}[0-9]'; then
       export HAPROXY_SHORTVER="$(echo "$HAPROXY_VERSION" | cut -d'.' -f1-2)"
     else
