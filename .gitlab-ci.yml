@@ -18,8 +18,18 @@ default:
 variables: &default-variables
   TZ: "UTC"
   GIT_DEPTH: "1"
-  KUBERNETES_MEMORY_REQUEST: 4Gi
-  KUBERNETES_MEMORY_LIMIT: 4Gi
+
+.build-resources-xs: &build-resources-xs
+  KUBERNETES_MEMORY_REQUEST: 512Mi
+  KUBERNETES_MEMORY_LIMIT: 512Mi
+
+.build-resources-s: &build-resources-s
+  KUBERNETES_MEMORY_REQUEST: 1Gi
+  KUBERNETES_MEMORY_LIMIT: 1Gi
+
+.build-resources-m: &build-resources-m
+  KUBERNETES_MEMORY_REQUEST: 2Gi
+  KUBERNETES_MEMORY_LIMIT: 2Gi
 
 .haproxy_stable: &haproxy-stable
   HAPROXY_GITREPO: "https://git.haproxy.org/?p=haproxy-2.7.git"
@@ -49,6 +59,9 @@ lua:
   <<: *build-job
   stage: dependencies
   script: make -C deps/lua
+  variables:
+    <<: *default-variables
+    <<: *build-resources-xs
   artifacts:
     expire_in: 7 days
     paths: [ "deps/lua/lua-dist.tar.gz" ]
@@ -57,6 +70,9 @@ pcre2:
   <<: *build-job
   stage: dependencies
   script: make -C deps/pcre2
+  variables:
+    <<: *default-variables
+    <<: *build-resources-xs
   artifacts:
     expire_in: 7 days
     paths: [ "deps/pcre2/pcre2-dist.tar.gz" ]
@@ -65,6 +81,9 @@ quictls:
   <<: *build-job
   stage: dependencies
   script: make -C deps/quictls
+  variables:
+    <<: *default-variables
+    <<: *build-resources-m
   artifacts:
     expire_in: 7 days
     paths: [ "deps/quictls/quictls-dist.tar.gz" ]
@@ -73,6 +92,9 @@ vtest:
   <<: *build-job
   stage: dependencies
   script: make -C deps/vtest
+  variables:
+    <<: *default-variables
+    <<: *build-resources-m
   artifacts:
     expire_in: 7 days
     paths: [ "deps/vtest/dist/vtest" ]
@@ -241,30 +263,35 @@ build:stable:
   <<: *haproxy-build
   variables:
     <<: *default-variables
+    <<: *build-resources-s
     <<: *haproxy-stable
 
 build:dev:
   <<: *haproxy-build
   variables:
     <<: *default-variables
+    <<: *build-resources-s
     <<: *haproxy-dev
 
 regtests:stable:
   <<: *haproxy-regtests
   variables:
     <<: *default-variables
+    <<: *build-resources-m
     <<: *haproxy-stable
 
 regtests:dev:
   <<: *haproxy-regtests
   variables:
     <<: *default-variables
+    <<: *build-resources-m
     <<: *haproxy-dev
 
 haproxy-tarball:stable:
   <<: *haproxy-tarball
   variables:
     <<: *default-variables
+    <<: *build-resources-xs
     <<: *haproxy-stable
   needs:
     - job: "regtests:stable"
@@ -276,6 +303,7 @@ haproxy-tarball:dev:
   <<: *haproxy-tarball
   variables:
     <<: *default-variables
+    <<: *build-resources-xs
     <<: *haproxy-dev
   needs:
     - job: "regtests:dev"
@@ -287,6 +315,7 @@ docker:stable:
   <<: *haproxy-docker
   variables:
     <<: *default-variables
+    <<: *build-resources-m
     <<: *haproxy-stable
   needs:
     - job: "quictls"
@@ -300,6 +329,7 @@ docker:dev:
   <<: *haproxy-docker
   variables:
     <<: *default-variables
+    <<: *build-resources-m
     <<: *haproxy-dev
   needs:
     - job: "quictls"
@@ -313,6 +343,7 @@ debian:stable:
   <<: *haproxy-debian
   variables:
     <<: *default-variables
+    <<: *build-resources-m
     <<: *haproxy-stable
   needs:
     - *needs-dependencies
@@ -323,6 +354,7 @@ debian:dev:
   <<: *haproxy-debian
   variables:
     <<: *default-variables
+    <<: *build-resources-m
     <<: *haproxy-dev
   needs:
     - *needs-dependencies
@@ -353,3 +385,6 @@ quictls:tarball:
       artifacts: false
     - job: "regtests:stable"
       artifacts: false
+  variables:
+    <<: *default-variables
+    <<: *build-resources-xs
