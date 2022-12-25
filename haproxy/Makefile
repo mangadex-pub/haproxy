@@ -1,6 +1,6 @@
 HAPROXY_GITREPO = https://git.haproxy.org/?p=haproxy-2.7.git
-HAPROXY_VERSION = 2.7.0
-HAPROXY_GITREF = 75443c64e611077619c02b5b762bc8047535aceb
+HAPROXY_VERSION = 2.7.1
+HAPROXY_GITREF = 3e4af0ed7e33df3afc0a54a84af7774a3849b5b6
 HAPROXY_SHORTSHA = $(shell echo "$(HAPROXY_GITREF)" | grep -Eo '^.{7}' || echo "$(HAPROXY_GITREF)")
 HAPROXY_VERSION_MINOR = $(shell echo "$(HAPROXY_VERSION)" | cut -d'.' -f1-2)
 
