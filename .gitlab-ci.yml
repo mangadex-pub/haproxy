@@ -31,6 +31,10 @@ variables: &default-variables
   KUBERNETES_MEMORY_REQUEST: 2Gi
   KUBERNETES_MEMORY_LIMIT: 2Gi
 
+.build-resources-l: &build-resources-l
+  KUBERNETES_MEMORY_REQUEST: 3Gi
+  KUBERNETES_MEMORY_LIMIT: 3Gi
+
 .haproxy_stable: &haproxy-stable
   HAPROXY_GITREPO: "https://git.haproxy.org/?p=haproxy-2.7.git"
   HAPROXY_VERSION: 2.7.1
@@ -94,7 +98,7 @@ vtest:
   script: make -C deps/vtest
   variables:
     <<: *default-variables
-    <<: *build-resources-m
+    <<: *build-resources-xs
   artifacts:
     expire_in: 7 days
     paths: [ "deps/vtest/dist/vtest" ]
@@ -343,7 +347,7 @@ debian:stable:
   <<: *haproxy-debian
   variables:
     <<: *default-variables
-    <<: *build-resources-m
+    <<: *build-resources-l
     <<: *haproxy-stable
   needs:
     - *needs-dependencies
@@ -354,7 +358,7 @@ debian:dev:
   <<: *haproxy-debian
   variables:
     <<: *default-variables
-    <<: *build-resources-m
+    <<: *build-resources-l
     <<: *haproxy-dev
   needs:
     - *needs-dependencies
