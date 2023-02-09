@@ -1,7 +1,7 @@
-OPENSSL_VERSION = 1.1.1s
+OPENSSL_VERSION = 1.1.1t
 BUILD_VERSION_REPOSHA = $(shell git rev-parse --short HEAD)
 QUICTLS_BUILD_VERSION = quic-mangadex-$(BUILD_VERSION_REPOSHA)
-QUICTLS_TAG = OpenSSL_$(subst .,_,$(OPENSSL_VERSION))+quic1
+QUICTLS_TAG = OpenSSL_$(subst .,_,$(OPENSSL_VERSION))-quic1
 
 QUICTLS_SOURCES = https://codeload.github.com/quictls/openssl/tar.gz/$(QUICTLS_TAG)
 QUICTLS_TARBALL = quictls-$(OPENSSL_VERSION).tar.gz
