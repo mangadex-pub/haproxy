@@ -33,9 +33,9 @@ variables: &default-variables
 
 .haproxy_stable: &haproxy-stable
   HAPROXY_GITREPO: "https://git.haproxy.org/?p=haproxy-2.7.git"
-  HAPROXY_VERSION: 2.7.2
-  # https://git.haproxy.org/?p=haproxy-2.7.git;a=commit;h=739996c80a847cd9572d3a4e4e418a7a38ddc2ff
-  HAPROXY_GITREF: "739996c80a847cd9572d3a4e4e418a7a38ddc2ff"
+  HAPROXY_VERSION: 2.7-stable
+  # https://git.haproxy.org/?p=haproxy-2.7.git;a=commit;h=bb4bacf32db7564e668ccc3aacc6bed8688894ba
+  HAPROXY_GITREF: "bb4bacf32db7564e668ccc3aacc6bed8688894ba"
 
 .haproxy_dev: &haproxy-dev
   HAPROXY_GITREPO: "https://git.haproxy.org/?p=haproxy.git"
