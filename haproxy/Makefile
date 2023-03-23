@@ -19,7 +19,7 @@ DEP_DIST_ROOT_VTEST = $(shell realpath ../deps/vtest/dist)
 
 BUILD_VERSION_REPOSHA = $(shell git rev-parse --short HEAD)
 
-BUILD_PATCHES_DIR = $(shell realpath patches)
+BUILD_PATCHES_DIR = $(shell realpath patches-stable)
 BUILD_PATCHES_FILES = $(shell ls -1 $(BUILD_PATCHES_DIR))
 DEBIAN_PATCHES_DIR = "$(HAPROXY_BUILDIR)/debian/patches"
 

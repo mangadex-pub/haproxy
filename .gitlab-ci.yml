@@ -36,12 +36,14 @@ variables: &default-variables
   HAPROXY_VERSION: 2.7-stable
   # https://git.haproxy.org/?p=haproxy-2.7.git;a=commit;h=8d230219e15295a3c4757f94916aafcf540a7337
   HAPROXY_GITREF: "8d230219e15295a3c4757f94916aafcf540a7337"
+  BUILD_PATCHES_DIR: "patches-stable"
 
 .haproxy_dev: &haproxy-dev
   HAPROXY_GITREPO: "https://git.haproxy.org/?p=haproxy.git"
   HAPROXY_VERSION: 2.8-dev
   # https://git.haproxy.org/?p=haproxy.git;a=commit;h=1751db140ab609e38af8218efbd23427115a42aa
   HAPROXY_GITREF: "1751db140ab609e38af8218efbd23427115a42aa"
+  BUILD_PATCHES_DIR: "patches-dev"
 
 .build-job: &build-job
   image: registry.gitlab.com/mangadex-pub/debuilder/buster:main
@@ -119,7 +121,7 @@ vtest:
     - mkdir deps/lua/dist     && tar -C deps/lua/dist     -xf deps/lua/lua-dist.tar.gz
     - mkdir deps/pcre2/dist   && tar -C deps/pcre2/dist   -xf deps/pcre2/pcre2-dist.tar.gz
     - mkdir deps/quictls/dist && tar -C deps/quictls/dist -xf deps/quictls/quictls-dist.tar.gz
-    - make -C haproxy HAPROXY_GITREPO="$HAPROXY_GITREPO" HAPROXY_VERSION="$HAPROXY_VERSION" HAPROXY_GITREF="$HAPROXY_GITREF"
+    - make -C haproxy HAPROXY_GITREPO="$HAPROXY_GITREPO" HAPROXY_VERSION="$HAPROXY_VERSION" HAPROXY_GITREF="$HAPROXY_GITREF" BUILD_PATCHES_DIR="$BUILD_PATCHES_DIR"
   needs: *needs-dependencies
   artifacts:
     expire_in: 7 days
@@ -133,7 +135,7 @@ vtest:
     - mkdir deps/lua/dist     && tar -C deps/lua/dist     -xf deps/lua/lua-dist.tar.gz
     - mkdir deps/pcre2/dist   && tar -C deps/pcre2/dist   -xf deps/pcre2/pcre2-dist.tar.gz
     - mkdir deps/quictls/dist && tar -C deps/quictls/dist -xf deps/quictls/quictls-dist.tar.gz
-    - make -C haproxy HAPROXY_GITREPO="$HAPROXY_GITREPO" HAPROXY_VERSION="$HAPROXY_VERSION" HAPROXY_GITREF="$HAPROXY_GITREF" build test
+    - make -C haproxy HAPROXY_GITREPO="$HAPROXY_GITREPO" HAPROXY_VERSION="$HAPROXY_VERSION" HAPROXY_GITREF="$HAPROXY_GITREF" BUILD_PATCHES_DIR="$BUILD_PATCHES_DIR" build test
   needs:
     - *needs-dependencies
     - job: vtest
@@ -148,7 +150,7 @@ vtest:
     - mkdir deps/pcre2/dist   && tar -C deps/pcre2/dist   -xf deps/pcre2/pcre2-dist.tar.gz
     - mkdir deps/quictls/dist && tar -C deps/quictls/dist -xf deps/quictls/quictls-dist.tar.gz
     - export BUILD_MESSAGE="$CI_COMMIT_MESSAGE"
-    - make -C haproxy dist-deb HAPROXY_GITREPO="$HAPROXY_GITREPO" HAPROXY_VERSION="$HAPROXY_VERSION" HAPROXY_GITREF="$HAPROXY_GITREF"
+    - make -C haproxy dist-deb HAPROXY_GITREPO="$HAPROXY_GITREPO" HAPROXY_VERSION="$HAPROXY_VERSION" HAPROXY_GITREF="$HAPROXY_GITREF" BUILD_PATCHES_DIR="$BUILD_PATCHES_DIR"
     - |
       set -euo pipefail
 
