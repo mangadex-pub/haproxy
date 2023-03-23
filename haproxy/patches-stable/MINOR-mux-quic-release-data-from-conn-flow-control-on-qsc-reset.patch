@@ -1,0 +1,78 @@
+From 178fbffda1bad5396f34caefd1a3a75e117b1596 Mon Sep 17 00:00:00 2001
+From: Amaury Denoyelle <adenoyelle@haproxy.com>
+Date: Wed, 22 Mar 2023 11:17:59 +0100
+Subject: [PATCH] BUG/MEDIUM: mux-quic: release data from conn flow-control on
+ qcs reset
+
+Connection flow-control level calculation is a bit complicated. To
+ensure it is never exceeded, each time a transfer occurs from a
+qcs.tx.buf to its qc_stream_desc buffer it is accounted in
+qcc.tx.offsets at the connection level. This value is not decremented
+even if the corresponding STREAM frame is rejected by the quic-conn
+layer as its emission will be retried later.
+
+In normal cases this works as expected. However there is an issue if a
+qcs instance is removed with prepared data left. In this case, its data
+is still accounted in qcc.tx.offsets despite being removed which may
+block other streams. This happens every time a qcs is reset with
+remaining data which will be discarded in favor of a RESET_STREAM frame.
+
+To fix this, if a stream has prepared data in qcc_reset_stream(), it is
+decremented from qcc.tx.offsets. A BUG_ON() has been added to ensure
+qcs_destroy() is never called for a stream with prepared data left.
+
+This bug can cause two issues :
+* transfer freeze as data unsent from closed streams still count on the
+  connection flow-control limit and will block other streams. Note that
+  this issue was not reproduced so it's unsure if this really happens
+  without the following issue first.
+* a crash on a BUG_ON() statement in qc_send() loop over
+  qc_send_frames(). Streams may remained in the send list with nothing
+  to send due to connection flow-control limit. However, limit is never
+  reached through qcc_streams_sent_done() so QC_CF_BLK_MFCTL flag is not
+  set which will allow the loop to continue.
+
+The last case was reproduced after several minutes of testing using the
+following command :
+
+$ ngtcp2-client --exit-on-all-streams-close -t 0.1 -r 0.1 \
+  --max-data=100K -n32 \
+  127.0.0.1 20443 "https://127.0.0.1:20443/?s=1g" 2>/dev/null
+
+This should fix github issues #2049 and #2074.
+---
+ src/mux_quic.c | 14 ++++++++++++++
+ 1 file changed, 14 insertions(+)
+
+diff --git a/src/mux_quic.c b/src/mux_quic.c
+index c2364bfac30f..c14b9f25b2c2 100644
+--- a/src/mux_quic.c
++++ b/src/mux_quic.c
+@@ -857,6 +857,15 @@ void qcc_reset_stream(struct qcs *qcs, int err)
+ 	qcs->flags |= QC_SF_TO_RESET;
+ 	qcs->err = err;
+ 
++	/* Remove prepared stream data from connection flow-control calcul. */
++	if (qcs->tx.offset > qcs->tx.sent_offset) {
++		const uint64_t diff = qcs->tx.offset - qcs->tx.sent_offset;
++		BUG_ON(qcc->tx.offsets - diff < qcc->tx.sent_offsets);
++		qcc->tx.offsets -= diff;
++		/* Reset qcs offset to prevent BUG_ON() on qcs_destroy(). */
++		qcs->tx.offset = qcs->tx.sent_offset;
++	}
++
+ 	qcc_send_stream(qcs, 1);
+ 	tasklet_wakeup(qcc->wait_event.tasklet);
+ }
+@@ -1356,6 +1365,11 @@ static void qcs_destroy(struct qcs *qcs)
+ 
+ 	TRACE_ENTER(QMUX_EV_QCS_END, conn, qcs);
+ 
++	/* MUST not removed a stream with sending prepared data left. This is
++	 * to ensure consistency on connection flow-control calculation.
++	 */
++	BUG_ON(qcs->tx.offset < qcs->tx.sent_offset);
++
+ 	if (quic_stream_is_remote(qcs->qcc, id))
+ 		qcc_release_remote_stream(qcs->qcc, id);
+ 
