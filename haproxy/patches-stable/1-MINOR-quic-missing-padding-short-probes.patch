@@ -1,0 +1,48 @@
+From 9c317b1d35efe7f957ad101d902168aa77fa9117 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Fr=C3=A9d=C3=A9ric=20L=C3=A9caille?= <flecaille@haproxy.com>
+Date: Tue, 28 Mar 2023 15:39:11 +0200
+Subject: [PATCH] BUG/MINOR: quic: Missing padding in very short probe packets
+
+This bug arrived with this commit:
+   MINOR: quic: Send PING frames when probing Initial packet number space
+
+This may happen when haproxy needs to probe the peer with very short packets
+(only one PING frame). In this case, the packet must be padded. There was clearly
+a case which was removed by the mentionned commit above. That said, there was
+an extra byte which was added to the PADDING frame before the mentionned commit
+above. This is no more the case with this patch.
+
+Thank you to @tatsuhiro-t (ngtcp2 manager) for having reported this issue which
+was revealed by the keyupdate test (on client side).
+
+Must be backported to 2.7 and 2.6.
+---
+ src/quic_conn.c | 15 +++++++++++----
+ 1 file changed, 11 insertions(+), 4 deletions(-)
+
+diff --git a/src/quic_conn.c b/src/quic_conn.c
+index 25ece803909d..e512490cdcbb 100644
+--- a/src/quic_conn.c
++++ b/src/quic_conn.c
+@@ -7659,10 +7659,17 @@ static int qc_do_build_pkt(unsigned char *pos, const unsigned char *end,
+ 			 * is not coalesced to an Handshake packet. We must directly
+ 			 * pad the datragram.
+ 			 */
+-			if (pkt->type == QUIC_PACKET_TYPE_INITIAL && dglen < QUIC_INITIAL_PACKET_MINLEN) {
+-				padding_len = QUIC_INITIAL_PACKET_MINLEN - dglen;
+-				padding_len -= quic_int_getsize(len + padding_len) - len_sz;
+-				len += padding_len;
++			if (pkt->type == QUIC_PACKET_TYPE_INITIAL) {
++				if (dglen < QUIC_INITIAL_PACKET_MINLEN) {
++					padding_len = QUIC_INITIAL_PACKET_MINLEN - dglen;
++					padding_len -= quic_int_getsize(len + padding_len) - len_sz;
++					len += padding_len;
++				}
++			}
++			else {
++				/* Note that +1 is for the PING frame */
++				if (*pn_len + 1 < QUIC_PACKET_PN_MAXLEN)
++					len += padding_len = QUIC_PACKET_PN_MAXLEN - *pn_len - 1;
+ 			}
+ 		}
+ 		else {
