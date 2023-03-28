@@ -1,0 +1,75 @@
+From c425e03b28168d96c32afcd9bfb86bcb66b733be Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Fr=C3=A9d=C3=A9ric=20L=C3=A9caille?= <flecaille@haproxy.com>
+Date: Mon, 20 Mar 2023 14:32:59 +0100
+Subject: [PATCH] BUG/MINOR: quic: Missing STREAM frame type updated
+
+This patch follows this commit which was not sufficient:
+  BUG/MINOR: quic: Missing STREAM frame data pointer updates
+
+Indeed, after updating the ->offset field, the bit which informs the
+frame builder of its presence must be systematically set.
+
+This bug was revealed by the following BUG_ON() from
+quic_build_stream_frame() :
+  bug condition "!!(frm->type & 0x04) != !!stream->offset.key" matched at src/quic_frame.c:515
+
+This should fix the last crash occured on github issue #2074.
+
+Must be backported to 2.6 and 2.7.
+---
+ include/haproxy/quic_frame.h | 6 +++++-
+ src/quic_conn.c              | 6 +++---
+ 2 files changed, 8 insertions(+), 4 deletions(-)
+
+diff --git a/include/haproxy/quic_frame.h b/include/haproxy/quic_frame.h
+index f75d7e65fcb8..cf489f759ba4 100644
+--- a/include/haproxy/quic_frame.h
++++ b/include/haproxy/quic_frame.h
+@@ -255,11 +255,15 @@ static inline void qc_frm_free(struct quic_frame **frm)
+ }
+ 
+ /* Move forward <strm> STREAM frame by <data> bytes. */
+-static inline void qc_stream_frm_mv_fwd(struct quic_stream *strm, uint64_t data)
++static inline void qc_stream_frm_mv_fwd(struct quic_frame *frm, uint64_t data)
+ {
++	struct quic_stream *strm = &frm->stream;
+ 	struct buffer cf_buf;
+ 
++	/* Set offset bit if not already there. */
+ 	strm->offset.key += data;
++	frm->type |= QUIC_STREAM_FRAME_TYPE_OFF_BIT;
++
+ 	strm->len -= data;
+ 	cf_buf = b_make(b_orig(strm->buf),
+ 	                b_size(strm->buf),
+diff --git a/src/quic_conn.c b/src/quic_conn.c
+index f4a36f0e4ad8..25ece803909d 100644
+--- a/src/quic_conn.c
++++ b/src/quic_conn.c
+@@ -1905,7 +1905,7 @@ static inline int qc_requeue_nacked_pkt_tx_frms(struct quic_conn *qc,
+ 			else if (strm_frm->offset.key < stream_desc->ack_offset) {
+ 				uint64_t diff = stream_desc->ack_offset - strm_frm->offset.key;
+ 
+-				qc_stream_frm_mv_fwd(strm_frm, diff);
++				qc_stream_frm_mv_fwd(frm, diff);
+ 				TRACE_DEVEL("updated partially acked frame",
+ 				            QUIC_EV_CONN_PRSAFRM, qc, frm);
+ 			}
+@@ -2562,7 +2562,7 @@ static void qc_dup_pkt_frms(struct quic_conn *qc,
+ 			else if (strm_frm->offset.key < stream_desc->ack_offset) {
+ 				uint64_t diff = stream_desc->ack_offset - strm_frm->offset.key;
+ 
+-				qc_stream_frm_mv_fwd(strm_frm, diff);
++				qc_stream_frm_mv_fwd(frm, diff);
+ 				TRACE_DEVEL("updated partially acked frame",
+ 				            QUIC_EV_CONN_PRSAFRM, qc, frm);
+ 			}
+@@ -7301,7 +7301,7 @@ static inline int qc_build_frms(struct list *outlist, struct list *inlist,
+ 				else if (strm->offset.key < stream_desc->ack_offset) {
+ 					uint64_t diff = stream_desc->ack_offset - strm->offset.key;
+ 
+-					qc_stream_frm_mv_fwd(strm, diff);
++					qc_stream_frm_mv_fwd(cf, diff);
+ 					TRACE_DEVEL("updated partially acked frame",
+ 					            QUIC_EV_CONN_PRSAFRM, qc, cf);
+ 				}
