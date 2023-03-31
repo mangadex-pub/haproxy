@@ -1,0 +1,29 @@
+From 4426dcf75c5f3b368e1e42b4860e8539f2d0f802 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Fr=C3=A9d=C3=A9ric=20L=C3=A9caille?= <flecaille@haproxy.com>
+Date: Fri, 31 Mar 2023 20:18:44 +0200
+Subject: [PATCH] BUG/MINOR: quic: Remaining useless statements in cubic slow
+ start callback
+
+When entering a recovery period, the algo state is set by quic_enter_recovery().
+And that's it!. These two lines should have been removed with this commit:
+
+     BUG/MINOR: quic: Wrong use of now_ms timestamps (cubic algo)
+
+Must be backported to 2.7 and 2.6.
+---
+ src/quic_cc_cubic.c | 2 --
+ 1 file changed, 2 deletions(-)
+
+diff --git a/src/quic_cc_cubic.c b/src/quic_cc_cubic.c
+index 6e829dd2d..a8b4ce0c7 100644
+--- a/src/quic_cc_cubic.c
++++ b/src/quic_cc_cubic.c
+@@ -211,8 +211,6 @@ static void quic_cc_cubic_ss_cb(struct quic_cc *cc, struct quic_cc_event *ev)
+ 
+ 	case QUIC_CC_EVT_LOSS:
+ 		quic_enter_recovery(cc);
+-		/* Exit to congestion avoidance. */
+-		cc->algo->state = QUIC_CC_ST_CA;
+ 		break;
+ 
+ 	case QUIC_CC_EVT_ECN_CE:
