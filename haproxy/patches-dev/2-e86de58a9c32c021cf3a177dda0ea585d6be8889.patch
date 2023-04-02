@@ -1,0 +1,27 @@
+From e86de58a9c32c021cf3a177dda0ea585d6be8889 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Fr=C3=A9d=C3=A9ric=20L=C3=A9caille?= <flecaille@haproxy.com>
+Date: Sun, 2 Apr 2023 10:07:48 +0200
+Subject: [PATCH] BUG/MINOR: quic: Cubic congestion control window may wrap
+
+Add a check to prevent the cubic congestion control from wrapping (very low risk)
+in slow start callback.
+
+Must be backported to 2.6 and 2.7.
+---
+ src/quic_cc_cubic.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/src/quic_cc_cubic.c b/src/quic_cc_cubic.c
+index d60d3ed69..e91b76608 100644
+--- a/src/quic_cc_cubic.c
++++ b/src/quic_cc_cubic.c
+@@ -203,7 +203,8 @@ static void quic_cc_cubic_ss_cb(struct quic_cc *cc, struct quic_cc_event *ev)
+ 	TRACE_PROTO("CC cubic", QUIC_EV_CONN_CC, cc->qc, ev);
+ 	switch (ev->type) {
+ 	case QUIC_CC_EVT_ACK:
+-		path->cwnd += ev->ack.acked;
++		if (path->cwnd < QUIC_CC_INFINITE_SSTHESH - ev->ack.acked)
++			path->cwnd += ev->ack.acked;
+ 		/* Exit to congestion avoidance if slow start threshold is reached. */
+ 		if (path->cwnd >= c->ssthresh)
+ 			cc->algo->state = QUIC_CC_ST_CA;
