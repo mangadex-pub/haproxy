@@ -69,12 +69,20 @@ jobs:
         with:
           version: "${{ inputs.CLANG_VERSION }}"
 
+      - name: Install build dependencies
+        run: >
+          sudo apt update && sudo apt install -y
+            libpcre2-dev
+            libreadline-dev
+            libsystemd-dev
+            zlib1g-dev
+
       - name: Build HAProxy
-        run: |
-          make -C haproxy \
-            HAPROXY_GITREPO="${{ inputs.HAPROXY_GITREPO }}" \
-            HAPROXY_VERSION="${{ inputs.HAPROXY_VERSION }}" \
-            HAPROXY_GITREF="${{ inputs.HAPROXY_GITREF }}" \
+        run: >
+          make -C haproxy
+            HAPROXY_GITREPO="${{ inputs.HAPROXY_GITREPO }}"
+            HAPROXY_VERSION="${{ inputs.HAPROXY_VERSION }}"
+            HAPROXY_GITREF="${{ inputs.HAPROXY_GITREF }}"
             BUILD_PATCHES_DIR="${{ inputs.BUILD_PATCHES_DIR }}"
       - name: Archive HAProxy Tarball
         uses: actions/upload-artifact@v3
