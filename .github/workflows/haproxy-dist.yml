@@ -64,6 +64,16 @@ jobs:
           mkdir -pv deps/quictls/dist
           tar -C deps/quictls/dist -xf deps/quictls/quictls-dist.tar.gz
 
+      - name: Dependencies - Fetch - VTest
+        uses: actions/download-artifact@v3
+        with:
+          name: vtest-dist.tar.gz
+          path: deps/vtest
+      - name: Dependencies - Unpack - VTest
+        run: |
+          mkdir -pv deps/vtest/dist
+          tar -C deps/vtest/dist -xf deps/vtest/vtest-dist.tar.gz
+
       - name: Set up Clang
         uses: egor-tensin/setup-clang@v1
         with:
