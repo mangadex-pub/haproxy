@@ -8,6 +8,7 @@ on:
 env:
   REGISTRY: "ghcr.io"
   IMAGE_NAME: "${{ github.repository }}"
+  CLANG_VERSION: "14"
 
 jobs:
   deps-lua:
@@ -18,6 +19,10 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
+      - name: Set up Clang
+        uses: egor-tensin/setup-clang@v1
+        with:
+          version: "${{ env.CLANG_VERSION }}"
       - name: Build LUA
         run: make -C deps/lua
       - name: Archive LUA distribution
@@ -34,6 +39,10 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
+      - name: Set up Clang
+        uses: egor-tensin/setup-clang@v1
+        with:
+          version: "${{ env.CLANG_VERSION }}"
       - name: Build PCRE2
         run: make -C deps/pcre2
       - name: Archive PCRE2 distribution
@@ -50,6 +59,10 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
+      - name: Set up Clang
+        uses: egor-tensin/setup-clang@v1
+        with:
+          version: "${{ env.CLANG_VERSION }}"
       - name: Build QuicTLS
         run: make -C deps/quictls
       - name: Archive QuicTLS distribution
@@ -66,6 +79,10 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
+      - name: Set up Clang
+        uses: egor-tensin/setup-clang@v1
+        with:
+          version: "${{ env.CLANG_VERSION }}"
       - name: Build VTest
         run: make -C deps/vtest
       - name: Archive VTest distribution
