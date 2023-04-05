@@ -16,7 +16,7 @@ $(HAPROXY_DATAPLANE_API_BUILDIR): $(HAPROXY_DATAPLANE_API_TARBALL)
 
 build: $(HAPROXY_DATAPLANE_API_BUILDIR)
 	cd "$(HAPROXY_DATAPLANE_API_BUILDIR)" && \
-		$(MAKE) -j "$(shell nproc)" && \
+		$(MAKE) -j "$(shell nproc)" GIT_LAST_TAG=$(HAPROXY_DATAPLANE_API_VERSION) GIT_MODIFIED1="-mangadex" && \
 		cd ".."
 	"$(HAPROXY_DATAPLANE_API_BUILDIR)/build/dataplaneapi" --version
 
