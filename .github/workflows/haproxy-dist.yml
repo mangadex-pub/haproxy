@@ -116,6 +116,7 @@ jobs:
           path: haproxy/haproxy-dist.tar.gz
 
       - name: Build Debian package
+        id: debian
         env:
           BUILD_MESSAGE: "${{ github.event.head_commit.message }}"
         run: |
@@ -126,8 +127,15 @@ jobs:
             BUILD_PATCHES_DIR="patches-${{ inputs.HAPROXY_FLAVOUR }}" \
             dist-deb
           ls -l haproxy
-      - name: Archive Debian packages
+          echo "DEB_BIN=$(ls -1 haproxy | grep *.deb  | head -n1)" >> $GITHUB_ENV
+          echo "DEB_DBG=$(ls -1 haproxy | grep *.ddeb | head -n1)" >> $GITHUB_ENV
+      - name: Archive Debian packages - binary
         uses: actions/upload-artifact@v3
         with:
-          name: haproxy-${{ inputs.HAPROXY_FLAVOUR }}-debian.tar.gz
-          path: haproxy/haproxy*.deb
+          name: ${{ env.DEB_BIN }}
+          path: haproxy/${{ env.DEB_BIN }}
+      - name: Archive Debian packages - debug symbols
+        uses: actions/upload-artifact@v3
+        with:
+          name: ${{ env.DEB_DBG }}
+          path: haproxy/${{ env.DEB_DBG }}
