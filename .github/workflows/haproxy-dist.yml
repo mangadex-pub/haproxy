@@ -41,7 +41,7 @@ jobs:
         uses: actions/download-artifact@v3
         with:
           name: lua-dist.tar.gz
-          path: deps/lua/lua-dist.tar.gz
+          path: deps/lua
       - name: Dependencies - Unpack - LUA
         run: |
           mkdir -pv deps/lua/dist
