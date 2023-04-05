@@ -11,7 +11,7 @@ jobs:
     with:
       CLANG_VERSION: 14
 
-  haproxy-stable:
+  dist-stable:
     needs: [ "haproxy-dependencies" ]
     uses: "./.github/workflows/haproxy-dist.yml"
     secrets: "inherit" # for Docker image publication
@@ -23,7 +23,7 @@ jobs:
       HAPROXY_GITREF: "4dadaaafb20106619510fd3fc6f2819f47777729"
       BUILD_PATCHES_DIR: "patches-stable"
 
-  haproxy-dev:
+  dist-dev:
     needs: [ "haproxy-dependencies" ]
     uses: "./.github/workflows/haproxy-dist.yml"
     secrets: "inherit" # for Docker image publication

@@ -72,18 +72,26 @@ jobs:
       - name: Install build dependencies
         run: |
           sudo apt update && sudo apt install -y \
+            bzip2 \
+            devscripts \
+            debhelper \
+            pkg-config \
             libpcre2-dev \
             libreadline-dev \
             libsystemd-dev \
             zlib1g-dev
 
-      - name: Build HAProxy
+      - name: Build-Test-Package HAProxy
+        env:
+          BUILD_MESSAGE: "${{ github.event.head_commit.message }}"
         run: |
           make -C haproxy \
             HAPROXY_GITREPO="${{ inputs.HAPROXY_GITREPO }}" \
             HAPROXY_VERSION="${{ inputs.HAPROXY_VERSION }}" \
             HAPROXY_GITREF="${{ inputs.HAPROXY_GITREF }}" \
-            BUILD_PATCHES_DIR="${{ inputs.BUILD_PATCHES_DIR }}"
+            BUILD_PATCHES_DIR="${{ inputs.BUILD_PATCHES_DIR }}" \
+            build test dist-deb
+
       - name: Archive HAProxy Tarball
         uses: actions/upload-artifact@v3
         with:
