@@ -1,4 +1,4 @@
-haproxy ($BUILD_VERSION) experimental; urgency=medium
+haproxy ($BUILD_VERSION) UNRELEASED; urgency=medium
 
   * $BUILD_MESSAGE
 
