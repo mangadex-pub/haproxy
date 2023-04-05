@@ -127,8 +127,8 @@ jobs:
             BUILD_PATCHES_DIR="patches-${{ inputs.HAPROXY_FLAVOUR }}" \
             dist-deb
           ls -l haproxy
-          echo "DEB_BIN=$(ls -1 haproxy/*.deb)" | cut -d'/' -f2 | tee -a $GITHUB_ENV
-          echo "DEB_DBG=$(ls -1 haproxy/*.ddeb)" | cut -d'/' -f2 | tee -a $GITHUB_ENV
+          echo "DEB_BIN=$(ls -1 haproxy/*.deb | cut -d'/' -f2)" | tee -a $GITHUB_ENV
+          echo "DEB_DBG=$(ls -1 haproxy/*.ddeb | cut -d'/' -f2)" | tee -a $GITHUB_ENV
       - name: Archive Debian packages - binary
         uses: actions/upload-artifact@v3
         with:
