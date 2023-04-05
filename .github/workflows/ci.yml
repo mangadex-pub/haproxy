@@ -90,3 +90,23 @@ jobs:
         with:
           name: vtest
           path: deps/vtest/dist/vtest
+
+  haproxy-stable:
+    needs: [ "deps-lua", "deps-pcre2", "deps-quictls", "deps-vtest" ]
+    uses: "./.github/workflows/haproxy-dist.yml"
+    with:
+      # https://git.haproxy.org/?p=haproxy-2.7.git;a=commit;h=4dadaaafb20106619510fd3fc6f2819f47777729
+      HAPROXY_GITREPO: "https://git.haproxy.org/?p=haproxy-2.7.git"
+      HAPROXY_VERSION: "2.7-stable"
+      HAPROXY_GITREF: "4dadaaafb20106619510fd3fc6f2819f47777729"
+      BUILD_PATCHES_DIR: "patches-stable"
+
+  haproxy-dev:
+    needs: [ "deps-lua", "deps-pcre2", "deps-quictls", "deps-vtest" ]
+    uses: "./.github/workflows/haproxy-dist.yml"
+    with:
+      # https://git.haproxy.org/?p=haproxy.git;a=commit;h=7d6270a84554283557c2707d6df2c275e81c8bf1
+      HAPROXY_GITREPO: "https://git.haproxy.org/?p=haproxy.git"
+      HAPROXY_VERSION: "2.8-dev"
+      HAPROXY_GITREF: "7d6270a84554283557c2707d6df2c275e81c8bf1"
+      BUILD_PATCHES_DIR: "patches-dev"
