@@ -6,6 +6,9 @@ on:
       CLANG_VERSION:
         required: true
         type: number
+      HAPROXY_FLAVOUR:
+        required: true
+        type: string
       HAPROXY_GITREPO:
         required: true
         type: string
@@ -13,9 +16,6 @@ on:
         required: true
         type: string
       HAPROXY_GITREF:
-        required: true
-        type: string
-      BUILD_PATCHES_DIR:
         required: true
         type: string
 
@@ -91,7 +91,31 @@ jobs:
             libsystemd-dev \
             zlib1g-dev
 
-      - name: Build-Test-Package HAProxy
+      - name: Run regression tests
+        continue-on-error: true
+        run: |
+          make -C haproxy \
+            HAPROXY_GITREPO="${{ inputs.HAPROXY_GITREPO }}" \
+            HAPROXY_VERSION="${{ inputs.HAPROXY_VERSION }}" \
+            HAPROXY_GITREF="${{ inputs.HAPROXY_GITREF }}" \
+            BUILD_PATCHES_DIR="patches-${{ inputs.HAPROXY_FLAVOUR }}" \
+            test
+
+      - name: Build binary tarball
+        run: |
+          make -C haproxy \
+            HAPROXY_GITREPO="${{ inputs.HAPROXY_GITREPO }}" \
+            HAPROXY_VERSION="${{ inputs.HAPROXY_VERSION }}" \
+            HAPROXY_GITREF="${{ inputs.HAPROXY_GITREF }}" \
+            BUILD_PATCHES_DIR="patches-${{ inputs.HAPROXY_FLAVOUR }}" \
+            dist-bin
+      - name: Archive binary tarball
+        uses: actions/upload-artifact@v3
+        with:
+          name: haproxy-${{ inputs.HAPROXY_FLAVOUR }}.tar.gz
+          path: haproxy/haproxy-dist.tar.gz
+
+      - name: Build Debian package
         env:
           BUILD_MESSAGE: "${{ github.event.head_commit.message }}"
         run: |
@@ -99,11 +123,10 @@ jobs:
             HAPROXY_GITREPO="${{ inputs.HAPROXY_GITREPO }}" \
             HAPROXY_VERSION="${{ inputs.HAPROXY_VERSION }}" \
             HAPROXY_GITREF="${{ inputs.HAPROXY_GITREF }}" \
-            BUILD_PATCHES_DIR="${{ inputs.BUILD_PATCHES_DIR }}" \
-            build test dist-deb
-
-      - name: Archive HAProxy Tarball
+            BUILD_PATCHES_DIR="patches-${{ inputs.HAPROXY_FLAVOUR }}" \
+            dist-bin
+      - name: Archive Debian packages
         uses: actions/upload-artifact@v3
         with:
-          name: haproxy-dist.tar.gz
-          path: haproxy/haproxy-dist.tar.gz
+          name: haproxy-${{ inputs.HAPROXY_FLAVOUR }}-debian.tar.gz
+          path: haproxy/haproxy*.deb
