@@ -91,7 +91,7 @@ jobs:
             libsystemd-dev \
             zlib1g-dev
 
-      - name: Run regression tests
+      - name: Build and test
         continue-on-error: true
         run: |
           make -C haproxy \
@@ -99,9 +99,9 @@ jobs:
             HAPROXY_VERSION="${{ inputs.HAPROXY_VERSION }}" \
             HAPROXY_GITREF="${{ inputs.HAPROXY_GITREF }}" \
             BUILD_PATCHES_DIR="patches-${{ inputs.HAPROXY_FLAVOUR }}" \
-            test
+            build test
 
-      - name: Build binary tarball
+      - name: Package binary distribution
         run: |
           make -C haproxy \
             HAPROXY_GITREPO="${{ inputs.HAPROXY_GITREPO }}" \
@@ -124,7 +124,7 @@ jobs:
             HAPROXY_VERSION="${{ inputs.HAPROXY_VERSION }}" \
             HAPROXY_GITREF="${{ inputs.HAPROXY_GITREF }}" \
             BUILD_PATCHES_DIR="patches-${{ inputs.HAPROXY_FLAVOUR }}" \
-            dist-bin
+            dist-deb
       - name: Archive Debian packages
         uses: actions/upload-artifact@v3
         with:
