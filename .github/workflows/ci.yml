@@ -5,96 +5,18 @@ on:
   schedule:
     - cron: "0 10 * * 1"
 
-env:
-  CLANG_VERSION: "14"
-
 jobs:
-  deps-lua:
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      packages: write
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v3
-      - name: Set up Clang
-        uses: egor-tensin/setup-clang@v1
-        with:
-          version: "${{ env.CLANG_VERSION }}"
-      - name: Build LUA
-        run: make -C deps/lua
-      - name: Archive LUA distribution
-        uses: actions/upload-artifact@v3
-        with:
-          name: lua-dist.tar.gz
-          path: deps/lua/lua-dist.tar.gz
-
-  deps-pcre2:
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      packages: write
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v3
-      - name: Set up Clang
-        uses: egor-tensin/setup-clang@v1
-        with:
-          version: "${{ env.CLANG_VERSION }}"
-      - name: Build PCRE2
-        run: make -C deps/pcre2
-      - name: Archive PCRE2 distribution
-        uses: actions/upload-artifact@v3
-        with:
-          name: pcre2-dist.tar.gz
-          path: deps/pcre2/pcre2-dist.tar.gz
-
-  deps-quictls:
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      packages: write
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v3
-      - name: Set up Clang
-        uses: egor-tensin/setup-clang@v1
-        with:
-          version: "${{ env.CLANG_VERSION }}"
-      - name: Build QuicTLS
-        run: make -C deps/quictls
-      - name: Archive QuicTLS distribution
-        uses: actions/upload-artifact@v3
-        with:
-          name: quictls-dist.tar.gz
-          path: deps/quictls/quictls-dist.tar.gz
-
-  deps-vtest:
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      packages: write
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v3
-      - name: Set up Clang
-        uses: egor-tensin/setup-clang@v1
-        with:
-          version: "${{ env.CLANG_VERSION }}"
-      - name: Build VTest
-        run: make -C deps/vtest
-      - name: Archive VTest distribution
-        uses: actions/upload-artifact@v3
-        with:
-          name: vtest
-          path: deps/vtest/dist/vtest
+  haproxy-dependencies:
+    uses: "./.github/workflows/haproxy-deps.yml"
+    with:
+      CLANG_VERSION: 14
 
   haproxy-stable:
-    needs: [ "deps-lua", "deps-pcre2", "deps-quictls", "deps-vtest" ]
+    needs: [ "haproxy-dependencies" ]
     uses: "./.github/workflows/haproxy-dist.yml"
     secrets: "inherit" # for Docker image publication
     with:
-      CLANG_VERSION: "${{ env.CLANG_VERSION }}"
+      CLANG_VERSION: 14
       # https://git.haproxy.org/?p=haproxy-2.7.git;a=commit;h=4dadaaafb20106619510fd3fc6f2819f47777729
       HAPROXY_GITREPO: "https://git.haproxy.org/?p=haproxy-2.7.git"
       HAPROXY_VERSION: "2.7-stable"
@@ -102,11 +24,11 @@ jobs:
       BUILD_PATCHES_DIR: "patches-stable"
 
   haproxy-dev:
-    needs: [ "deps-lua", "deps-pcre2", "deps-quictls", "deps-vtest" ]
+    needs: [ "haproxy-dependencies" ]
     uses: "./.github/workflows/haproxy-dist.yml"
     secrets: "inherit" # for Docker image publication
     with:
-      CLANG_VERSION: "${{ env.CLANG_VERSION }}"
+      CLANG_VERSION: 14
       # https://git.haproxy.org/?p=haproxy.git;a=commit;h=7d6270a84554283557c2707d6df2c275e81c8bf1
       HAPROXY_GITREPO: "https://git.haproxy.org/?p=haproxy.git"
       HAPROXY_VERSION: "2.8-dev"
