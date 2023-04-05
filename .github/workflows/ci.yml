@@ -6,8 +6,6 @@ on:
     - cron: "0 10 * * 1"
 
 env:
-  REGISTRY: "ghcr.io"
-  IMAGE_NAME: "${{ github.repository }}"
   CLANG_VERSION: "14"
 
 jobs:
@@ -94,7 +92,9 @@ jobs:
   haproxy-stable:
     needs: [ "deps-lua", "deps-pcre2", "deps-quictls", "deps-vtest" ]
     uses: "./.github/workflows/haproxy-dist.yml"
+    secrets: "inherit" # for Docker image publication
     with:
+      CLANG_VERSION: "${{ env.CLANG_VERSION }}"
       # https://git.haproxy.org/?p=haproxy-2.7.git;a=commit;h=4dadaaafb20106619510fd3fc6f2819f47777729
       HAPROXY_GITREPO: "https://git.haproxy.org/?p=haproxy-2.7.git"
       HAPROXY_VERSION: "2.7-stable"
@@ -104,7 +104,9 @@ jobs:
   haproxy-dev:
     needs: [ "deps-lua", "deps-pcre2", "deps-quictls", "deps-vtest" ]
     uses: "./.github/workflows/haproxy-dist.yml"
+    secrets: "inherit" # for Docker image publication
     with:
+      CLANG_VERSION: "${{ env.CLANG_VERSION }}"
       # https://git.haproxy.org/?p=haproxy.git;a=commit;h=7d6270a84554283557c2707d6df2c275e81c8bf1
       HAPROXY_GITREPO: "https://git.haproxy.org/?p=haproxy.git"
       HAPROXY_VERSION: "2.8-dev"
