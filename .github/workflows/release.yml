@@ -1,0 +1,75 @@
+on:
+  push:
+    branches: [ "*" ]
+    tags: [ "*" ]
+  schedule:
+    - cron: "0 10 * * 1"
+
+env:
+  REGISTRY: "ghcr.io"
+  IMAGE_NAME: "${{ github.repository }}"
+
+jobs:
+  deps-lua:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+      - name: Build LUA
+        run: make -C deps/lua
+      - name: Archive LUA distribution
+        uses: actions/upload-artifact@v3
+        with:
+          name: lua-dist.tar.gz
+          path: deps/lua/lua-dist.tar.gz
+
+  deps-pcre2:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+      - name: Build PCRE2
+        run: make -C deps/pcre2
+      - name: Archive PCRE2 distribution
+        uses: actions/upload-artifact@v3
+        with:
+          name: pcre2-dist.tar.gz
+          path: deps/pcre2/pcre2-dist.tar.gz
+
+  deps-quictls:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+      - name: Build QuicTLS
+        run: make -C deps/quictls
+      - name: Archive QuicTLS distribution
+        uses: actions/upload-artifact@v3
+        with:
+          name: quictls-dist.tar.gz
+          path: deps/quictls/quictls-dist.tar.gz
+
+  deps-vtest:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+      - name: Build VTest
+        run: make -C deps/vtest
+      - name: Archive VTest distribution
+        uses: actions/upload-artifact@v3
+        with:
+          name: vtest
+          path: deps/vtest/dist/vtest

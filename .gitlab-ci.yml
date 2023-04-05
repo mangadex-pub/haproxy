@@ -57,50 +57,6 @@ variables: &default-variables
 # Common dependencies
 #----------------------
 
-lua:
-  <<: *build-job
-  stage: dependencies
-  script: make -C deps/lua
-  variables:
-    <<: *default-variables
-    <<: *build-resources-xs
-  artifacts:
-    expire_in: 7 days
-    paths: [ "deps/lua/lua-dist.tar.gz" ]
-
-pcre2:
-  <<: *build-job
-  stage: dependencies
-  script: make -C deps/pcre2
-  variables:
-    <<: *default-variables
-    <<: *build-resources-xs
-  artifacts:
-    expire_in: 7 days
-    paths: [ "deps/pcre2/pcre2-dist.tar.gz" ]
-
-quictls:
-  <<: *build-job
-  stage: dependencies
-  script: make -C deps/quictls
-  variables:
-    <<: *default-variables
-    <<: *build-resources-m
-  artifacts:
-    expire_in: 7 days
-    paths: [ "deps/quictls/quictls-dist.tar.gz" ]
-
-vtest:
-  <<: *build-job
-  stage: dependencies
-  script: make -C deps/vtest
-  variables:
-    <<: *default-variables
-    <<: *build-resources-xs
-  artifacts:
-    expire_in: 7 days
-    paths: [ "deps/vtest/dist/vtest" ]
-
 .needs-dependencies: &needs-dependencies
   - job: lua
     artifacts: true
