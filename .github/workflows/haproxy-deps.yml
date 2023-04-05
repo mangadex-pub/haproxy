@@ -16,11 +16,11 @@ jobs:
 
     strategy:
       matrix:
-        includes:
-          - name: lua
-          - name: pcre2
-          - name: quictls
-          - name: vtest
+        dependency_name:
+          - lua
+          - pcre2
+          - quictls
+          - vtest
 
     steps:
       - name: Checkout repository
@@ -29,10 +29,10 @@ jobs:
         uses: egor-tensin/setup-clang@v1
         with:
           version: "${{ inputs.CLANG_VERSION }}"
-      - name: Build ${{ matrix.name }}
-        run: make -C deps/${{ matrix.name }}
-      - name: Archive ${{ matrix.name }} distribution
+      - name: Build ${{ matrix.dependency_name }}
+        run: make -C deps/${{ matrix.dependency_name }}
+      - name: Archive ${{ matrix.dependency_name }} distribution
         uses: actions/upload-artifact@v3
         with:
-          name: ${{ matrix.name }}-dist.tar.gz
-          path: deps/${{ matrix.name }}/${{ matrix.name }}-dist.tar.gz
+          name: ${{ matrix.dependency_name }}-dist.tar.gz
+          path: deps/${{ matrix.dependency_name }}/${{ matrix.dependency_name }}-dist.tar.gz
