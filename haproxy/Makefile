@@ -121,7 +121,7 @@ prepare-deb: $(HAPROXY_DEBORIG) $(HAPROXY_BUILDIR)
 		cat debian/changelog >> "$(HAPROXY_BUILDIR)/debian/changelog"
 
 build-deb: prepare-deb
-	cd $(HAPROXY_BUILDIR) && debuild -us -uc --no-lintian
+	cd $(HAPROXY_BUILDIR) && debuild --lintian-opts --no-lintian -us -uc
 	rm -fv $(HAPROXY_TARBALL)
 	rm -rf $(HAPROXY_BUILDIR)
 
