@@ -125,6 +125,7 @@ jobs:
             HAPROXY_GITREF="${{ inputs.HAPROXY_GITREF }}" \
             BUILD_PATCHES_DIR="patches-${{ inputs.HAPROXY_FLAVOUR }}" \
             dist-deb
+          ls -l haproxy
       - name: Archive Debian packages
         uses: actions/upload-artifact@v3
         with:
