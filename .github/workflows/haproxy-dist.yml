@@ -34,45 +34,8 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v3
 
-      - name: Dependencies - Fetch - LUA
-        uses: actions/download-artifact@v3
-        with:
-          name: lua-dist.tar.gz
-          path: deps/lua
-      - name: Dependencies - Unpack - LUA
-        run: |
-          mkdir -pv deps/lua/dist
-          tar -C deps/lua/dist -xf deps/lua/lua-dist.tar.gz
-
-      - name: Dependencies - Fetch - PCRE2
-        uses: actions/download-artifact@v3
-        with:
-          name: pcre2-dist.tar.gz
-          path: deps/pcre2
-      - name: Dependencies - Unpack - PCRE2
-        run: |
-          mkdir -pv deps/pcre2/dist
-          tar -C deps/pcre2/dist -xf deps/pcre2/pcre2-dist.tar.gz
-
-      - name: Dependencies - Fetch - QuicTLS
-        uses: actions/download-artifact@v3
-        with:
-          name: quictls-dist.tar.gz
-          path: deps/quictls
-      - name: Dependencies - Unpack - QuicTLS
-        run: |
-          mkdir -pv deps/quictls/dist
-          tar -C deps/quictls/dist -xf deps/quictls/quictls-dist.tar.gz
-
-      - name: Dependencies - Fetch - VTest
-        uses: actions/download-artifact@v3
-        with:
-          name: vtest-dist.tar.gz
-          path: deps/vtest
-      - name: Dependencies - Unpack - VTest
-        run: |
-          mkdir -pv deps/vtest/dist
-          tar -C deps/vtest/dist -xf deps/vtest/vtest-dist.tar.gz
+      - name: Fetch build-time dependencies
+        uses: "./.github/actions/fetch-deps.yml"
 
       - name: Set up Clang
         uses: egor-tensin/setup-clang@v1
