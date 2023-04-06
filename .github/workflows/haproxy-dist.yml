@@ -101,6 +101,19 @@ jobs:
         uses: "./.github/actions/setup-os"
       - name: Fetch build-time dependencies
         uses: "./.github/actions/fetch-deps"
+
+      # Standalone as it's version-dependent
+      - name: Dependencies - Fetch - Data Plane API
+        uses: actions/download-artifact@v3
+        with:
+          name: dataplaneapi-${{ inputs.HAPROXY_FLAVOUR }}.tar.gz
+          path: deps/dataplaneapi
+      - name: Dependencies - Unpack - Data Plane API
+        shell: bash
+        run: |
+          mkdir -pv deps/dataplaneapi/dist
+          tar -C deps/dataplaneapi/dist -xf deps/dataplaneapi/dataplaneapi-dist.tar.gz
+
       - name: Build distribution
         env:
           BUILD_MESSAGE: "${{ github.event.head_commit.message }}"
