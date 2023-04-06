@@ -24,11 +24,11 @@ build: $(DATAPLANEAPI_BUILDIR)
 	"$(DATAPLANEAPI_BUILDIR)/build/dataplaneapi" --version
 
 $(DATAPLANEAPI_DESTDIR): build
-	if ! [ -d "$(DATAPLANEAPI_DESTDIR)" ]; then mkdir -v "$(DATAPLANEAPI_DESTDIR)"; fi
-	cp -fv "$(DATAPLANEAPI_BUILDIR)/build/dataplaneapi" "$(DATAPLANEAPI_DESTDIR)/dataplaneapi"
+	if ! [ -d "$(DATAPLANEAPI_DESTDIR)/usr/sbin" ]; then mkdir -pv "$(DATAPLANEAPI_DESTDIR)/usr/sbin"; fi
+	cp -fv "$(DATAPLANEAPI_BUILDIR)/build/dataplaneapi" "$(DATAPLANEAPI_DESTDIR)/usr/sbin/dataplaneapi"
 
 $(DATAPLANEAPI_ARCHIVE): $(DATAPLANEAPI_DESTDIR)
-	tar -C "$(DATAPLANEAPI_DESTDIR)" -cjf "$(DATAPLANEAPI_ARCHIVE)" $$(ls -1 $(DATAPLANEAPI_DESTDIR))
+	tar -C "$(DATAPLANEAPI_DESTDIR)" -cjf "$(DATAPLANEAPI_ARCHIVE)" "usr"
 
 clean:
 	rm -fv "$(DATAPLANEAPI_TARBALL)"

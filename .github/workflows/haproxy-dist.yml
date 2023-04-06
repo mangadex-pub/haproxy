@@ -21,6 +21,9 @@ on:
       HAPROXY_GITREF:
         required: true
         type: string
+      HAPROXY_DATAPLANEAPI_VERSION:
+        required: true
+        type: string
 
 # For Docker publication
 env:
@@ -50,6 +53,36 @@ jobs:
             HAPROXY_GITREF="${{ inputs.HAPROXY_GITREF }}" \
             BUILD_PATCHES_DIR="patches-${{ inputs.HAPROXY_FLAVOUR }}" \
             build test
+
+  dataplaneapi:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+      - name: Set up Go
+        uses: actions/setup-go@v4.0.0
+        with:
+          go-version: '1.19'
+      - name: Set up Go modules caching
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.cache/go-build
+            ~/go/pkg/mod
+          key: ${{ runner.os }}-go-${{ hashFiles('deps/dataplane-api/src/**/go.sum') }}
+          restore-keys: |
+            ${{ runner.os }}-go-
+      - name: Build Dataplane API
+        run: |
+          make -C deps/dataplaneapi DATAPLANEAPI_VERSION=${{ inputs.HAPROXY_DATAPLANEAPI_VERSION }}
+      - name: Archive binary tarball
+        uses: actions/upload-artifact@v3
+        with:
+          name: dataplaneapi-${{ inputs.HAPROXY_FLAVOUR }}.tar.gz
+          path: deps/dataplaneapi/dataplaneapi-dist.tar.gz
 
   dist-binary:
     runs-on: ubuntu-latest
@@ -139,9 +172,8 @@ jobs:
         with:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
           tags: |
-            type=sha,event=push,enable=true,prefix=branch-{{ branch }}-${{ inputs.HAPROXY_VERSION }}-${{ inputs.HAPROXY_FLAVOUR }}-git-,format=short
-            type=sha,event=push,enable={{ is_default_branch }},prefix=${{ inputs.HAPROXY_VERSION }}-${{ inputs.HAPROXY_FLAVOUR }}-git-,format=short
-            type=raw,event=push,enable={{ is_default_branch }},value=${{ inputs.HAPROXY_VERSION }}-${{ inputs.HAPROXY_FLAVOUR }}
+            type=sha,event=push,enable=true,prefix=branch-{{ branch }}-${{ inputs.HAPROXY_VERSION }}-git-,format=short
+            type=sha,event=push,enable={{ is_default_branch }},prefix=${{ inputs.HAPROXY_VERSION }}-git-,format=short
             type=raw,event=push,enable={{ is_default_branch }},value=${{ inputs.HAPROXY_VERSION }}
       - name: Build and push Docker image
         uses: docker/build-push-action@v4
