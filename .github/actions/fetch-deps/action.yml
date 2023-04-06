@@ -1,6 +1,12 @@
 name: Fetch HAProxy dependencies
 description: "Retrieve previously compiled build-time dependencies"
 
+inputs:
+  INSTALL_NATIVE_DEPS:
+    description: Install native build dependencies
+    required: false
+    default: "true"
+
 runs:
   using: "composite"
 
@@ -49,7 +55,8 @@ runs:
         mkdir -pv deps/vtest/dist
         tar -C deps/vtest/dist -xf deps/vtest/vtest-dist.tar.gz
 
-    - name: Install build dependencies
+    - name: Install native build dependencies
+      if: ${{ inputs.INSTALL_NATIVE_DEPS == 'true' }}
       shell: bash
       run: |
         apt update && apt install -y \
