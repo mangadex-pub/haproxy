@@ -22,6 +22,7 @@ jobs:
       HAPROXY_GITREPO: "https://git.haproxy.org/?p=haproxy-2.7.git"
       HAPROXY_VERSION: "2.7-stable"
       HAPROXY_GITREF: "4dadaaafb20106619510fd3fc6f2819f47777729"
+      HAPROXY_DATAPLANEAPI_VERSION: "v2.7"
 
   dist-dev:
     needs: [ "haproxy-dependencies" ]
@@ -35,3 +36,4 @@ jobs:
       HAPROXY_GITREPO: "https://git.haproxy.org/?p=haproxy.git"
       HAPROXY_VERSION: "2.8-dev"
       HAPROXY_GITREF: "7d6270a84554283557c2707d6df2c275e81c8bf1"
+      HAPROXY_DATAPLANEAPI_VERSION: "master"
