@@ -57,7 +57,7 @@ jobs:
     permissions:
       contents: read
       packages: write
-    needs: [ regtests, dist-binary ]
+    needs: [ regtests ]
     strategy:
       matrix:
         dist_type: [ bin, deb ]
