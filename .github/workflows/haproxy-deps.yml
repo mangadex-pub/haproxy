@@ -29,8 +29,6 @@ jobs:
         uses: actions/checkout@v3
       - name: Setup OS
         uses: "./.github/actions/setup-os"
-      #- name: Set up Clang
-      #  uses: "./.github/actions/setup-clang"
       - name: Build ${{ matrix.dependency_name }}
         run: make -C deps/${{ matrix.dependency_name }}
       - name: Archive ${{ matrix.dependency_name }} distribution

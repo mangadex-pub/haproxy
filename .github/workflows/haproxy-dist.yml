@@ -41,8 +41,6 @@ jobs:
         uses: "./.github/actions/setup-os"
       - name: Fetch build-time dependencies
         uses: "./.github/actions/fetch-deps"
-      #- name: Set up Clang
-      #  uses: "./.github/actions/setup-clang"
       - name: Build and test
         continue-on-error: true
         run: |
@@ -70,8 +68,6 @@ jobs:
         uses: "./.github/actions/setup-os"
       - name: Fetch build-time dependencies
         uses: "./.github/actions/fetch-deps"
-      #- name: Set up Clang
-      #  uses: "./.github/actions/setup-clang"
       - name: Build distribution
         env:
           BUILD_MESSAGE: "${{ github.event.head_commit.message }}"
