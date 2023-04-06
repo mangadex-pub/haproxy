@@ -2,8 +2,6 @@ on:
   push:
     branches: [ "*" ]
     tags: [ "*" ]
-  schedule:
-    - cron: "0 10 * * 1"
 
 jobs:
   haproxy-dependencies:
