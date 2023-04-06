@@ -11,4 +11,4 @@ runs:
     - name: Install OS dependencies
       shell: bash
       run: |
-        sudo ./tool/setup-debian.sh
+        ./tool/setup-debian.sh
