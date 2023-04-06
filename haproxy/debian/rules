@@ -1,5 +1,6 @@
 #!/usr/bin/make -f
 
+DEP_DIST_ROOT_DATAPLANEAPI = $(shell realpath ../../deps/dataplaneapi/dist)
 DEP_DIST_ROOT_LUA = $(shell realpath ../../deps/lua/dist)
 DEP_DIST_ROOT_PCRE2 = $(shell realpath ../../deps/pcre2/dist)
 DEP_DIST_ROOT_QUICTLS = $(shell realpath ../../deps/quictls/dist)
@@ -60,6 +61,7 @@ override_dh_auto_clean:
 
 override_dh_auto_install-arch:
 	cp -rf $(DEP_DIST_ROOT_QUICTLS)/opt debian/haproxy/opt
+	cp -rf $(DEP_DIST_ROOT_DATAPLANEAPI)/usr debian/haproxy/usr
 	$(MAKE) -j $(shell nproc) $(MAKEARGS) install
 	if [ -f "dev/haring/haring" ]; then install -m 0755 -D dev/haring/haring debian/haproxy/usr/sbin/haring; fi
 	install -m 0644 -D debian/rsyslog.conf debian/haproxy/etc/rsyslog.d/49-haproxy.conf
@@ -85,4 +87,4 @@ override_dh_strip:
 # see https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=933541, still not shipped in buster
 # and don't want to update to bullseye because of GCC version diff with Ubuntu 20.04... *sigh*
 override_dh_dwz:
-	dh_dwz --no-dwz-multifile --exclude="openssl"
+	dh_dwz --no-dwz-multifile --exclude="dataplaneapi" --exclude="openssl"
