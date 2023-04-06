@@ -3,6 +3,9 @@ name: HAProxy dependencies
 on:
   workflow_call:
     inputs:
+      DEBIAN_CODENAME:
+        required: true
+        type: string
       CLANG_VERSION:
         required: true
         type: number
@@ -10,10 +13,10 @@ on:
 jobs:
   dependency:
     runs-on: ubuntu-latest
+    container: "docker.io/library/debian:${{ inputs.DEBIAN_CODENAME }}"
     permissions:
       contents: read
       packages: write
-
     strategy:
       matrix:
         dependency_name:
@@ -21,7 +24,6 @@ jobs:
           - pcre2
           - quictls
           - vtest
-
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3

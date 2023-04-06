@@ -3,6 +3,9 @@ name: Build HAProxy version
 on:
   workflow_call:
     inputs:
+      DEBIAN_CODENAME:
+        required: true
+        type: string
       CLANG_VERSION:
         required: true
         type: number
@@ -25,35 +28,21 @@ env:
   IMAGE_NAME: "${{ github.repository }}"
 
 jobs:
-  build:
+  regtests:
     runs-on: ubuntu-latest
+    container: "docker.io/library/debian:${{ inputs.DEBIAN_CODENAME }}"
     permissions:
       contents: read
       packages: write
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
-
       - name: Fetch build-time dependencies
         uses: "./.github/actions/fetch-deps"
-
       - name: Set up Clang
         uses: egor-tensin/setup-clang@v1
         with:
           version: "${{ inputs.CLANG_VERSION }}"
-
-      - name: Install build dependencies
-        run: |
-          sudo apt update && sudo apt install -y \
-            bzip2 \
-            devscripts \
-            debhelper \
-            pkg-config \
-            libpcre2-dev \
-            libreadline-dev \
-            libsystemd-dev \
-            zlib1g-dev
-
       - name: Build and test
         continue-on-error: true
         run: |
@@ -64,22 +53,27 @@ jobs:
             BUILD_PATCHES_DIR="patches-${{ inputs.HAPROXY_FLAVOUR }}" \
             build test
 
-      - name: Package binary distribution
-        run: |
-          make -C haproxy \
-            HAPROXY_GITREPO="${{ inputs.HAPROXY_GITREPO }}" \
-            HAPROXY_VERSION="${{ inputs.HAPROXY_VERSION }}" \
-            HAPROXY_GITREF="${{ inputs.HAPROXY_GITREF }}" \
-            BUILD_PATCHES_DIR="patches-${{ inputs.HAPROXY_FLAVOUR }}" \
-            dist-bin
-      - name: Archive binary tarball
-        uses: actions/upload-artifact@v3
+  dist-binary:
+    runs-on: ubuntu-latest
+    container: "docker.io/library/debian:${{ inputs.DEBIAN_CODENAME }}"
+    permissions:
+      contents: read
+      packages: write
+    needs: [ regtests, dist-binary ]
+    strategy:
+      matrix:
+        dist_type: [ bin, deb ]
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+      - name: Fetch build-time dependencies
+        uses: "./.github/actions/fetch-deps"
+      - name: Set up Clang
+        uses: egor-tensin/setup-clang@v1
         with:
-          name: haproxy-${{ inputs.HAPROXY_FLAVOUR }}.tar.gz
-          path: haproxy/haproxy-dist.tar.gz
+          version: "${{ inputs.CLANG_VERSION }}"
 
-      - name: Build Debian package
-        id: debian
+      - name: Build distribution
         env:
           BUILD_MESSAGE: "${{ github.event.head_commit.message }}"
         run: |
@@ -88,34 +82,71 @@ jobs:
             HAPROXY_VERSION="${{ inputs.HAPROXY_VERSION }}" \
             HAPROXY_GITREF="${{ inputs.HAPROXY_GITREF }}" \
             BUILD_PATCHES_DIR="patches-${{ inputs.HAPROXY_FLAVOUR }}" \
-            dist-deb
+            dist-${{ matrix.dist_type }}
           ls -l haproxy
+
+      - name: Archive binary tarball
+        if: ${{ matrix.dist_type == 'bin' }}
+        uses: actions/upload-artifact@v3
+        with:
+          name: haproxy-${{ inputs.HAPROXY_FLAVOUR }}.tar.gz
+          path: haproxy/haproxy-dist.tar.gz
+
+      - name: Collect Debian packages
+        if: ${{ matrix.dist_type == 'deb' }}
+        run: |
           echo "DEB_BIN=$(ls -1 haproxy/*.deb | cut -d'/' -f2)" | tee -a $GITHUB_ENV
           echo "DEB_DBG=$(ls -1 haproxy/*.ddeb | cut -d'/' -f2)" | tee -a $GITHUB_ENV
       - name: Archive Debian packages - binary
+        if: ${{ matrix.dist_type == 'deb' }}
         uses: actions/upload-artifact@v3
         with:
           name: ${{ env.DEB_BIN }}
           path: haproxy/${{ env.DEB_BIN }}
       - name: Archive Debian packages - debug symbols
+        if: ${{ matrix.dist_type == 'deb' }}
         uses: actions/upload-artifact@v3
         with:
           name: ${{ env.DEB_DBG }}
           path: haproxy/${{ env.DEB_DBG }}
 
+  dist-docker:
+    runs-on: ubuntu-latest
+    container: "docker.io/library/debian:${{ inputs.DEBIAN_CODENAME }}"
+    permissions:
+      contents: read
+      packages: write
+    needs: [ regtests ]
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+      - name: Fetch build-time dependencies
+        uses: "./.github/actions/fetch-deps"
+      - name: Set up Clang
+        uses: egor-tensin/setup-clang@v1
+        with:
+          version: "${{ inputs.CLANG_VERSION }}"
+      - name: Build binary distribution
+        env:
+          BUILD_MESSAGE: "${{ github.event.head_commit.message }}"
+        run: |
+          make -C haproxy \
+            HAPROXY_GITREPO="${{ inputs.HAPROXY_GITREPO }}" \
+            HAPROXY_VERSION="${{ inputs.HAPROXY_VERSION }}" \
+            HAPROXY_GITREF="${{ inputs.HAPROXY_GITREF }}" \
+            BUILD_PATCHES_DIR="patches-${{ inputs.HAPROXY_FLAVOUR }}" \
+            dist-bin
+          ls -l haproxy
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v2
-
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v2
-
       - name: Log in to the Container registry
         uses: docker/login-action@v2
         with:
           registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
-
       - name: Extract metadata (tags, labels) for Docker
         id: meta
         uses: docker/metadata-action@v4
@@ -126,7 +157,6 @@ jobs:
             type=sha,event=push,enable={{ is_default_branch }},prefix=${{ inputs.HAPROXY_VERSION }}-${{ inputs.HAPROXY_FLAVOUR }}-git-,format=short
             type=raw,event=push,enable={{ is_default_branch }},value=${{ inputs.HAPROXY_VERSION }}-${{ inputs.HAPROXY_FLAVOUR }}
             type=raw,event=push,enable={{ is_default_branch }},value=${{ inputs.HAPROXY_VERSION }}
-
       - name: Build and push Docker image
         uses: docker/build-push-action@v4
         with:
@@ -134,3 +164,4 @@ jobs:
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
+

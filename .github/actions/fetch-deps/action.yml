@@ -48,3 +48,16 @@ runs:
       run: |
         mkdir -pv deps/vtest/dist
         tar -C deps/vtest/dist -xf deps/vtest/vtest-dist.tar.gz
+
+    - name: Install build dependencies
+      shell: bash
+      run: |
+        sudo apt update && sudo apt install -y \
+          bzip2 \
+          devscripts \
+          debhelper \
+          pkg-config \
+          libpcre2-dev \
+          libreadline-dev \
+          libsystemd-dev \
+          zlib1g-dev
