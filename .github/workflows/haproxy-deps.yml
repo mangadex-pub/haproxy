@@ -28,9 +28,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v3
       - name: Set up Clang
-        uses: egor-tensin/setup-clang@v1
-        with:
-          version: "${{ inputs.CLANG_VERSION }}"
+        uses: "./.github/actions/setup-clang"
       - name: Build ${{ matrix.dependency_name }}
         run: make -C deps/${{ matrix.dependency_name }}
       - name: Archive ${{ matrix.dependency_name }} distribution
