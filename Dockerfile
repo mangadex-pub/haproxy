@@ -5,6 +5,10 @@ FROM base as dists
 
 RUN apt -qq update && apt install -qq -y bzip2
 
+WORKDIR /tmp/dataplaneapi
+COPY ./deps/dataplaneapi/dataplaneapi-dist.tar.gz /tmp/dataplaneapi/dataplaneapi.tar.gz
+RUN ls -alh && tar xf dataplaneapi.tar.gz
+
 WORKDIR /tmp/quictls
 COPY ./deps/quictls/quictls-dist.tar.gz /tmp/quictls/quictls.tar.gz
 RUN ls -alh && tar xf quictls.tar.gz
@@ -22,6 +26,7 @@ MAINTAINER MangaDex <opensource@mangadex.org>
 ARG CANONICAL_VERSION="local-SNAPSHOT"
 LABEL Version=${CANONICAL_VERSION}
 
+COPY --chown=root:root --from=dists /tmp/dataplaneapi/usr /usr
 COPY --chown=root:root --from=dists /tmp/quictls/opt /opt
 COPY --chown=root:root --from=dists /tmp/haproxy/usr /usr
 

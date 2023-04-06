@@ -90,7 +90,7 @@ jobs:
     permissions:
       contents: read
       packages: write
-    needs: [ regtests ]
+    needs: [ dataplaneapi, regtests ]
     strategy:
       matrix:
         dist_type: [ bin, deb ]
@@ -143,7 +143,7 @@ jobs:
     permissions:
       contents: read
       packages: write
-    needs: [ regtests, dist-binary ]
+    needs: [ dataplaneapi, dist-binary, regtests ]
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
@@ -151,11 +151,25 @@ jobs:
         uses: "./.github/actions/fetch-deps"
         with:
           INSTALL_NATIVE_DEPS: "false"
+
+      # Standalone as it's version-dependent
+      - name: Dependencies - Fetch - Data Plane API
+        uses: actions/download-artifact@v3
+        with:
+          name: dataplaneapi-${{ inputs.HAPROXY_FLAVOUR }}.tar.gz
+          path: deps/dataplaneapi
+      - name: Dependencies - Unpack - Data Plane API
+        shell: bash
+        run: |
+          mkdir -pv deps/dataplaneapi/dist
+          tar -C deps/dataplaneapi/dist -xf deps/dataplaneapi/dataplaneapi-dist.tar.gz
+
       - name: Fetch HAProxy dist
         uses: actions/download-artifact@v3
         with:
           name: haproxy-${{ inputs.HAPROXY_FLAVOUR }}.tar.gz
           path: haproxy
+
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v2
       - name: Set up Docker Buildx
