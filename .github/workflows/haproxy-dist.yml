@@ -37,6 +37,8 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
+      - name: Setup OS
+        uses: "./.github/actions/setup-os"
       - name: Fetch build-time dependencies
         uses: "./.github/actions/fetch-deps"
       - name: Set up Clang
@@ -64,6 +66,8 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
+      - name: Setup OS
+        uses: "./.github/actions/setup-os"
       - name: Fetch build-time dependencies
         uses: "./.github/actions/fetch-deps"
       - name: Set up Clang
@@ -115,6 +119,8 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
+      - name: Setup OS
+        uses: "./.github/actions/setup-os"
       - name: Fetch build-time dependencies
         uses: "./.github/actions/fetch-deps"
       - name: Set up Clang

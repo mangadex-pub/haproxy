@@ -27,6 +27,8 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
+      - name: Setup OS
+        uses: "./.github/actions/setup-os"
       - name: Set up Clang
         uses: "./.github/actions/setup-clang"
       - name: Build ${{ matrix.dependency_name }}

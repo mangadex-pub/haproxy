@@ -1,0 +1,14 @@
+name: Setup Debian-based OS dependencies
+description: |
+  Because we live in a dumb world where I have to care about the source OS' libc version of the programs I compile...
+
+  Fuck static linking forever
+
+runs:
+  using: "composite"
+
+  steps:
+    - name: Install OS dependencies
+      shell: bash
+      run: |
+        sudo ./tool/setup-debian.sh
