@@ -94,8 +94,8 @@ jobs:
       - name: Collect Debian packages
         if: ${{ matrix.dist_type == 'deb' }}
         run: |
-          echo "DEB_BIN=$(ls -1 haproxy/*.deb | cut -d'/' -f2)" | tee -a $GITHUB_ENV
-          echo "DEB_DBG=$(ls -1 haproxy/*.ddeb | cut -d'/' -f2)" | tee -a $GITHUB_ENV
+          echo "DEB_BIN=$(ls -1 haproxy/haproxy-dbgsym_*.deb | cut -d'/' -f2)" | tee -a $GITHUB_ENV
+          echo "DEB_DBG=$(ls -1 haproxy/haproxy_*.deb | cut -d'/' -f2)" | tee -a $GITHUB_ENV
       - name: Archive Debian packages - binary
         if: ${{ matrix.dist_type == 'deb' }}
         uses: actions/upload-artifact@v3
@@ -111,11 +111,10 @@ jobs:
 
   dist-docker:
     runs-on: ubuntu-latest
-    container: "docker.io/library/debian:${{ inputs.DEBIAN_CODENAME }}"
     permissions:
       contents: read
       packages: write
-    needs: [ regtests ]
+    needs: [ regtests, dist-binary ]
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
@@ -123,19 +122,11 @@ jobs:
         uses: "./.github/actions/setup-os"
       - name: Fetch build-time dependencies
         uses: "./.github/actions/fetch-deps"
-      - name: Set up Clang
-        uses: "./.github/actions/setup-clang"
-      - name: Build binary distribution
-        env:
-          BUILD_MESSAGE: "${{ github.event.head_commit.message }}"
-        run: |
-          make -C haproxy \
-            HAPROXY_GITREPO="${{ inputs.HAPROXY_GITREPO }}" \
-            HAPROXY_VERSION="${{ inputs.HAPROXY_VERSION }}" \
-            HAPROXY_GITREF="${{ inputs.HAPROXY_GITREF }}" \
-            BUILD_PATCHES_DIR="patches-${{ inputs.HAPROXY_FLAVOUR }}" \
-            dist-bin
-          ls -l haproxy
+      - name: Fetch HAProxy dist
+        uses: actions/download-artifact@v3
+        with:
+          name: haproxy-dist.tar.gz
+          path: haproxy
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v2
       - name: Set up Docker Buildx
