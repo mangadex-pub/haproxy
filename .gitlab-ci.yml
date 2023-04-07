@@ -64,7 +64,7 @@ dataplaneapi:
   script: make -C deps/dataplaneapi
   variables:
     <<: *default-variables
-    <<: *build-resources-xs
+    <<: *build-resources-m
   artifacts:
     expire_in: 7 days
     paths: [ "deps/dataplaneapi/dataplaneapi-dist.tar.gz" ]
