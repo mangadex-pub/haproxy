@@ -46,7 +46,7 @@ variables: &default-variables
   BUILD_PATCHES_DIR: "patches-dev"
 
 .build-job: &build-job
-  image: registry.gitlab.com/mangadex-pub/debuilder/buster:main
+  image: ghcr.io/mangadex-pub/debuilder:main-bullseye
   needs: [ ]
   before_script:
     - apt -qq update
