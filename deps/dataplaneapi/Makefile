@@ -20,7 +20,8 @@ $(DATAPLANEAPI_BUILDIR): $(DATAPLANEAPI_TARBALL)
 build: $(DATAPLANEAPI_BUILDIR)
 	cd "$(DATAPLANEAPI_BUILDIR)" && make \
 	  GIT_HEAD_COMMIT="$(DATAPLANEAPI_VERSION)" \
-	  GIT_MODIFIED="+mangadex-$(BUILD_VERSION_REPOSHA)"
+	  GIT_MODIFIED="+mangadex-$(BUILD_VERSION_REPOSHA)" \
+	  GIT_REPO="mangadex-pub/haproxy@git{hub, lab}"
 	"$(DATAPLANEAPI_BUILDIR)/build/dataplaneapi" --version
 
 $(DATAPLANEAPI_DESTDIR): build
