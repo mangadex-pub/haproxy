@@ -339,6 +339,8 @@ docker:stable:
     <<: *build-resources-m
     <<: *haproxy-stable
   needs:
+    - job: "dataplaneapi"
+      artifacts: true
     - job: "quictls"
       artifacts: true
     - job: "regtests:stable"
@@ -353,6 +355,8 @@ docker:dev:
     <<: *build-resources-m
     <<: *haproxy-dev
   needs:
+    - job: "dataplaneapi"
+      artifacts: true
     - job: "quictls"
       artifacts: true
     - job: "regtests:dev"
