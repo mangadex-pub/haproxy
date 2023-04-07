@@ -60,13 +60,13 @@ override_dh_auto_clean:
 	dh_auto_clean
 
 override_dh_auto_install-arch:
-	cp -rfv $(DEP_DIST_ROOT_QUICTLS)/opt debian/haproxy/opt
-	cp -rfv $(DEP_DIST_ROOT_DATAPLANEAPI)/usr debian/haproxy/usr
+	cp -rf $(DEP_DIST_ROOT_QUICTLS)/opt debian/haproxy/opt
+	cp -rf $(DEP_DIST_ROOT_DATAPLANEAPI)/usr debian/haproxy/usr
 	$(MAKE) -j $(shell nproc) $(MAKEARGS) install
 	if [ -f "dev/haring/haring" ]; then install -m 0755 -D dev/haring/haring debian/haproxy/usr/sbin/haring; fi
 	install -m 0644 -D debian/rsyslog.conf debian/haproxy/etc/rsyslog.d/49-haproxy.conf
 	install -m 0644 -D debian/logrotate.conf debian/haproxy/etc/logrotate.d/haproxy
-	ls -R debian/haproxy
+	ls -1 debian/haproxy
 
 override_dh_auto_install-indep:
 
