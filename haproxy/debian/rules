@@ -88,4 +88,8 @@ override_dh_strip:
 # see https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=933541, still not shipped in buster
 # and don't want to update to bullseye because of GCC version diff with Ubuntu 20.04... *sigh*
 override_dh_dwz:
-	dh_dwz --no-dwz-multifile --exclude="dataplaneapi" --exclude="openssl"
+	dh_dwz \
+	  --no-dwz-multifile \
+	  --exclude="dataplaneapi" \
+	  --exclude="haring" \
+	  --exclude="openssl"
