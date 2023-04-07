@@ -57,6 +57,18 @@ variables: &default-variables
 # Common dependencies
 #----------------------
 
+dataplaneapi:
+  <<: *build-job
+  image: docker.io/library/golang:1.19-bullseye
+  stage: dependencies
+  script: make -C deps/dataplaneapi
+  variables:
+    <<: *default-variables
+    <<: *build-resources-xs
+  artifacts:
+    expire_in: 7 days
+    paths: [ "deps/dataplaneapi/dataplaneapi-dist.tar.gz" ]
+
 lua:
   <<: *build-job
   stage: dependencies
@@ -102,6 +114,8 @@ vtest:
     paths: [ "deps/vtest/dist/vtest" ]
 
 .needs-dependencies: &needs-dependencies
+  - job: dataplaneapi
+    artifacts: true
   - job: lua
     artifacts: true
   - job: pcre2
@@ -118,9 +132,9 @@ vtest:
   stage: build
   script:
     - apt install -y --no-install-recommends -qq bzip2 git
-    - mkdir deps/lua/dist     && tar -C deps/lua/dist     -xf deps/lua/lua-dist.tar.gz
-    - mkdir deps/pcre2/dist   && tar -C deps/pcre2/dist   -xf deps/pcre2/pcre2-dist.tar.gz
-    - mkdir deps/quictls/dist && tar -C deps/quictls/dist -xf deps/quictls/quictls-dist.tar.gz
+    - mkdir deps/lua/dist          && tar -C deps/lua/dist          -xf deps/lua/lua-dist.tar.gz
+    - mkdir deps/pcre2/dist        && tar -C deps/pcre2/dist        -xf deps/pcre2/pcre2-dist.tar.gz
+    - mkdir deps/quictls/dist      && tar -C deps/quictls/dist      -xf deps/quictls/quictls-dist.tar.gz
     - make -C haproxy HAPROXY_GITREPO="$HAPROXY_GITREPO" HAPROXY_VERSION="$HAPROXY_VERSION" HAPROXY_GITREF="$HAPROXY_GITREF" BUILD_PATCHES_DIR="$BUILD_PATCHES_DIR"
   needs: *needs-dependencies
   artifacts:
@@ -132,9 +146,9 @@ vtest:
   stage: test
   script:
     - apt install -y --no-install-recommends -qq bzip2 git
-    - mkdir deps/lua/dist     && tar -C deps/lua/dist     -xf deps/lua/lua-dist.tar.gz
-    - mkdir deps/pcre2/dist   && tar -C deps/pcre2/dist   -xf deps/pcre2/pcre2-dist.tar.gz
-    - mkdir deps/quictls/dist && tar -C deps/quictls/dist -xf deps/quictls/quictls-dist.tar.gz
+    - mkdir deps/lua/dist          && tar -C deps/lua/dist          -xf deps/lua/lua-dist.tar.gz
+    - mkdir deps/pcre2/dist        && tar -C deps/pcre2/dist        -xf deps/pcre2/pcre2-dist.tar.gz
+    - mkdir deps/quictls/dist      && tar -C deps/quictls/dist      -xf deps/quictls/quictls-dist.tar.gz
     - make -C haproxy HAPROXY_GITREPO="$HAPROXY_GITREPO" HAPROXY_VERSION="$HAPROXY_VERSION" HAPROXY_GITREF="$HAPROXY_GITREF" BUILD_PATCHES_DIR="$BUILD_PATCHES_DIR" build test
   needs:
     - *needs-dependencies
@@ -146,9 +160,10 @@ vtest:
   stage: publish
   script:
     - apt install -y --no-install-recommends -qq bzip2 devscripts debhelper pkg-config
-    - mkdir deps/lua/dist     && tar -C deps/lua/dist     -xf deps/lua/lua-dist.tar.gz
-    - mkdir deps/pcre2/dist   && tar -C deps/pcre2/dist   -xf deps/pcre2/pcre2-dist.tar.gz
-    - mkdir deps/quictls/dist && tar -C deps/quictls/dist -xf deps/quictls/quictls-dist.tar.gz
+    - mkdir deps/dataplaneapi/dist && tar -C deps/dataplaneapi/dist -xf deps/dataplaneapi/dataplaneapi-dist.tar.gz
+    - mkdir deps/lua/dist          && tar -C deps/lua/dist          -xf deps/lua/lua-dist.tar.gz
+    - mkdir deps/pcre2/dist        && tar -C deps/pcre2/dist        -xf deps/pcre2/pcre2-dist.tar.gz
+    - mkdir deps/quictls/dist      && tar -C deps/quictls/dist      -xf deps/quictls/quictls-dist.tar.gz
     - export BUILD_MESSAGE="$CI_COMMIT_MESSAGE"
     - make -C haproxy dist-deb HAPROXY_GITREPO="$HAPROXY_GITREPO" HAPROXY_VERSION="$HAPROXY_VERSION" HAPROXY_GITREF="$HAPROXY_GITREF" BUILD_PATCHES_DIR="$BUILD_PATCHES_DIR"
     - |
