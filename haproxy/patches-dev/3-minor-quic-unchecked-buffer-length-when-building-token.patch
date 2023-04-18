@@ -1,0 +1,33 @@
+From f14f8ba6c20ab155e654031f8a5d738f0fd1fff3 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Fr=C3=A9d=C3=A9ric=20L=C3=A9caille?= <flecaille@haproxy.com>
+Date: Tue, 18 Apr 2023 14:42:40 +0200
+Subject: [PATCH] BUG/MINOR: quic: Unchecked buffer length when building the
+ token
+
+As server, an Initial does not contain a token but only the token length field
+with zero as value. The remaining room was not checked before writting this field.
+
+Must be backported to 2.6 and 2.7.
+---
+ src/quic_conn.c | 7 ++++++-
+ 1 file changed, 6 insertions(+), 1 deletion(-)
+
+diff --git a/src/quic_conn.c b/src/quic_conn.c
+index 73a4564f5..032dd9899 100644
+--- a/src/quic_conn.c
++++ b/src/quic_conn.c
+@@ -7661,8 +7661,13 @@ static int qc_do_build_pkt(unsigned char *pos, const unsigned char *end,
+ 		goto no_room;
+ 
+ 	/* Encode the token length (0) for an Initial packet. */
+-	if (pkt->type == QUIC_PACKET_TYPE_INITIAL)
++	if (pkt->type == QUIC_PACKET_TYPE_INITIAL) {
++		if (end <= pos)
++			goto no_room;
++
+ 		*pos++ = 0;
++	}
++
+ 	head_len = pos - beg;
+ 	/* Build an ACK frame if required. */
+ 	ack_frm_len = 0;
