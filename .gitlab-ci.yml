@@ -52,7 +52,7 @@ variables: &default-variables
   HAPROXY_LIBASAN: "true"
 
 .build-job: &build-job
-  image: ghcr.io/mangadex-pub/debuilder:main-bullseye
+  image: ghcr.io/mangadex-pub/debuilder:branch-main-bullseye-git-f48b3ed
   needs: [ ]
   before_script:
     - apt -qq update
