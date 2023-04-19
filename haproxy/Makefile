@@ -111,7 +111,7 @@ $(HAPROXY_DESTDIR):
 	@mkdir -pv "$(HAPROXY_DESTDIR)"
 	$(MAKE) -C "$(HAPROXY_BUILDIR)" -j "$(shell nproc)" DESTDIR="$(HAPROXY_DESTDIR_ABS)" install
 	if [ -f "$(HAPROXY_BUILDIR)/dev/haring/haring" ]; then install -m 0755 -D "$(HAPROXY_BUILDIR)/dev/haring/haring" "$(HAPROXY_DESTDIR_ABS)/usr/local/sbin/haring"; fi
-	$(HAPROXY_DESTDIR_ABS)/usr/local/sbin/haproxy -vv
+	if ! $(HAPROXY_DESTDIR_ABS)/usr/local/sbin/haproxy -vv; then ls -alh; fi
 	ldd $(HAPROXY_DESTDIR_ABS)/usr/local/sbin/haproxy
 
 $(HAPROXY_ARCHIVE): $(HAPROXY_DESTDIR)
