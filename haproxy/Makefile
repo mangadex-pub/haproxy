@@ -47,6 +47,14 @@ MAKEARGS = DEBUG="-DDEBUG_MEMORY_POOLS -DDEBUG_STRICT" \
            USE_SLZ=1 \
            USE_TFO=1
 
+HAPROXY_LIBASAN = false
+ifeq ($(HAPROXY_LIBASAN),true)
+	DEBUG_CFLAGS += -static-libsan
+	DEBUG_CFLAGS += -fsanitize=address
+	DEBUG_CFLAGS += -fno-omit-frame-pointer
+	MAKEARGS += LDFLAGS="-fsanitize=address"
+endif
+
 MAKEARGS_LINUX = $(MAKEARGS) \
 				 PCRE2_LIB="$(DEP_DIST_ROOT_PCRE2)/lib64" \
 				 PCRE2_INC="$(DEP_DIST_ROOT_PCRE2)/include" \
@@ -78,6 +86,7 @@ patches: $(HAPROXY_BUILDIR)
 	@cd "$(HAPROXY_BUILDIR)" && for patch in $(BUILD_PATCHES_FILES); do patch -p1 --forward < "$(BUILD_PATCHES_DIR)/$${patch}" || true; done
 
 build: $(HAPROXY_BUILDIR) patches
+	$(info Enabling address sanitizer: $(HAPROXY_LIBASAN))
 	$(MAKE) build_$(shell uname -s)
 	if [ -d "$(HAPROXY_BUILDIR)/dev/haring" ]; then $(MAKE) -C "$(HAPROXY_BUILDIR)" -j "$(shell nproc)" dev/haring/haring; fi
 
@@ -103,6 +112,7 @@ $(HAPROXY_DESTDIR):
 	$(MAKE) -C "$(HAPROXY_BUILDIR)" -j "$(shell nproc)" DESTDIR="$(HAPROXY_DESTDIR_ABS)" install
 	if [ -f "$(HAPROXY_BUILDIR)/dev/haring/haring" ]; then install -m 0755 -D "$(HAPROXY_BUILDIR)/dev/haring/haring" "$(HAPROXY_DESTDIR_ABS)/usr/local/sbin/haring"; fi
 	$(HAPROXY_DESTDIR_ABS)/usr/local/sbin/haproxy -vv
+	ldd $(HAPROXY_DESTDIR_ABS)/usr/local/sbin/haproxy
 
 $(HAPROXY_ARCHIVE): $(HAPROXY_DESTDIR)
 	tar -C "$(HAPROXY_DESTDIR)" -cjf "$(HAPROXY_ARCHIVE)" "usr"
@@ -121,7 +131,9 @@ prepare-deb: $(HAPROXY_DEBORIG) $(HAPROXY_BUILDIR)
 		cat debian/changelog >> "$(HAPROXY_BUILDIR)/debian/changelog"
 
 build-deb: prepare-deb
-	cd $(HAPROXY_BUILDIR) && debuild -us -uc --lintian-opts --no-lintian
+	export HAPROXY_LIBASAN="$(HAPROXY_LIBASAN)" && \
+		cd $(HAPROXY_BUILDIR) && \
+		debuild -us -uc --lintian-opts --no-lintian
 	rm -fv $(HAPROXY_TARBALL)
 	rm -rf $(HAPROXY_BUILDIR)
 

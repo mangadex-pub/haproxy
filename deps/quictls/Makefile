@@ -21,7 +21,7 @@ $(QUICTLS_BUILDIR): $(QUICTLS_TARBALL)
 
 build: $(QUICTLS_BUILDIR)
 	cd "$(QUICTLS_BUILDIR)" &&  sed -i 's/^# define OPENSSL_VERSION_TEXT.*$\/# define OPENSSL_VERSION_TEXT "OpenSSL $(OPENSSL_VERSION)+$(QUICTLS_BUILD_VERSION) $(shell date -u +'%e %b %Y')"/g' "include/openssl/opensslv.h"
-	cd "$(QUICTLS_BUILDIR)" && CC=cc ./config --prefix="/opt/quictls" --openssldir="/opt/quictls" --libdir="lib" no-shared
+	cd "$(QUICTLS_BUILDIR)" && CC=cc ./config --prefix="/opt/quictls" --openssldir="/opt/quictls" --libdir="lib" -DPURIFY no-shared
 	$(MAKE) -C "$(QUICTLS_BUILDIR)" -j "$(shell nproc)" VERSION=$(OPENSSL_VERSION)+quic-mangadex-$(BUILD_VERSION_REPOSHA)
 	"$(QUICTLS_BUILDIR)/apps/openssl" version
 	$(MAKE) buildinfo_$(shell uname -s)

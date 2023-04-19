@@ -38,6 +38,14 @@ MAKEARGS = DEBUG="-DDEBUG_MEMORY_POOLS -DDEBUG_STRICT" \
            USE_TFO=1 \
            USE_SYSTEMD=1
 
+HAPROXY_LIBASAN = false
+ifeq ($(HAPROXY_LIBASAN),true)
+	DEBUG_CFLAGS += -static-libsan
+	DEBUG_CFLAGS += -fsanitize=address
+	DEBUG_CFLAGS += -fno-omit-frame-pointer
+	MAKEARGS += LDFLAGS="-fsanitize=address"
+endif
+
 # Extra flags necessary for debian packaging
 MAKEARGS += DESTDIR=debian/haproxy
 MAKEARGS += PREFIX=/usr
@@ -51,6 +59,7 @@ MAKEARGS += DOCDIR=/usr/share/doc/haproxy
 override_dh_auto_configure:
 
 override_dh_auto_build-arch:
+	$(info Enabling address sanitizer: $(HAPROXY_LIBASAN))
 	$(MAKE) -j $(shell nproc) $(MAKEARGS)
 	if [ -d "dev/haring" ]; then $(MAKE) -j $(shell nproc) dev/haring/haring; fi
 	$(MAKE) -j $(shell nproc) -C admin/systemd $(MAKEARGS)
