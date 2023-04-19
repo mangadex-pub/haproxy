@@ -100,10 +100,8 @@ build_Darwin:
 	$(MAKE) -C "$(HAPROXY_BUILDIR)" -j "$(shell nproc)" $(MAKEARGS_DARWIN) opts
 	$(MAKE) -C "$(HAPROXY_BUILDIR)" -j "$(shell nproc)" $(MAKEARGS_DARWIN)
 
-# Ignore ssl/ssl_generate_certificate.vtc as it fails and I have no clue why at all
 test: $(HAPROXY_BUILDIR)
-	VTEST_PROGRAM="$(DEP_DIST_ROOT_VTEST)/vtest" \
-		$(MAKE) -C "$(HAPROXY_BUILDIR)" -j "$(shell nproc)" REGTESTS_TYPES=default,bug,devel reg-tests
+	if ! VTEST_PROGRAM="$(DEP_DIST_ROOT_VTEST)/vtest" $(MAKE) -C "$(HAPROXY_BUILDIR)" -j "$(shell nproc)" REGTESTS_TYPES=default,bug,devel reg-tests; then ls -alh; echo "Stalling due to failure"; sleep 3000; fi
 
 .PHONY: $(HAPROXY_DESTDIR)
 $(HAPROXY_DESTDIR):
