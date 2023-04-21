@@ -53,6 +53,9 @@ ifeq ($(HAPROXY_LIBASAN),true)
 	DEBUG_CFLAGS += -fsanitize=address
 	DEBUG_CFLAGS += -fno-omit-frame-pointer
 	MAKEARGS += LDFLAGS="-fsanitize=address"
+	MAKEARGS += USE_OBSOLETE_LINKER="1"
+	# set -O1 rather than the default -O2 since LibAsan builds are debug-purpose anyway
+	MAKEARGS += CPU_CFLAGS="-O1"
 endif
 
 MAKEARGS_LINUX = $(MAKEARGS) \
