@@ -49,10 +49,10 @@ MAKEARGS = DEBUG="-DDEBUG_MEMORY_POOLS -DDEBUG_STRICT" \
 
 HAPROXY_LIBASAN = false
 ifeq ($(HAPROXY_LIBASAN),true)
-	DEBUG_CFLAGS += -shared-libasan
+	DEBUG_CFLAGS += -static-libsan
 	DEBUG_CFLAGS += -fsanitize=address
 	DEBUG_CFLAGS += -fno-omit-frame-pointer
-	MAKEARGS += LDFLAGS="-fsanitize=address"
+	MAKEARGS += LDFLAGS="-fsanitize=address -static-libsan"
 	MAKEARGS += USE_OBSOLETE_LINKER="1"
 	# set -O1 rather than the default -O2 since LibAsan builds are debug-purpose anyway
 	MAKEARGS += CPU_CFLAGS="-O1"

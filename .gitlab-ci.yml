@@ -56,7 +56,7 @@ variables: &default-variables
   needs: [ ]
   before_script:
     - apt -qq update
-    - apt install -y --no-install-recommends -qq build-essential ca-certificates cmake curl git libpcre2-dev libreadline-dev libsystemd-dev tar zlib1g-dev
+    - apt install -y --no-install-recommends -qq build-essential ca-certificates cmake curl git libasan6 libpcre2-dev libreadline-dev libsystemd-dev tar zlib1g-dev
     - cc --version
 
 #----------------------
