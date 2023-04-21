@@ -49,7 +49,7 @@ MAKEARGS = DEBUG="-DDEBUG_MEMORY_POOLS -DDEBUG_STRICT" \
 
 HAPROXY_LIBASAN = false
 ifeq ($(HAPROXY_LIBASAN),true)
-	DEBUG_CFLAGS += -static-libsan
+	DEBUG_CFLAGS += -shared-libasan
 	DEBUG_CFLAGS += -fsanitize=address
 	DEBUG_CFLAGS += -fno-omit-frame-pointer
 	MAKEARGS += LDFLAGS="-fsanitize=address"
