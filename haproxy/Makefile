@@ -104,7 +104,7 @@ build_Darwin:
 	$(MAKE) -C "$(HAPROXY_BUILDIR)" -j "$(shell nproc)" $(MAKEARGS_DARWIN)
 
 test: $(HAPROXY_BUILDIR)
-	if ! VTEST_PROGRAM="$(DEP_DIST_ROOT_VTEST)/vtest" $(MAKE) -C "$(HAPROXY_BUILDIR)" -j "$(shell nproc)" REGTESTS_TYPES=default,bug,devel reg-tests; then ls -alh; echo "Stalling due to failure"; sleep 3000; fi
+	if ! VTEST_PROGRAM="$(DEP_DIST_ROOT_VTEST)/vtest" $(MAKE) -C "$(HAPROXY_BUILDIR)" -j "$(shell nproc)" REGTESTS_TYPES=default,bug,devel reg-tests; then ls -alh; fi
 
 .PHONY: $(HAPROXY_DESTDIR)
 $(HAPROXY_DESTDIR):
@@ -112,7 +112,7 @@ $(HAPROXY_DESTDIR):
 	@mkdir -pv "$(HAPROXY_DESTDIR)"
 	$(MAKE) -C "$(HAPROXY_BUILDIR)" -j "$(shell nproc)" DESTDIR="$(HAPROXY_DESTDIR_ABS)" install
 	if [ -f "$(HAPROXY_BUILDIR)/dev/haring/haring" ]; then install -m 0755 -D "$(HAPROXY_BUILDIR)/dev/haring/haring" "$(HAPROXY_DESTDIR_ABS)/usr/local/sbin/haring"; fi
-	if ! $(HAPROXY_DESTDIR_ABS)/usr/local/sbin/haproxy -vv; then ls -alh; echo "Stalling due to crash"; sleep 3000; fi
+	if ! $(HAPROXY_DESTDIR_ABS)/usr/local/sbin/haproxy -vv; then ls -alh; fi
 	ldd $(HAPROXY_DESTDIR_ABS)/usr/local/sbin/haproxy
 
 $(HAPROXY_ARCHIVE): $(HAPROXY_DESTDIR)
