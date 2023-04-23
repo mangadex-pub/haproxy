@@ -41,15 +41,15 @@ variables: &default-variables
   # https://git.haproxy.org/?p=haproxy-2.7.git;a=commit;h=4dadaaafb20106619510fd3fc6f2819f47777729
   HAPROXY_GITREF: "4dadaaafb20106619510fd3fc6f2819f47777729"
   BUILD_PATCHES_DIR: "patches-stable"
-  HAPROXY_LIBASAN: "true"
+  HAPROXY_LIBASAN: "false"
 
 .haproxy_dev: &haproxy-dev
   HAPROXY_GITREPO: "https://git.haproxy.org/?p=haproxy.git"
   HAPROXY_VERSION: 2.8-dev
-  # https://git.haproxy.org/?p=haproxy.git;a=commit;h=b5efe7901d3c4476822a2dea58858f5fb069c8eb
-  HAPROXY_GITREF: "b5efe7901d3c4476822a2dea58858f5fb069c8eb"
+  # https://git.haproxy.org/?p=haproxy.git;a=commit;h=3b50e5c164b4dffec8b70787b0cc8cc998b72675
+  HAPROXY_GITREF: "3b50e5c164b4dffec8b70787b0cc8cc998b72675"
   BUILD_PATCHES_DIR: "patches-dev"
-  HAPROXY_LIBASAN: "true"
+  HAPROXY_LIBASAN: "false"
 
 .build-job: &build-job
   image: ghcr.io/mangadex-pub/debuilder:bullseye-clang16
