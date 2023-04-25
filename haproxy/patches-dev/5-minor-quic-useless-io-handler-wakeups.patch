@@ -1,0 +1,36 @@
+From b73762ad78936b1295cf4f647f5025ed1fbf7a59 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Fr=C3=A9d=C3=A9ric=20L=C3=A9caille?= <flecaille@haproxy.com>
+Date: Mon, 24 Apr 2023 11:32:22 +0200
+Subject: [PATCH] BUG/MINOR: quic: Useless I/O handler task wakeups (draining,
+ killing state)
+
+From the idle_timer_task(), the I/O handler must be woken up to send ack. But
+there is no reason to do that in draining state or killing state. In draining
+state this is even forbidden.
+
+Must be backported to 2.7.
+---
+ src/quic_conn.c | 10 ++++++++--
+ 1 file changed, 8 insertions(+), 2 deletions(-)
+
+diff --git a/src/quic_conn.c b/src/quic_conn.c
+index 43737ec0a..ee1196308 100644
+--- a/src/quic_conn.c
++++ b/src/quic_conn.c
+@@ -5882,8 +5882,14 @@ struct task *qc_idle_timer_task(struct task *t, void *ctx, unsigned int state)
+ 		qc->ack_expire = TICK_ETERNITY;
+ 		/* Note that ->idle_expire is always set. */
+ 		t->expire = qc->idle_expire;
+-		qc->flags |= QUIC_FL_CONN_ACK_TIMER_FIRED;
+-		tasklet_wakeup(qc->wait_event.tasklet);
++		/* Do not wakeup the I/O handler in DRAINING state or if the
++		 * connection must be killed as soon as possible.
++		 */
++		if (!(qc->flags & (QUIC_FL_CONN_DRAINING|QUIC_FL_CONN_TO_KILL))) {
++			qc->flags |= QUIC_FL_CONN_ACK_TIMER_FIRED;
++			tasklet_wakeup(qc->wait_event.tasklet);
++		}
++
+ 		goto requeue;
+ 	}
+ 

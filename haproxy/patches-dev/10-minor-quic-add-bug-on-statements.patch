@@ -1,4 +1,4 @@
-From 3b50e661fe8adcbbfae3d5a68ffd588943f7b6e8 Mon Sep 17 00:00:00 2001
+From fdb4d8ca446ed81c47ef09b6813f4bd711201fba Mon Sep 17 00:00:00 2001
 From: Amaury Denoyelle <adenoyelle@haproxy.com>
 Date: Mon, 24 Apr 2023 11:10:55 +0200
 Subject: [PATCH] add various BUG_ON statements
@@ -10,25 +10,25 @@ Subject: [PATCH] add various BUG_ON statements
  3 files changed, 6 insertions(+)
 
 diff --git a/include/haproxy/quic_frame.h b/include/haproxy/quic_frame.h
-index e63cb216a..87bcb637d 100644
+index fd6bad7cb..da317ad89 100644
 --- a/include/haproxy/quic_frame.h
 +++ b/include/haproxy/quic_frame.h
 @@ -250,6 +250,10 @@ static inline struct quic_frame *qc_frm_dup(struct quic_frame *origin)
  	LIST_APPEND(&origin->reflist, &frm->ref);
  	frm->origin = origin;
-
+ 
 +	if (frm->type >= QUIC_FT_STREAM_8 && frm->type <= QUIC_FT_STREAM_F) {
 +		BUG_ON(!frm->stream.dup);
 +	}
 +
  	return frm;
  }
-
+ 
 diff --git a/src/quic_conn.c b/src/quic_conn.c
-index d76802238..3857b0f85 100644
+index a9ad11eaa..fafe2712b 100644
 --- a/src/quic_conn.c
 +++ b/src/quic_conn.c
-@@ -7541,6 +7541,7 @@ static inline int qc_build_frms(struct list *outlist, struct list *inlist,
+@@ -7598,6 +7598,7 @@ static inline int qc_build_frms(struct list *outlist, struct list *inlist,
  				TRACE_DEVEL("split frame", QUIC_EV_CONN_PRSAFRM, qc, new_cf);
  				if (cf->origin) {
  					TRACE_DEVEL("duplicated frame", QUIC_EV_CONN_PRSAFRM, qc);
@@ -37,17 +37,14 @@ index d76802238..3857b0f85 100644
  					LIST_APPEND(&cf->origin->reflist, &new_cf->ref);
  					new_cf->origin = cf->origin;
 diff --git a/src/quic_frame.c b/src/quic_frame.c
-index 9cf5214f6..05713089e 100644
+index ec5e0427e..dced125ac 100644
 --- a/src/quic_frame.c
 +++ b/src/quic_frame.c
 @@ -521,6 +521,7 @@ static int quic_build_stream_frame(unsigned char **buf, const unsigned char *end
  		return 0;
-
- 	wrap = (const unsigned char *)b_wrap(strm_frm->buf);
-+	BUG_ON(strm_frm->data > wrap);
- 	if (strm_frm->data + strm_frm->len > wrap) {
- 		size_t to_copy = wrap - strm_frm->data;
- 		memcpy(*buf, strm_frm->data, to_copy);
---
-2.40.0
-
+ 
+ 	wrap = (const unsigned char *)b_wrap(stream->buf);
++	BUG_ON(stream->data > wrap);
+ 	if (stream->data + stream->len > wrap) {
+ 		size_t to_copy = wrap - stream->data;
+ 		memcpy(*buf, stream->data, to_copy);

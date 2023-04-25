@@ -1,0 +1,37 @@
+From d21c628ffd598913e47ed28230ac670b52479ef6 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Fr=C3=A9d=C3=A9ric=20L=C3=A9caille?= <flecaille@haproxy.com>
+Date: Mon, 24 Apr 2023 11:26:06 +0200
+Subject: [PATCH] BUG/MINOR: quic: Useless probing retransmission in draining
+ or killing state
+
+The timer task responsible of triggering probing retransmission did not inspect
+the state of the connection before doing its job. But there is no need to
+probe the peer when the connection is in draining or killing state. About the
+draining state, this is even forbidden.
+
+Must be backported to 2.7 and 2.6.
+---
+ src/quic_conn.c | 8 ++++++++
+ 1 file changed, 8 insertions(+)
+
+diff --git a/src/quic_conn.c b/src/quic_conn.c
+index 007afee58..43737ec0a 100644
+--- a/src/quic_conn.c
++++ b/src/quic_conn.c
+@@ -5352,8 +5352,16 @@ struct task *qc_process_timer(struct task *task, void *ctx, unsigned int state)
+ 	TRACE_ENTER(QUIC_EV_CONN_PTIMER, qc);
+ 	TRACE_PROTO("process timer", QUIC_EV_CONN_PTIMER, qc,
+ 	            NULL, NULL, &qc->path->ifae_pkts);
++
+ 	task->expire = TICK_ETERNITY;
+ 	pktns = quic_loss_pktns(qc);
++
++	if (qc->flags & (QUIC_FL_CONN_DRAINING|QUIC_FL_CONN_TO_KILL)) {
++		TRACE_PROTO("cancelled action (draining state)", QUIC_EV_CONN_PTIMER, qc);
++		task = NULL;
++		goto out;
++	}
++
+ 	if (tick_isset(pktns->tx.loss_time)) {
+ 		struct list lost_pkts = LIST_HEAD_INIT(lost_pkts);
+ 
