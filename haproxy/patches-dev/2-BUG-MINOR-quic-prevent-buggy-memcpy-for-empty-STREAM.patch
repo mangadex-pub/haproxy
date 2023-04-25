@@ -37,20 +37,20 @@ This should be backported up to 2.7.
  1 file changed, 4 insertions(+)
 
 diff --git a/src/quic_frame.c b/src/quic_frame.c
-index 9cf5214f6d..4bbd73da8d 100644
+index 05713089e..9c985e1b2 100644
 --- a/src/quic_frame.c
 +++ b/src/quic_frame.c
 @@ -520,6 +520,10 @@ static int quic_build_stream_frame(unsigned char **buf, const unsigned char *end
  	     (!quic_enc_int(buf, end, strm_frm->len) || end - *buf < strm_frm->len)))
  		return 0;
- 
+
 +	/* No need for data memcpy if no payload. */
 +	if (!strm_frm->len)
 +		return 1;
 +
  	wrap = (const unsigned char *)b_wrap(strm_frm->buf);
+ 	BUG_ON(strm_frm->data > wrap);
  	if (strm_frm->data + strm_frm->len > wrap) {
- 		size_t to_copy = wrap - strm_frm->data;
--- 
+--
 2.40.0
 
