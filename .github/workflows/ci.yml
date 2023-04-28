@@ -18,10 +18,10 @@ jobs:
       DEBIAN_CODENAME: "bullseye"
       CLANG_VERSION: 14
       HAPROXY_FLAVOUR: "stable"
-      # https://git.haproxy.org/?p=haproxy-2.7.git;a=commit;h=4dadaaafb20106619510fd3fc6f2819f47777729
+      # https://git.haproxy.org/?p=haproxy-2.7.git;a=commit;h=feedf1414f1a9522f5d37dc080d5b3bd9b88627d
       HAPROXY_GITREPO: "https://git.haproxy.org/?p=haproxy-2.7.git"
       HAPROXY_VERSION: "2.7-stable"
-      HAPROXY_GITREF: "4dadaaafb20106619510fd3fc6f2819f47777729"
+      HAPROXY_GITREF: "feedf1414f1a9522f5d37dc080d5b3bd9b88627d"
       HAPROXY_DATAPLANEAPI_VERSION: "v2.7"
 
   dist-dev:
@@ -32,8 +32,8 @@ jobs:
       DEBIAN_CODENAME: "bullseye"
       CLANG_VERSION: 14
       HAPROXY_FLAVOUR: "dev"
-      # https://git.haproxy.org/?p=haproxy.git;a=commit;h=7b516d3732aab5999fc8f4a3037a4317d35d3618
+      # https://git.haproxy.org/?p=haproxy.git;a=commit;h=89aeabff5bc99dc96cd1dcb65d7c06a60ea7ac35
       HAPROXY_GITREPO: "https://git.haproxy.org/?p=haproxy.git"
       HAPROXY_VERSION: "2.8-dev"
-      HAPROXY_GITREF: "7b516d3732aab5999fc8f4a3037a4317d35d3618"
+      HAPROXY_GITREF: "89aeabff5bc99dc96cd1dcb65d7c06a60ea7ac35"
       HAPROXY_DATAPLANEAPI_VERSION: "master"
