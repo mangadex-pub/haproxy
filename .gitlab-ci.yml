@@ -65,7 +65,7 @@ variables: &default-variables
 
 dataplaneapi:
   <<: *build-job
-  image: docker.io/library/golang:1.19-bullseye
+  image: docker.io/library/golang:1.20-bullseye
   stage: dependencies
   script: make -C deps/dataplaneapi
   variables:

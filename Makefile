@@ -21,6 +21,7 @@ haproxy:
 	$(MAKE) -C "haproxy"
 
 clean:
+	$(MAKE) -C "deps/dataplaneapi" clean
 	$(MAKE) -C "deps/lua" clean
 	$(MAKE) -C "deps/pcre2" clean
 	$(MAKE) -C "deps/quictls" clean
