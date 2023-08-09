@@ -32,8 +32,8 @@ jobs:
       DEBIAN_CODENAME: "bullseye"
       CLANG_VERSION: 14
       HAPROXY_FLAVOUR: "dev"
-      # https://git.haproxy.org/?p=haproxy.git;a=commit;h=7ab4949ef107a7088777f954de800fe8cf727796
+      # https://git.haproxy.org/?p=haproxy.git;a=commit;h=6492f1f29d738457ea9f382aca54537f35f9d856
       HAPROXY_GITREPO: "https://git.haproxy.org/?p=haproxy.git"
       HAPROXY_VERSION: "2.9-dev"
-      HAPROXY_GITREF: "7ab4949ef107a7088777f954de800fe8cf727796"
+      HAPROXY_GITREF: "6492f1f29d738457ea9f382aca54537f35f9d856"
       HAPROXY_DATAPLANEAPI_VERSION: "master"
