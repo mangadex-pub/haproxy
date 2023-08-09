@@ -8,7 +8,7 @@ jobs:
     uses: "./.github/workflows/haproxy-deps.yml"
     with:
       DEBIAN_CODENAME: "bullseye"
-      CLANG_VERSION: 14
+      CLANG_VERSION: 16
 
   dist-stable:
     needs: [ "haproxy-dependencies" ]
@@ -16,7 +16,7 @@ jobs:
     secrets: "inherit" # for Docker image publication
     with:
       DEBIAN_CODENAME: "bullseye"
-      CLANG_VERSION: 14
+      CLANG_VERSION: 16
       HAPROXY_FLAVOUR: "stable"
       # https://git.haproxy.org/?p=haproxy-2.8.git;a=commit;h=v2.8.1
       HAPROXY_GITREPO: "https://git.haproxy.org/?p=haproxy-2.8.git"
@@ -30,7 +30,7 @@ jobs:
     secrets: "inherit" # for Docker image publication
     with:
       DEBIAN_CODENAME: "bullseye"
-      CLANG_VERSION: 14
+      CLANG_VERSION: 16
       HAPROXY_FLAVOUR: "dev"
       # https://git.haproxy.org/?p=haproxy.git;a=commit;h=6492f1f29d738457ea9f382aca54537f35f9d856
       HAPROXY_GITREPO: "https://git.haproxy.org/?p=haproxy.git"
