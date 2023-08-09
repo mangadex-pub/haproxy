@@ -20,7 +20,9 @@ DEP_DIST_ROOT_VTEST = $(shell realpath ../deps/vtest/dist)
 BUILD_VERSION_REPOSHA = $(shell git rev-parse --short HEAD)
 
 BUILD_PATCHES_DIR = $(shell realpath patches-stable)
-BUILD_PATCHES_FILES = $(shell ls -1 $(BUILD_PATCHES_DIR))
+# re-deref ensures overrides using relative paths get expanded
+BUILD_PATCHES_DIR_ABS = $(shell realpath $(BUILD_PATCHES_DIR))
+BUILD_PATCHES_FILES = $(shell ls -1 $(BUILD_PATCHES_DIR_ABS))
 DEBIAN_PATCHES_DIR = "$(HAPROXY_BUILDIR)/debian/patches"
 
 DEBUG_CFLAGS = -ggdb3 -gdwarf-4
@@ -86,7 +88,8 @@ $(HAPROXY_BUILDIR): $(HAPROXY_TARBALL)
 	tar -C "$(HAPROXY_BUILDIR)" --strip-components=1 -xf "$(HAPROXY_TARBALL)"
 
 patches: $(HAPROXY_BUILDIR)
-	@cd "$(HAPROXY_BUILDIR)" && for patch in $(BUILD_PATCHES_FILES); do patch -p1 --forward < "$(BUILD_PATCHES_DIR)/$${patch}" || true; done
+	@echo "Applying patches from $(BUILD_PATCHES_DIR_ABS)..."
+	@cd "$(HAPROXY_BUILDIR)" && for patch in $(BUILD_PATCHES_FILES); do patch -p1 --forward < "$(BUILD_PATCHES_DIR_ABS)/$${patch}" || true; done
 
 build: $(HAPROXY_BUILDIR) patches
 	$(info Enabling address sanitizer: $(HAPROXY_LIBASAN))
@@ -123,7 +126,7 @@ $(HAPROXY_DEBORIG): $(HAPROXY_TARBALL)
 
 prepare-deb: $(HAPROXY_DEBORIG) $(HAPROXY_BUILDIR)
 	cp -rf debian $(HAPROXY_BUILDIR)/
-	@for patch in $(BUILD_PATCHES_FILES); do cp -v "$(BUILD_PATCHES_DIR)/$${patch}" "$(DEBIAN_PATCHES_DIR)/$${patch}"; done
+	@for patch in $(BUILD_PATCHES_FILES); do cp -v "$(BUILD_PATCHES_DIR_ABS)/$${patch}" "$(DEBIAN_PATCHES_DIR)/$${patch}"; done
 	@for patch in $(BUILD_PATCHES_FILES); do echo "$${patch}" >> "$(DEBIAN_PATCHES_DIR)/series"; done
 	export BUILD_DATE="$(shell date -u +'%a, %e %b %Y %H:%m:%S %z')" && \
 		export BUILD_VERSION="$(HAPROXY_VERSION)-$(HAPROXY_SHORTSHA)-1~mangadex+$(BUILD_VERSION_REPOSHA)" && \
