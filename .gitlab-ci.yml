@@ -31,6 +31,10 @@ variables: &default-variables
   KUBERNETES_MEMORY_REQUEST: 2Gi
   KUBERNETES_MEMORY_LIMIT: 2Gi
 
+.build-resources-ml: &build-resources-ml
+  KUBERNETES_MEMORY_REQUEST: 2560Mi
+  KUBERNETES_MEMORY_LIMIT: 2560Mi
+
 .haproxy_stable: &haproxy-stable
   HAPROXY_GITREPO: "https://git.haproxy.org/?p=haproxy-2.8.git"
   HAPROXY_VERSION: 2.8-stable
@@ -66,7 +70,7 @@ dataplaneapi:
   script: make -C deps/dataplaneapi
   variables:
     <<: *default-variables
-    <<: *build-resources-m
+    <<: *build-resources-ml
   artifacts:
     expire_in: 7 days
     paths: [ "deps/dataplaneapi/dataplaneapi-dist.tar.gz" ]
