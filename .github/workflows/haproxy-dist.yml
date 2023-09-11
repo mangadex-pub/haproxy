@@ -39,7 +39,7 @@ jobs:
       packages: write
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Setup OS
         uses: "./.github/actions/setup-os"
       - name: Fetch build-time dependencies
@@ -61,7 +61,7 @@ jobs:
       packages: write
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Set up Go
         uses: actions/setup-go@v4.1.0
         with:
@@ -87,7 +87,7 @@ jobs:
         dist_type: [ bin, deb ]
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Setup OS
         uses: "./.github/actions/setup-os"
       - name: Fetch build-time dependencies
@@ -150,7 +150,7 @@ jobs:
     needs: [ dataplaneapi, dist-binary, regtests ]
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Fetch build-time dependencies
         uses: "./.github/actions/fetch-deps"
         with:
