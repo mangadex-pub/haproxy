@@ -194,7 +194,7 @@ jobs:
             type=sha,event=push,enable={{ is_default_branch }},prefix=${{ inputs.HAPROXY_VERSION }}-git-,format=short
             type=raw,event=push,enable={{ is_default_branch }},value=${{ inputs.HAPROXY_VERSION }}
       - name: Build and push Docker image
-        uses: docker/build-push-action@v4
+        uses: docker/build-push-action@v5
         with:
           context: .
           push: true
