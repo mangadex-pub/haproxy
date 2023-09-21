@@ -1,4 +1,4 @@
-PCRE2_VERSION = 10.40
+PCRE2_VERSION = 10.42
 PCRE2_SOURCES = https://github.com/PCRE2Project/pcre2/releases/download/pcre2-$(PCRE2_VERSION)/pcre2-$(PCRE2_VERSION).tar.gz
 PCRE2_TARBALL = pcre2-$(PCRE2_VERSION).tar.gz
 PCRE2_BUILDIR = src
