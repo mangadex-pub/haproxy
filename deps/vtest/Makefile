@@ -39,5 +39,6 @@ clean:
 	rm -fv "$(VTEST_TARBALL)"
 	rm -rf "$(VTEST_BUILDIR)"
 	rm -rf "$(VTEST_DESTDIR)"
+	rm -rf "$(VTEST_ARCHIVE)"
 
 .PHONY: clean build
