@@ -35,7 +35,7 @@ RUN apt -q update && \
       ca-certificates \
       curl \
       libatomic1 \
-      libssl1.1 \
+      libssl3 \
       libsystemd0 \
       procps \
       socat \
