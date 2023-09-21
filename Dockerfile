@@ -1,4 +1,4 @@
-FROM docker.io/library/debian:bullseye as base
+FROM docker.io/library/debian:bookworm as base
 
 # This stage is mostly to import and unpack the dists in a docker-friendly fashion
 FROM base as dists
