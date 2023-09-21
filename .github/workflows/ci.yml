@@ -7,7 +7,7 @@ jobs:
   haproxy-dependencies:
     uses: "./.github/workflows/haproxy-deps.yml"
     with:
-      DEBIAN_CODENAME: "bullseye"
+      DEBIAN_CODENAME: "bookworm"
       CLANG_VERSION: 16
 
   dist-stable:
@@ -15,7 +15,7 @@ jobs:
     uses: "./.github/workflows/haproxy-dist.yml"
     secrets: "inherit" # for Docker image publication
     with:
-      DEBIAN_CODENAME: "bullseye"
+      DEBIAN_CODENAME: "bookworm"
       CLANG_VERSION: 16
       HAPROXY_FLAVOUR: "stable"
       # https://git.haproxy.org/?p=haproxy-2.8.git;a=commit;h=v2.8.3
@@ -29,7 +29,7 @@ jobs:
     uses: "./.github/workflows/haproxy-dist.yml"
     secrets: "inherit" # for Docker image publication
     with:
-      DEBIAN_CODENAME: "bullseye"
+      DEBIAN_CODENAME: "bookworm"
       CLANG_VERSION: 16
       HAPROXY_FLAVOUR: "dev"
       # https://git.haproxy.org/?p=haproxy.git;a=commit;h=d3db96f11a55b91cda1190b6d41deb6e737802ff

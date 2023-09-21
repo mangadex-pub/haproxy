@@ -16,7 +16,7 @@ docker run -it \
     -p "80:80" \
     -p "443:443/tcp" \
     -p "443:443/udp" \
-    registry.gitlab.com/mangadex-pub/haproxy:2.7-stable-bullseye
+    registry.gitlab.com/mangadex-pub/haproxy:2.8-stable-bookworm
 ```
 
 ## HTTP/3 and QUIC

@@ -52,7 +52,7 @@ variables: &default-variables
   HAPROXY_LIBASAN: "false"
 
 .build-job: &build-job
-  image: ghcr.io/mangadex-pub/debuilder:bullseye-clang16
+  image: ghcr.io/mangadex-pub/debuilder:bookworm-clang16
   needs: [ ]
   before_script:
     - apt -qq update
@@ -65,7 +65,7 @@ variables: &default-variables
 
 dataplaneapi:
   <<: *build-job
-  image: docker.io/library/golang:1.21-bullseye
+  image: docker.io/library/golang:1.21-bookworm
   stage: dependencies
   script: make -C deps/dataplaneapi
   variables:
@@ -227,7 +227,7 @@ vtest:
   script: |
     set -eu
 
-    export DEBIAN_CODENAME="bullseye"
+    export DEBIAN_CODENAME="bookworm"
     export JOB_TIMESTAMP="$(date -D '%Y-%m-%dT%H:%M:%S' -d "$CI_JOB_STARTED_AT" +'%Y%m%d-%H%M')"
 
     # A.B.C -> A.B, otherwise preserve original (eg 2.x-dev -> 2.x-dev)
