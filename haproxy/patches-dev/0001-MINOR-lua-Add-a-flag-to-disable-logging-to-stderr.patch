@@ -1,0 +1,157 @@
+From 54f11500ac7d15c8feda90cd78fe12a914d18b9a Mon Sep 17 00:00:00 2001
+From: Tristan <tristan@mangadex.org>
+Date: Tue, 17 Oct 2023 18:42:59 +0100
+Subject: [PATCH] MINOR: lua: Add a flag to disable logging to stderr
+
+By default, messages printed from LUA log functions are sent both to
+the configured log target and additionally to stderr (in most cases).
+This introduces tune.lua.also-log-to-stderr to be able to disable that
+second copy of the message being sent to stderr.
+
+This could be backported if wanted, since it preserves the behaviour
+that existed prior to it.
+---
+ doc/configuration.txt |  8 ++++++-
+ doc/lua.txt           |  4 ++++
+ src/hlua.c            | 49 +++++++++++++++++++++++++++++++++----------
+ 3 files changed, 49 insertions(+), 12 deletions(-)
+
+diff --git a/doc/configuration.txt b/doc/configuration.txt
+index 88a576795..c04cca198 100644
+--- a/doc/configuration.txt
++++ b/doc/configuration.txt
+@@ -1195,6 +1195,7 @@ The following keywords are supported in the "global" section :
+    - tune.lua.service-timeout
+    - tune.lua.session-timeout
+    - tune.lua.task-timeout
++   - tune.lua.also-log-to-stderr
+    - tune.max-checks-per-thread
+    - tune.maxaccept
+    - tune.maxpollevents
+@@ -3180,6 +3181,11 @@ tune.lua.task-timeout <timeout>
+   remain alive during of the lifetime of HAProxy. For example, a task used to
+   check servers.
+ 
++tune.lua.also-log-to-stderr { on | off }
++  Enables ('on') or disables ('off') logging the output of lua log functions
++  to stderr in addition to the configured log target. To preserve historical
++  behaviour, this defaults to 'on'.
++
+ tune.max-checks-per-thread <number>
+   Sets the number of active checks per thread above which a thread will
+   actively try to search a less loaded thread to run the health check, or
+@@ -21048,7 +21054,7 @@ ssl_bc_client_random : binary
+ 
+ ssl_bc_curve : string
+   Returns the name of the curve used in the key agreement when the outgoing
+-  connection was made over an SSL/TLS transport layer. This requires 
++  connection was made over an SSL/TLS transport layer. This requires
+   OpenSSL >= 3.0.0.
+ 
+ ssl_bc_err : integer
+diff --git a/doc/lua.txt b/doc/lua.txt
+index 8d5561668..5e5712938 100644
+--- a/doc/lua.txt
++++ b/doc/lua.txt
+@@ -630,6 +630,10 @@ It displays a log during the HAProxy startup:
+ 
+    [alert] 285/083533 (14465) : Hello World !
+ 
++Note: By default, logs created from a LUA script are printed to the log target
++in your configuration and additionally to stderr, unless the flag
++tune.lua.also-log-to-stderr is set to 'off'.
++
+ Default path and libraries
+ --------------------------
+ 
+diff --git a/src/hlua.c b/src/hlua.c
+index c686f222a..3f3d512c3 100644
+--- a/src/hlua.c
++++ b/src/hlua.c
+@@ -69,6 +69,11 @@
+ #include <haproxy/check.h>
+ #include <haproxy/mailers.h>
+ 
++/* Global LUA on/off flags */
++#define HLUA_TUNE_ALSO_LOG_TO_STDERR (1<<0)
++
++static int hlua_tune_flags = HLUA_TUNE_ALSO_LOG_TO_STDERR;
++
+ /* Lua uses longjmp to perform yield or throwing errors. This
+  * macro is used only for identifying the function that can
+  * not return because a longjmp is executed.
+@@ -1366,8 +1371,9 @@ const char *hlua_show_current_location(const char *pfx)
+ 	return NULL;
+ }
+ 
+-/* This function is used to send logs. It try to send on screen (stderr)
+- * and on the default syslog server.
++/* This function is used to send logs. It tries sends them to:
++ * - the default log target group, AND
++ * - stderr if not in quiet mode or explicitly disabled
+  */
+ static inline void hlua_sendlog(struct proxy *px, int level, const char *msg)
+ {
+@@ -1394,6 +1400,9 @@ static inline void hlua_sendlog(struct proxy *px, int level, const char *msg)
+ 
+ 	send_log(px, level, "%s\n", trash.area);
+ 	if (!(global.mode & MODE_QUIET) || (global.mode & (MODE_VERBOSE | MODE_STARTING))) {
++	  if (!(hlua_tune_flags & (HLUA_TUNE_ALSO_LOG_TO_STDERR)))
++	    return;
++
+ 		if (level == LOG_DEBUG && !(global.mode & MODE_DEBUG))
+ 			return;
+ 
+@@ -12433,6 +12442,23 @@ static int hlua_parse_maxmem(char **args, int section_type, struct proxy *curpx,
+ 	return 0;
+ }
+ 
++static int hlua_also_log_to_stderr(char **args, int section_type, struct proxy *curpx,
++                                   const struct proxy *defpx, const char *file, int line,
++                                   char **err)
++{
++	if (too_many_args(1, args, err, NULL))
++		return -1;
++
++	if (strcmp(args[1], "on") == 0)
++		hlua_tune_flags |= HLUA_TUNE_ALSO_LOG_TO_STDERR;
++	else if (strcmp(args[1], "off") == 0)
++		hlua_tune_flags &= ~HLUA_TUNE_ALSO_LOG_TO_STDERR;
++	else {
++		memprintf(err, "'%s' expects either 'on' or 'off' but got '%s'.", args[0], args[1]);
++		return -1;
++	}
++	return 0;
++}
+ 
+ /* This function is called by the main configuration key "lua-load". It loads and
+  * execute an lua file during the parsing of the HAProxy configuration file. It is
+@@ -12673,15 +12699,16 @@ static int hlua_config_prepend_path(char **args, int section_type, struct proxy
+ 
+ /* configuration keywords declaration */
+ static struct cfg_kw_list cfg_kws = {{ },{
+-	{ CFG_GLOBAL, "lua-prepend-path",         hlua_config_prepend_path },
+-	{ CFG_GLOBAL, "lua-load",                 hlua_load },
+-	{ CFG_GLOBAL, "lua-load-per-thread",      hlua_load_per_thread },
+-	{ CFG_GLOBAL, "tune.lua.session-timeout", hlua_session_timeout },
+-	{ CFG_GLOBAL, "tune.lua.task-timeout",    hlua_task_timeout },
+-	{ CFG_GLOBAL, "tune.lua.service-timeout", hlua_applet_timeout },
+-	{ CFG_GLOBAL, "tune.lua.burst-timeout",   hlua_burst_timeout },
+-	{ CFG_GLOBAL, "tune.lua.forced-yield",    hlua_forced_yield },
+-	{ CFG_GLOBAL, "tune.lua.maxmem",          hlua_parse_maxmem },
++	{ CFG_GLOBAL, "lua-prepend-path",            hlua_config_prepend_path },
++	{ CFG_GLOBAL, "lua-load",                    hlua_load },
++	{ CFG_GLOBAL, "lua-load-per-thread",         hlua_load_per_thread },
++	{ CFG_GLOBAL, "tune.lua.session-timeout",    hlua_session_timeout },
++	{ CFG_GLOBAL, "tune.lua.task-timeout",       hlua_task_timeout },
++	{ CFG_GLOBAL, "tune.lua.service-timeout",    hlua_applet_timeout },
++	{ CFG_GLOBAL, "tune.lua.burst-timeout",      hlua_burst_timeout },
++	{ CFG_GLOBAL, "tune.lua.forced-yield",       hlua_forced_yield },
++	{ CFG_GLOBAL, "tune.lua.maxmem",             hlua_parse_maxmem },
++	{ CFG_GLOBAL, "tune.lua.also-log-to-stderr", hlua_also_log_to_stderr },
+ 	{ 0, NULL, NULL },
+ }};
+ 
+-- 
+2.41.0
+
