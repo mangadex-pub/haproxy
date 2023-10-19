@@ -1,4 +1,4 @@
-From a229e2e80018bf2ab70846dae07e14e8b5259cf9 Mon Sep 17 00:00:00 2001
+From 2c916e36954a0aa55b53d4e3d5682fa2eac9f0c3 Mon Sep 17 00:00:00 2001
 From: Tristan <tristan@mangadex.org>
 Date: Thu, 19 Oct 2023 03:39:19 +0100
 Subject: [PATCH] MINOR: lua: Add flags to configure logging behaviour
@@ -21,7 +21,7 @@ This can be backported to 2.8 as it doesn't change previous behaviour
  3 files changed, 92 insertions(+), 3 deletions(-)
 
 diff --git a/doc/configuration.txt b/doc/configuration.txt
-index 88a576795..1eed90eec 100644
+index 88a576795..d620ea554 100644
 --- a/doc/configuration.txt
 +++ b/doc/configuration.txt
 @@ -1195,6 +1195,8 @@ The following keywords are supported in the "global" section :
@@ -39,7 +39,7 @@ index 88a576795..1eed90eec 100644
  
 +tune.lua.log { on | off }
 +  Enables ('on') or disables ('off') logging the output of LUA scripts via the
-+  logger configured for the current proxy, if any.
++  loggers applicable to the current proxy, if any.
 +  
 +  Defaults to 'on'.
 +
@@ -48,7 +48,7 @@ index 88a576795..1eed90eec 100644
 +  stderr. When set to 'auto', logging via stderr is conditionally enabled if:
 +  
 +    - tune.lua.log is set to 'off', or
-+    - no logger is configured at all
++    - no logger is configured for the current proxy
 +  
 +  Please note that, when enabled, this logging is in addition to the logging
 +  configured via tune.lua.log.
@@ -74,7 +74,7 @@ index 8d5561668..5516ac36a 100644
  --------------------------
  
 diff --git a/src/hlua.c b/src/hlua.c
-index c686f222a..04978d681 100644
+index c686f222a..c6751980c 100644
 --- a/src/hlua.c
 +++ b/src/hlua.c
 @@ -69,6 +69,20 @@
@@ -124,7 +124,7 @@ index c686f222a..04978d681 100644
 +
 +	  	if (hlua_tune_flags & HLUA_TUNE_LOG_STDERR_AUTO) {
 +			/* if using standard loggers and at least one logger is configured, then AUTO => OFF */
-+      		if ((hlua_tune_flags & (HLUA_TUNE_LOG)) && (!LIST_ISEMPTY(&global.loggers) || !LIST_ISEMPTY(&px->loggers)))
++      		if ((hlua_tune_flags & (HLUA_TUNE_LOG)) && (!LIST_ISEMPTY(&px->loggers)))
 +	      		return;
 +	  	}
 +
