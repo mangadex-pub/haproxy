@@ -1,4 +1,4 @@
-From 2c916e36954a0aa55b53d4e3d5682fa2eac9f0c3 Mon Sep 17 00:00:00 2001
+From edf197f105f98a8df65a2d5119d058c468680cf6 Mon Sep 17 00:00:00 2001
 From: Tristan <tristan@mangadex.org>
 Date: Thu, 19 Oct 2023 03:39:19 +0100
 Subject: [PATCH] MINOR: lua: Add flags to configure logging behaviour
@@ -74,7 +74,7 @@ index 8d5561668..5516ac36a 100644
  --------------------------
  
 diff --git a/src/hlua.c b/src/hlua.c
-index c686f222a..c6751980c 100644
+index c686f222a..b9d9bb0f1 100644
 --- a/src/hlua.c
 +++ b/src/hlua.c
 @@ -69,6 +69,20 @@
@@ -115,18 +115,18 @@ index c686f222a..c6751980c 100644
  	*p = '\0';
  
 -	send_log(px, level, "%s\n", trash.area);
-+  	if (hlua_tune_flags & (HLUA_TUNE_LOG))
-+	  	send_log(px, level, "%s\n", trash.area);
++	if (hlua_tune_flags & (HLUA_TUNE_LOG))
++		send_log(px, level, "%s\n", trash.area);
 +
  	if (!(global.mode & MODE_QUIET) || (global.mode & (MODE_VERBOSE | MODE_STARTING))) {
-+	  	if (hlua_tune_flags & HLUA_TUNE_LOG_STDERR_OFF)
-+	    	return;
++		if (hlua_tune_flags & HLUA_TUNE_LOG_STDERR_OFF)
++			return;
 +
-+	  	if (hlua_tune_flags & HLUA_TUNE_LOG_STDERR_AUTO) {
++		if (hlua_tune_flags & HLUA_TUNE_LOG_STDERR_AUTO) {
 +			/* if using standard loggers and at least one logger is configured, then AUTO => OFF */
-+      		if ((hlua_tune_flags & (HLUA_TUNE_LOG)) && (!LIST_ISEMPTY(&px->loggers)))
-+	      		return;
-+	  	}
++			if ((hlua_tune_flags & (HLUA_TUNE_LOG)) && (!LIST_ISEMPTY(&px->loggers)))
++				return;
++		}
 +
  		if (level == LOG_DEBUG && !(global.mode & MODE_DEBUG))
  			return;
@@ -136,8 +136,8 @@ index c686f222a..c6751980c 100644
  }
  
 +static int hlua_cfg_parse_log(char **args, int section_type, struct proxy *curpx,
-+                          const struct proxy *defpx, const char *file, int line,
-+                          char **err)
++                              const struct proxy *defpx, const char *file, int line,
++                              char **err)
 +{
 +	if (too_many_args(1, args, err, NULL))
 +		return -1;
@@ -154,16 +154,16 @@ index c686f222a..c6751980c 100644
 +}
 +
 +static int hlua_cfg_parse_log_stderr(char **args, int section_type, struct proxy *curpx,
-+                                 const struct proxy *defpx, const char *file, int line,
-+                                 char **err)
++                                     const struct proxy *defpx, const char *file, int line,
++                                    char **err)
 +{
 +	if (too_many_args(1, args, err, NULL))
 +		return -1;
 +
 +	if (strcmp(args[1], "on") == 0)
-+	  hlua_tune_flags = (hlua_tune_flags & ~HLUA_TUNE_LOG_STDERR_MASK) | HLUA_TUNE_LOG_STDERR_ON;
++		hlua_tune_flags = (hlua_tune_flags & ~HLUA_TUNE_LOG_STDERR_MASK) | HLUA_TUNE_LOG_STDERR_ON;
 +	else if (strcmp(args[1], "auto") == 0)
-+	  hlua_tune_flags = (hlua_tune_flags & ~HLUA_TUNE_LOG_STDERR_MASK) | HLUA_TUNE_LOG_STDERR_AUTO;
++		hlua_tune_flags = (hlua_tune_flags & ~HLUA_TUNE_LOG_STDERR_MASK) | HLUA_TUNE_LOG_STDERR_AUTO;
 +	else if (strcmp(args[1], "off") == 0)
 +		hlua_tune_flags = (hlua_tune_flags & ~HLUA_TUNE_LOG_STDERR_MASK) | HLUA_TUNE_LOG_STDERR_OFF;
 +	else {

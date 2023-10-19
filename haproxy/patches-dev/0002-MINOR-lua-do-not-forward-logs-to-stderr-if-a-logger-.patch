@@ -1,10 +1,10 @@
-From e4de7594ba4e28a22032b2944b06b1906d9eed3b Mon Sep 17 00:00:00 2001
+From 839d6ba7ea6838f510cfe806cec1f74b07059aef Mon Sep 17 00:00:00 2001
 From: Tristan <tristan@mangadex.org>
 Date: Thu, 19 Oct 2023 03:43:01 +0100
 Subject: [PATCH] MINOR: lua: do not forward logs to stderr if a logger is
  configured
 
-After making it configurable in commit 2c916e3695 ("MINOR: lua: Add flags
+After making it configurable in commit edf197f105 ("MINOR: lua: Add flags
 to configure logging behaviour"), this patch changes the default value
 of tune.lua.log-stderr from 'on' (unconditionally forward LUA logs to
 stderr) to 'auto' (only forward LUA logs to stderr if logging via a
@@ -46,7 +46,7 @@ index 5516ac36a..08baf6035 100644
  Default path and libraries
  --------------------------
 diff --git a/src/hlua.c b/src/hlua.c
-index c6751980c..e3de8059e 100644
+index b9d9bb0f1..8a14ed501 100644
 --- a/src/hlua.c
 +++ b/src/hlua.c
 @@ -78,7 +78,7 @@
