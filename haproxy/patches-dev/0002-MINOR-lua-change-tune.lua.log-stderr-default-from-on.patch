@@ -1,0 +1,63 @@
+From ba137e51049fb4049240712a296baaced0be198f Mon Sep 17 00:00:00 2001
+From: Tristan <tristan@mangadex.org>
+Date: Fri, 20 Oct 2023 16:49:46 +0100
+Subject: [PATCH] MINOR: lua: change tune.lua.log-stderr default from 'on' to
+ 'auto'
+
+After making it configurable in commit 45e6f27140 ("MINOR: lua: Add flags
+to configure logging behaviour"), this patch changes the default value
+of tune.lua.log-stderr from 'on' (unconditionally forward LUA logs to
+stderr) to 'auto' (only forward LUA logs to stderr if logging via a
+standard logger is disabled, or none is configured for the current context)
+
+Since this is a change in behaviour, it shouldn't be backported
+---
+ doc/configuration.txt | 2 +-
+ doc/lua.txt           | 4 ++--
+ src/hlua.c            | 2 +-
+ 3 files changed, 4 insertions(+), 4 deletions(-)
+
+diff --git a/doc/configuration.txt b/doc/configuration.txt
+index 7c4a585ec..ad4bac7a8 100644
+--- a/doc/configuration.txt
++++ b/doc/configuration.txt
+@@ -3212,7 +3212,7 @@ tune.lua.log-stderr { on | auto | off }
+   Please note that, when enabled, this logging is in addition to the logging
+   configured via tune.lua.log.
+ 
+-  Defaults to 'on'.
++  Defaults to 'auto'.
+ 
+ tune.max-checks-per-thread <number>
+   Sets the number of active checks per thread above which a thread will
+diff --git a/doc/lua.txt b/doc/lua.txt
+index 8d244ab3a..465400a16 100644
+--- a/doc/lua.txt
++++ b/doc/lua.txt
+@@ -631,8 +631,8 @@ It displays a log during the HAProxy startup:
+    [alert] 285/083533 (14465) : Hello World !
+ 
+ Note: By default, logs originating from a LUA script are sent to the loggers
+-applicable to the current context, if any, and additionally to stderr. See
+-tune.lua.log and tune.lua.log-stderr for more information.
++applicable to the current context, if any. If none are configured for use,
++logs are instead sent to stderr.
+ 
+ Default path and libraries
+ --------------------------
+diff --git a/src/hlua.c b/src/hlua.c
+index 70a25e762..cca96ec0b 100644
+--- a/src/hlua.c
++++ b/src/hlua.c
+@@ -78,7 +78,7 @@
+ #define HLUA_TUNE_LOG_STDERR_MASK 0x00000070
+ 
+ /* default flag values */
+-#define HLUA_TUNE_FLAGS_DFLT	  0x00000011
++#define HLUA_TUNE_FLAGS_DFLT	  0x00000021
+ 
+ /* flags made of HLUA_TUNE_* */
+ static uint hlua_tune_flags = HLUA_TUNE_FLAGS_DFLT;
+-- 
+2.41.0
+
