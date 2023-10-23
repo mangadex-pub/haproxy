@@ -1,0 +1,98 @@
+From b036bc3047efbfc2d526a153f528520ddc7cb7cd Mon Sep 17 00:00:00 2001
+From: Tristan <tristan@mangadex.org>
+Date: Mon, 23 Oct 2023 13:35:40 +0100
+Subject: [PATCH] MINOR: lua: change tune.lua.log.stderr default from 'on' to
+ 'auto'
+
+After making it configurable in commit 7ef333b880 ("MINOR: lua: Add flags
+to configure logging behaviour"), this patch changes the default value
+of tune.lua.log.stderr from 'on' (unconditionally forward LUA logs to
+stderr) to 'auto' (only forward LUA logs to stderr if logging via a
+standard logger is disabled, or none is configured for the current context)
+
+Since this is a change in behaviour, it shouldn't be backported
+---
+ doc/configuration.txt | 2 +-
+ doc/lua-api/index.rst | 4 ++--
+ doc/lua.txt           | 5 +++--
+ src/hlua.c            | 6 +++---
+ 4 files changed, 9 insertions(+), 8 deletions(-)
+
+diff --git a/doc/configuration.txt b/doc/configuration.txt
+index 433f15baf..4014fb8f6 100644
+--- a/doc/configuration.txt
++++ b/doc/configuration.txt
+@@ -3212,7 +3212,7 @@ tune.lua.log.stderr { on | auto | off }
+   Please note that, when enabled, this logging is in addition to the logging
+   configured via tune.lua.log.loggers.
+ 
+-  Defaults to 'on'.
++  Defaults to 'auto'.
+ 
+ tune.max-checks-per-thread <number>
+   Sets the number of active checks per thread above which a thread will
+diff --git a/doc/lua-api/index.rst b/doc/lua-api/index.rst
+index 90802cfd4..a71eb6fe4 100644
+--- a/doc/lua-api/index.rst
++++ b/doc/lua-api/index.rst
+@@ -267,7 +267,7 @@ Core class
+   **context**: body, init, task, action, sample-fetch, converter
+ 
+   This function sends a log. The log is sent, according with the HAProxy
+-  configuration file, to the loggers relevant to the current context and
++  configuration file, to the loggers relevant to the current context and/or
+   to stderr if it is allowed. 
+   
+   The exact behaviour depends on tune.lua.log.loggers and tune.lua.log.stderr.
+@@ -2650,7 +2650,7 @@ TXN class
+ .. js:function:: TXN.log(TXN, loglevel, msg)
+ 
+   This function sends a log. The log is sent, according with the HAProxy
+-  configuration file, to the loggers relevant to the current context and
++  configuration file, to the loggers relevant to the current context and/or
+   to stderr if it is allowed. 
+   
+   The exact behaviour depends on tune.lua.log.loggers and tune.lua.log.stderr.
+diff --git a/doc/lua.txt b/doc/lua.txt
+index 25db8a304..edc400558 100644
+--- a/doc/lua.txt
++++ b/doc/lua.txt
+@@ -631,8 +631,9 @@ It displays a log during the HAProxy startup:
+    [alert] 285/083533 (14465) : Hello World !
+ 
+ Note: By default, logs originating from a LUA script are sent to the loggers
+-applicable to the current context, if any, and additionally to stderr. See
+-tune.lua.log.loggers and tune.lua.log.stderr for more information.
++applicable to the current context, if any. If none are configured for use,
++logs are instead sent to stderr. See tune.lua.log.loggers and tune.lua.log.stderr
++for more information.
+ 
+ Default path and libraries
+ --------------------------
+diff --git a/src/hlua.c b/src/hlua.c
+index 7c83237ff..7e0580d35 100644
+--- a/src/hlua.c
++++ b/src/hlua.c
+@@ -81,7 +81,7 @@ enum hlua_log_opt {
+ 	HLUA_LOG_STDERR_MASK     = 0x00000030,
+ };
+ /* default log options, made of flags in hlua_log_opt */
+-static uint hlua_log_opts = HLUA_LOG_LOGGERS_ON | HLUA_LOG_STDERR_ON;
++static uint hlua_log_opts = HLUA_LOG_LOGGERS_ON | HLUA_LOG_STDERR_AUTO;
+ 
+ /* Lua uses longjmp to perform yield or throwing errors. This
+  * macro is used only for identifying the function that can
+@@ -1381,8 +1381,8 @@ const char *hlua_show_current_location(const char *pfx)
+ }
+ 
+ /* This function is used to send logs. It tries to send them to:
+- * - the log target applicable in the current context, AND
+- * - stderr if not in quiet mode or explicitly disabled
++ * - the log target applicable in the current context, OR
++ * - stderr when no logger is in use for the current context
+  */
+ static inline void hlua_sendlog(struct proxy *px, int level, const char *msg)
+ {
+-- 
+2.41.0
+
