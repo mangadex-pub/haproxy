@@ -18,4 +18,4 @@ index 0288568..20824df 100644
 +BindReadOnlyPaths=/dev/log:/var/lib/haproxy/dev/log
  Environment="CONFIG=/etc/haproxy/haproxy.cfg" "PIDFILE=/run/haproxy.pid" "EXTRAOPTS=-S /run/haproxy-master.sock"
  ExecStart=@SBINDIR@/haproxy -Ws -f $CONFIG -p $PIDFILE $EXTRAOPTS
- ExecReload=@SBINDIR@/haproxy -Ws -f $CONFIG -c -q $EXTRAOPTS
+ ExecReload=@SBINDIR@/haproxy -Ws -f $CONFIG -c $EXTRAOPTS
