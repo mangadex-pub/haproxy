@@ -46,8 +46,8 @@ variables: &default-variables
 .haproxy_dev: &haproxy-dev
   HAPROXY_GITREPO: "https://git.haproxy.org/?p=haproxy.git"
   HAPROXY_VERSION: 2.9-dev
-  # https://git.haproxy.org/?p=haproxy.git;a=commit;h=c72ab1cc6d8205152fb5accd929d4bd871871106
-  HAPROXY_GITREF: "c72ab1cc6d8205152fb5accd929d4bd871871106"
+  # https://git.haproxy.org/?p=haproxy.git;a=commit;h=7d7df1cf0a9fad64098654e34984838525fadeec
+  HAPROXY_GITREF: "7d7df1cf0a9fad64098654e34984838525fadeec"
   BUILD_PATCHES_DIR: "patches-dev"
   HAPROXY_LIBASAN: "false"
 
