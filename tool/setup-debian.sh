@@ -18,6 +18,7 @@ apt -qq -y --no-install-recommends install \
       devscripts \
       git \
       gnupg2 \
+      libjemalloc-dev \
       libpcre2-dev \
       libreadline-dev \
       libsystemd-dev \
