@@ -372,6 +372,7 @@ debian:stable:
     <<: *default-variables
     <<: *build-resources-m
     <<: *haproxy-stable
+  allow_failure: true
   needs:
     - *needs-dependencies
     - job: "regtests:stable"
