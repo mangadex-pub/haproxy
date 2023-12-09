@@ -18,11 +18,11 @@ jobs:
       DEBIAN_CODENAME: "bookworm"
       CLANG_VERSION: 16
       HAPROXY_FLAVOUR: "stable"
-      # https://git.haproxy.org/?p=haproxy-2.8.git;a=commit;h=v2.8.5
-      HAPROXY_GITREPO: "https://git.haproxy.org/?p=haproxy-2.8.git"
-      HAPROXY_VERSION: "2.8-stable"
-      HAPROXY_GITREF: "v2.8.5"
-      HAPROXY_DATAPLANEAPI_VERSION: "v2.8"
+      # https://git.haproxy.org/?p=haproxy-2.9.git;a=commit;h=v2.9.0
+      HAPROXY_GITREPO: "https://git.haproxy.org/?p=haproxy-2.9.git"
+      HAPROXY_VERSION: "2.9-stable"
+      HAPROXY_GITREF: "v2.9.0"
+      HAPROXY_DATAPLANEAPI_VERSION: "v2.9.0"
 
   dist-dev:
     needs: [ "haproxy-dependencies" ]

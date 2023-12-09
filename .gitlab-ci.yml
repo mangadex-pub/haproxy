@@ -36,16 +36,16 @@ variables: &default-variables
   KUBERNETES_MEMORY_LIMIT: 2560Mi
 
 .haproxy_stable: &haproxy-stable
-  HAPROXY_GITREPO: "https://git.haproxy.org/?p=haproxy-2.8.git"
-  HAPROXY_VERSION: 2.8-stable
-  # https://git.haproxy.org/?p=haproxy-2.8.git;a=commit;h=v2.8.5
-  HAPROXY_GITREF: "v2.8.5"
+  HAPROXY_GITREPO: "https://git.haproxy.org/?p=haproxy-2.9.git"
+  HAPROXY_VERSION: 2.9-stable
+  # https://git.haproxy.org/?p=haproxy-2.9.git;a=commit;h=v2.9.0
+  HAPROXY_GITREF: "v2.9.0"
   BUILD_PATCHES_DIR: "patches-stable"
   HAPROXY_LIBASAN: "false"
 
 .haproxy_dev: &haproxy-dev
   HAPROXY_GITREPO: "https://git.haproxy.org/?p=haproxy.git"
-  HAPROXY_VERSION: 2.9-dev
+  HAPROXY_VERSION: 3.0-dev
   # https://git.haproxy.org/?p=haproxy.git;a=commit;h=63282f3bfbaee50a0716823bdc8c4251a47e6e39
   HAPROXY_GITREF: "63282f3bfbaee50a0716823bdc8c4251a47e6e39"
   BUILD_PATCHES_DIR: "patches-dev"
