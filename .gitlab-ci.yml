@@ -38,8 +38,8 @@ variables: &default-variables
 .haproxy_stable: &haproxy-stable
   HAPROXY_GITREPO: "https://git.haproxy.org/?p=haproxy-2.8.git"
   HAPROXY_VERSION: 2.8-stable
-  # https://git.haproxy.org/?p=haproxy-2.8.git;a=commit;h=v2.8.3
-  HAPROXY_GITREF: "v2.8.3"
+  # https://git.haproxy.org/?p=haproxy-2.8.git;a=commit;h=v2.8.5
+  HAPROXY_GITREF: "v2.8.5"
   BUILD_PATCHES_DIR: "patches-stable"
   HAPROXY_LIBASAN: "false"
 
