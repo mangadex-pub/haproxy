@@ -52,7 +52,7 @@ variables: &default-variables
   HAPROXY_LIBASAN: "false"
 
 .build-job: &build-job
-  image: ghcr.io/mangadex-pub/debuilder:bookworm-clang16
+  image: ghcr.io/mangadex-pub/debuilder:bookworm-clang17
   needs: [ ]
   before_script:
     - apt -qq update
