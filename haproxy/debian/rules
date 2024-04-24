@@ -7,7 +7,7 @@ DEP_DIST_ROOT_QUICTLS = $(shell realpath ../../deps/quictls/dist)
 
 BUILD_VERSION_REPOSHA = $(shell git rev-parse --short HEAD)
 
-DEBUG_CFLAGS = -ggdb3 -gdwarf-4
+DEBUG_CFLAGS = -g -ggdb3 -gdwarf-4
 
 MAKEARGS = DEBUG="-DDEBUG_MEMORY_POOLS -DDEBUG_STRICT" \
            DEBUG_CFLAGS="$(DEBUG_CFLAGS)" \
