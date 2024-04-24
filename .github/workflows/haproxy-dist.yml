@@ -63,14 +63,14 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
       - name: Set up Go
-        uses: actions/setup-go@v4.1.0
+        uses: actions/setup-go@v5
         with:
           go-version: '1.22'
       - name: Build Dataplane API
         run: |
           make -C deps/dataplaneapi DATAPLANEAPI_VERSION=${{ inputs.HAPROXY_DATAPLANEAPI_VERSION }}
       - name: Archive binary tarball
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: dataplaneapi-${{ inputs.HAPROXY_FLAVOUR }}.tar.gz
           path: deps/dataplaneapi/dataplaneapi-dist.tar.gz
@@ -95,7 +95,7 @@ jobs:
 
       # Standalone as it's version-dependent
       - name: Dependencies - Fetch - Data Plane API
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: dataplaneapi-${{ inputs.HAPROXY_FLAVOUR }}.tar.gz
           path: deps/dataplaneapi
@@ -119,7 +119,7 @@ jobs:
 
       - name: Archive binary tarball
         if: ${{ matrix.dist_type == 'bin' }}
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: haproxy-${{ inputs.HAPROXY_FLAVOUR }}.tar.gz
           path: haproxy/haproxy-dist.tar.gz
@@ -131,13 +131,13 @@ jobs:
           echo "DEB_DBG=$(ls -1 haproxy/haproxy_*.deb | cut -d'/' -f2)" | tee -a $GITHUB_ENV
       - name: Archive Debian packages - binary
         if: ${{ matrix.dist_type == 'deb' }}
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: ${{ env.DEB_BIN }}
           path: haproxy/${{ env.DEB_BIN }}
       - name: Archive Debian packages - debug symbols
         if: ${{ matrix.dist_type == 'deb' }}
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: ${{ env.DEB_DBG }}
           path: haproxy/${{ env.DEB_DBG }}
@@ -158,7 +158,7 @@ jobs:
 
       # Standalone as it's version-dependent
       - name: Dependencies - Fetch - Data Plane API
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: dataplaneapi-${{ inputs.HAPROXY_FLAVOUR }}.tar.gz
           path: deps/dataplaneapi
@@ -169,7 +169,7 @@ jobs:
           tar -C deps/dataplaneapi/dist -xf deps/dataplaneapi/dataplaneapi-dist.tar.gz
 
       - name: Fetch HAProxy dist
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: haproxy-${{ inputs.HAPROXY_FLAVOUR }}.tar.gz
           path: haproxy

@@ -32,7 +32,7 @@ jobs:
       - name: Build ${{ matrix.dependency_name }}
         run: make -C deps/${{ matrix.dependency_name }}
       - name: Archive ${{ matrix.dependency_name }} distribution
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.dependency_name }}-dist.tar.gz
           path: deps/${{ matrix.dependency_name }}/${{ matrix.dependency_name }}-dist.tar.gz
