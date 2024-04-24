@@ -9,6 +9,8 @@ QUICTLS_BUILDIR = src
 QUICTLS_DESTDIR = dist
 QUICTLS_DESTDIR_ABS = $(shell realpath $(QUICTLS_DESTDIR))
 QUICTLS_ARCHIVE = quictls-dist.tar.gz
+QUICTLS_PREFIX_DIR = /opt
+QUICTLS_PREFIX = $(QUICTLS_PREFIX_DIR)/quictls
 
 all: build $(QUICTLS_DESTDIR) $(QUICTLS_ARCHIVE)
 
@@ -21,7 +23,7 @@ $(QUICTLS_BUILDIR): $(QUICTLS_TARBALL)
 
 build: $(QUICTLS_BUILDIR)
 	cd "$(QUICTLS_BUILDIR)" &&  sed -i 's/^# define OPENSSL_VERSION_TEXT.*$\/# define OPENSSL_VERSION_TEXT "OpenSSL $(OPENSSL_VERSION)+$(QUICTLS_BUILD_VERSION) $(shell date -u +'%e %b %Y')"/g' "include/openssl/opensslv.h"
-	cd "$(QUICTLS_BUILDIR)" && CC=cc ./config --prefix="/opt/quictls" --openssldir="/opt/quictls" --libdir="lib" -DPURIFY no-shared
+	cd "$(QUICTLS_BUILDIR)" && CC=cc ./config --prefix="$(QUICTLS_PREFIX)" --openssldir="$(QUICTLS_PREFIX)" --libdir="lib" -DPURIFY no-shared
 	$(MAKE) -C "$(QUICTLS_BUILDIR)" -j "$(shell nproc)" VERSION=$(OPENSSL_VERSION)+quic-mangadex-$(BUILD_VERSION_REPOSHA)
 	"$(QUICTLS_BUILDIR)/apps/openssl" version
 	$(MAKE) buildinfo_$(shell uname -s)
@@ -39,10 +41,10 @@ buildinfo_Darwin:
 $(QUICTLS_DESTDIR): build
 	@if ! [ -d "$(QUICTLS_DESTDIR)" ]; then mkdir -v "$(QUICTLS_DESTDIR)"; fi
 	$(MAKE) -C "$(QUICTLS_BUILDIR)" -j "$(shell nproc)" DESTDIR="$(QUICTLS_DESTDIR_ABS)" install_sw
-	$(QUICTLS_DESTDIR_ABS)/opt/quictls/bin/openssl version
+	$(QUICTLS_DESTDIR_ABS)/$(QUICTLS_PREFIX)/bin/openssl version
 
 $(QUICTLS_ARCHIVE): $(QUICTLS_DESTDIR)
-	tar -C "$(QUICTLS_DESTDIR)" -cjf "$(QUICTLS_ARCHIVE)" "opt"
+	tar -C "$(QUICTLS_DESTDIR)" -cjf "$(QUICTLS_ARCHIVE)" "$(shell ls -1 $(QUICTLS_DESTDIR) | head -n1)"
 
 clean:
 	rm -fv "$(QUICTLS_TARBALL)"
