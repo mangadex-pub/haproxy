@@ -65,7 +65,7 @@ variables: &default-variables
 
 dataplaneapi:
   <<: *build-job
-  image: docker.io/library/golang:1.21-bookworm
+  image: docker.io/library/golang:1.22-bookworm
   stage: dependencies
   script: make -C deps/dataplaneapi
   variables:

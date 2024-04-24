@@ -65,7 +65,7 @@ jobs:
       - name: Set up Go
         uses: actions/setup-go@v4.1.0
         with:
-          go-version: '1.21'
+          go-version: '1.22'
       - name: Build Dataplane API
         run: |
           make -C deps/dataplaneapi DATAPLANEAPI_VERSION=${{ inputs.HAPROXY_DATAPLANEAPI_VERSION }}
