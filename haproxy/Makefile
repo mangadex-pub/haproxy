@@ -31,6 +31,7 @@ MAKEARGS = DEBUG="-DDEBUG_MEMORY_POOLS -DDEBUG_STRICT" \
            DEBUG_CFLAGS="$(DEBUG_CFLAGS)"\
            DEFINE="-DMAX_SESS_STKCTR=5" \
            IGNOREGIT=true \
+           ARCH_FLAGS="$(DEBUG_CFLAGS)" \
            ADDLIB="-Wl,-rpath,/opt/quictls/lib -latomic -ljemalloc" \
            TARGET="linux-glibc" \
            EXTRAVERSION="+mangadex-$(BUILD_VERSION_REPOSHA)" \
