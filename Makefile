@@ -15,7 +15,7 @@ deps/quictls:
 	$(MAKE) -C "deps/quictls"
 
 deps/vtest:
-	cd "deps/vtest" && $(MAKE)
+	$(MAKE) -C "deps/vtest"
 
 haproxy:
 	$(MAKE) -C "haproxy"

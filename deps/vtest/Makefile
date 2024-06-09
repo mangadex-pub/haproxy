@@ -1,18 +1,18 @@
-VTEST_VERSION = master
-VTEST_SOURCES = https://codeload.github.com/vtest/vtest/tar.gz/master
-VTEST_TARBALL = VTEST-$(VTEST_VERSION).tar.gz
+VTEST_GITREF = 35b5cae9d8cdd64be07a737449aecde839741c1e
+VTEST_SOURCES = https://github.com/vtest/VTest/archive/$(VTEST_GITREF).zip
+VTEST_ZIPBALL = VTest-$(VTEST_GITREF).zip
 VTEST_BUILDIR = src
 VTEST_DESTDIR = dist
 VTEST_ARCHIVE = vtest-dist.tar.gz
 
 all: build $(VTEST_DESTDIR) $(VTEST_ARCHIVE)
 
-$(VTEST_TARBALL):
-	curl -sfS -o "$(VTEST_TARBALL)" "$(VTEST_SOURCES)"
+$(VTEST_ZIPBALL):
+	curl -sfSL -o "$(VTEST_ZIPBALL)" "$(VTEST_SOURCES)"
 
-$(VTEST_BUILDIR): $(VTEST_TARBALL)
-	@if ! [ -d "$(VTEST_BUILDIR)" ]; then mkdir -v "$(VTEST_BUILDIR)"; fi
-	tar -C $(VTEST_BUILDIR) --strip-components=1 -xf "$(VTEST_TARBALL)"
+$(VTEST_BUILDIR): $(VTEST_ZIPBALL)
+	unzip "$(VTEST_ZIPBALL)" -d .
+	mv -v "VTest-$(VTEST_GITREF)" "$(VTEST_BUILDIR)"
 
 build: $(VTEST_BUILDIR)
 	$(MAKE) build_$(shell uname -s)
@@ -36,7 +36,7 @@ $(VTEST_ARCHIVE): $(VTEST_DESTDIR)
 	tar -C "$(VTEST_DESTDIR)" -cjf "$(VTEST_ARCHIVE)" "."
 
 clean:
-	rm -fv "$(VTEST_TARBALL)"
+	rm -fv "$(VTEST_ZIPBALL)"
 	rm -rf "$(VTEST_BUILDIR)"
 	rm -rf "$(VTEST_DESTDIR)"
 	rm -rf "$(VTEST_ARCHIVE)"
