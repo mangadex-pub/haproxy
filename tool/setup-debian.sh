@@ -24,4 +24,5 @@ apt -qq -y --no-install-recommends install \
       libsystemd-dev \
       pkg-config \
       tar \
+      zip unzip \
       zlib1g-dev
