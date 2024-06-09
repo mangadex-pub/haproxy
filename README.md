@@ -16,7 +16,7 @@ docker run -it \
     -p "80:80" \
     -p "443:443/tcp" \
     -p "443:443/udp" \
-    registry.gitlab.com/mangadex-pub/haproxy:2.9-stable
+    registry.gitlab.com/mangadex-pub/haproxy:3.0-stable
 ```
 
 ## HTTP/3 and QUIC
@@ -27,10 +27,7 @@ mapping, otherwise they assume only-TCP. See the explicit port-mapping above.
 Here's a sample configuration (requires you to figure out the certificate) to
 test HTTP/3.0 support. The first connection should be over HTTP/1.1 or HTTP/2,
 and
-after a few refreshes it should be over HTTP/3.
-
-See [Announcing HAProxy 2.6](https://www.haproxy.com/blog/announcing-haproxy-2-6/)
-for more info.
+after a refresh it should be over HTTP/3.
 
 ```haproxy
 ...
