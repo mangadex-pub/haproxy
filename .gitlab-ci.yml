@@ -67,7 +67,7 @@ dataplaneapi:
   <<: *build-job
   image: docker.io/library/golang:1.22-bookworm
   stage: dependencies
-  script: make -C deps/dataplaneapi
+  script: make deps/dataplaneapi
   variables:
     <<: *default-variables
     <<: *build-resources-ml
@@ -78,7 +78,7 @@ dataplaneapi:
 lua:
   <<: *build-job
   stage: dependencies
-  script: make -C deps/lua
+  script: make deps/lua
   variables:
     <<: *default-variables
     <<: *build-resources-xs
@@ -89,7 +89,7 @@ lua:
 pcre2:
   <<: *build-job
   stage: dependencies
-  script: make -C deps/pcre2
+  script: make deps/pcre2
   variables:
     <<: *default-variables
     <<: *build-resources-xs
@@ -100,7 +100,7 @@ pcre2:
 quictls:
   <<: *build-job
   stage: dependencies
-  script: make -C deps/quictls
+  script: make deps/quictls
   variables:
     <<: *default-variables
     <<: *build-resources-m
@@ -111,7 +111,7 @@ quictls:
 vtest:
   <<: *build-job
   stage: dependencies
-  script: make -C deps/vtest
+  script: make deps/vtest
   variables:
     <<: *default-variables
     <<: *build-resources-xs

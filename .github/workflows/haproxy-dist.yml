@@ -68,7 +68,7 @@ jobs:
           go-version: '1.22'
       - name: Build Dataplane API
         run: |
-          make -C deps/dataplaneapi DATAPLANEAPI_VERSION=${{ inputs.HAPROXY_DATAPLANEAPI_VERSION }}
+          make deps/dataplaneapi DATAPLANEAPI_VERSION=${{ inputs.HAPROXY_DATAPLANEAPI_VERSION }}
       - name: Archive binary tarball
         uses: actions/upload-artifact@v4
         with:
