@@ -4,6 +4,7 @@
 **/*.dsc
 **/*.tar.gz
 **/*.xz
+**/*.zip
 
 # deb build artifacts
 haproxy/haproxy_*~*

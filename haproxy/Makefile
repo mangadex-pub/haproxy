@@ -26,13 +26,26 @@ BUILD_PATCHES_FILES = $(shell ls -1 $(BUILD_PATCHES_DIR_ABS))
 DEBIAN_PATCHES_DIR = "$(HAPROXY_BUILDIR)/debian/patches"
 
 DEBUG_CFLAGS = -g -ggdb3 -gdwarf-4
+OPT_CFLAGS = -O2
+
+HAPROXY_LIBASAN = false
+ifeq ($(HAPROXY_LIBASAN),true)
+	# set -O1 rather than the default -O2 since LibAsan builds are debug-purpose anyway
+	OPT_CFLAGS = -O1
+	DEBUG_CFLAGS += -static-libsan
+	DEBUG_CFLAGS += -fsanitize=address
+	DEBUG_CFLAGS += -fsanitize-address-use-after-scope
+	DEBUG_CFLAGS += -fno-omit-frame-pointer
+	MAKEARGS += USE_OBSOLETE_LINKER="1"
+endif
 
 MAKEARGS = DEBUG="-DDEBUG_MEMORY_POOLS -DDEBUG_STRICT" \
+		   OPT_CFLAGS="$(OPT_CFLAGS)" \
            DEBUG_CFLAGS="$(DEBUG_CFLAGS)"\
            DEFINE="-DMAX_SESS_STKCTR=5" \
            IGNOREGIT=true \
            ARCH_FLAGS="$(DEBUG_CFLAGS)" \
-           ADDLIB="-Wl,-rpath,/opt/quictls/lib -latomic -ljemalloc" \
+           ADDLIB="-Wl,-rpath,/opt/quictls/lib -ljemalloc" \
            TARGET="linux-glibc" \
            EXTRAVERSION="+mangadex-$(BUILD_VERSION_REPOSHA)" \
            VERDATE="$(shell date -u -I'minutes')" \
@@ -49,17 +62,6 @@ MAKEARGS = DEBUG="-DDEBUG_MEMORY_POOLS -DDEBUG_STRICT" \
            USE_QUIC=1 \
            USE_SLZ=1 \
            USE_TFO=1
-
-HAPROXY_LIBASAN = false
-ifeq ($(HAPROXY_LIBASAN),true)
-	DEBUG_CFLAGS += -static-libsan
-	DEBUG_CFLAGS += -fsanitize=address
-	DEBUG_CFLAGS += -fno-omit-frame-pointer
-	MAKEARGS += LDFLAGS="-fsanitize=address -static-libsan"
-	MAKEARGS += USE_OBSOLETE_LINKER="1"
-	# set -O1 rather than the default -O2 since LibAsan builds are debug-purpose anyway
-	MAKEARGS += CPU_CFLAGS="-O1"
-endif
 
 MAKEARGS_LINUX = $(MAKEARGS) \
 				 PCRE2_LIB="$(DEP_DIST_ROOT_PCRE2)/lib64" \
