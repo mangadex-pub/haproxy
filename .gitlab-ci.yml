@@ -49,7 +49,7 @@ variables: &default-variables
   # https://git.haproxy.org/?p=haproxy.git;a=commit;h=983513d901bb7511ea6b1e8c3bb00d58a9d432f2
   HAPROXY_GITREF: "983513d901bb7511ea6b1e8c3bb00d58a9d432f2"
   BUILD_PATCHES_DIR: "patches-dev"
-  HAPROXY_LIBASAN: "true"
+  HAPROXY_LIBASAN: "false"
 
 .build-job: &build-job
   image: ghcr.io/mangadex-pub/debuilder:bookworm-clang18
