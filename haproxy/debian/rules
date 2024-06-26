@@ -10,7 +10,7 @@ BUILD_VERSION_REPOSHA = $(shell git rev-parse --short HEAD)
 DEBUG_CFLAGS = -g -ggdb3 -gdwarf-4
 OPT_CFLAGS = -O2
 
-HAPROXY_LIBASAN = true
+HAPROXY_LIBASAN = false
 ifeq ($(HAPROXY_LIBASAN),true)
 	# set -O1 rather than the default -O2 since LibAsan builds are debug-purpose anyway
 	OPT_CFLAGS = -O1
