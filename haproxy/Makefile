@@ -25,26 +25,33 @@ BUILD_PATCHES_DIR_ABS = $(shell realpath $(BUILD_PATCHES_DIR))
 BUILD_PATCHES_FILES = $(shell ls -1 $(BUILD_PATCHES_DIR_ABS))
 DEBIAN_PATCHES_DIR = "$(HAPROXY_BUILDIR)/debian/patches"
 
-DEBUG_CFLAGS = -g -ggdb3 -gdwarf-4
+EXTRA_CFLAGS = -g -ggdb3 -gdwarf-4 -Wall -Wextra
 OPT_CFLAGS = -O2
+
+HAPROXY_LIBUBSAN = false
+ifeq ($(HAPROXY_LIBUBSAN),true)
+    OPT_CFLAGS = -O1
+    EXTRA_CFLAGS += -fsanitize=undefined
+    EXTRA_CFLAGS += -static-libsan
+endif
 
 HAPROXY_LIBASAN = false
 ifeq ($(HAPROXY_LIBASAN),true)
 	# set -O1 rather than the default -O2 since LibAsan builds are debug-purpose anyway
 	OPT_CFLAGS = -O1
-	DEBUG_CFLAGS += -static-libsan
-	DEBUG_CFLAGS += -fsanitize=address
-	DEBUG_CFLAGS += -fsanitize-address-use-after-scope
-	DEBUG_CFLAGS += -fno-omit-frame-pointer
+	EXTRA_CFLAGS += -fsanitize=address
+	EXTRA_CFLAGS += -static-libsan
+	EXTRA_CFLAGS += -fsanitize-address-use-after-scope
+	EXTRA_CFLAGS += -fno-omit-frame-pointer
 	MAKEARGS += USE_OBSOLETE_LINKER="1"
 endif
 
-MAKEARGS = DEBUG="-DDEBUG_MEMORY_POOLS -DDEBUG_STRICT" \
+MAKEARGS = CC=$(CC) \
+           DEBUG="-DDEBUG_MEMORY_POOLS -DDEBUG_STRICT" \
            OPT_CFLAGS="$(OPT_CFLAGS)" \
-           DEBUG_CFLAGS="$(DEBUG_CFLAGS)"\
            DEFINE="-DMAX_SESS_STKCTR=5" \
            IGNOREGIT=true \
-           ARCH_FLAGS="$(DEBUG_CFLAGS)" \
+           ARCH_FLAGS="$(EXTRA_CFLAGS)" \
            ADDLIB="-Wl,-rpath,/opt/quictls/lib -ljemalloc" \
            TARGET="linux-glibc" \
            EXTRAVERSION="+mangadex-$(BUILD_VERSION_REPOSHA)" \
