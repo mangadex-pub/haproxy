@@ -42,6 +42,7 @@ variables: &default-variables
   HAPROXY_GITREF: "v3.0.2"
   BUILD_PATCHES_DIR: "patches-stable"
   HAPROXY_LIBASAN: "false"
+  HAPROXY_LIBUBSAN: "false"
 
 .haproxy_dev: &haproxy-dev
   HAPROXY_GITREPO: "https://git.haproxy.org/?p=haproxy.git"
@@ -50,6 +51,7 @@ variables: &default-variables
   HAPROXY_GITREF: "249a547f373ed9b4fd421f67485fde2fb564cab8"
   BUILD_PATCHES_DIR: "patches-dev"
   HAPROXY_LIBASAN: "false"
+  HAPROXY_LIBUBSAN: "false"
 
 .build-job: &build-job
   image: ghcr.io/mangadex-pub/debuilder:bookworm-clang18
