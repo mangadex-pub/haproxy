@@ -40,7 +40,7 @@ ifeq ($(HAPROXY_LIBASAN),true)
 endif
 
 MAKEARGS = DEBUG="-DDEBUG_MEMORY_POOLS -DDEBUG_STRICT" \
-		   OPT_CFLAGS="$(OPT_CFLAGS)" \
+           OPT_CFLAGS="$(OPT_CFLAGS)" \
            DEBUG_CFLAGS="$(DEBUG_CFLAGS)"\
            DEFINE="-DMAX_SESS_STKCTR=5" \
            IGNOREGIT=true \
