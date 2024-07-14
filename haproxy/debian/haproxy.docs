@@ -1,4 +1,3 @@
-doc/architecture.txt
 doc/configuration.txt
 doc/intro.txt
 doc/lua.txt
@@ -7,3 +6,4 @@ doc/network-namespaces.txt
 doc/SPOE.txt
 admin
 README.md
+doc/architecture.txt
