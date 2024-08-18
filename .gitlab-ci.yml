@@ -159,7 +159,7 @@ vtest:
     - mkdir deps/pcre2/dist        && tar -C deps/pcre2/dist        -xf deps/pcre2/pcre2-dist.tar.gz
     - |
       set -euo pipefail
-      ulimit -n 65536
+      if [ "$(ulimit -n)" = "1073741816" ]; then echo "Bad Docker ulimit: $(ulimit -n)..."; exit 1; else echo "ulimit -n = $(ulimit -n)"; fi
       make -C haproxy HAPROXY_GITREPO="$HAPROXY_GITREPO" HAPROXY_VERSION="$HAPROXY_VERSION" HAPROXY_GITREF="$HAPROXY_GITREF" BUILD_PATCHES_DIR="$BUILD_PATCHES_DIR" HAPROXY_LIBASAN="$HAPROXY_LIBASAN" build test
   needs:
     - *needs-dependencies
