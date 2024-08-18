@@ -136,16 +136,21 @@ build_Darwin:
 	$(MAKE) -C "$(HAPROXY_BUILDIR)" -j "$(shell nproc)" $(MAKEARGS_DARWIN)
 
 test: $(HAPROXY_BUILDIR)
-	@if [ "$(shell ulimit -n)" = "1073741816" ]; then \
-	    echo "Current environment likely has broken file descriptor limit (1073741816). Use ulimit -n 65536 before running regtests."; \
-	    exit 1; \
-	fi
+	#@if [ "$(shell ulimit -n)" = "1073741816" ]; then \
+	#    echo "Current environment likely has broken file descriptor limit (1073741816). Use ulimit -n 65536 before running regtests."; \
+	#    exit 1; \
+	#fi
 	@mkdir -pv /tmp/vtest
 	if ! TMPDIR="/tmp/vtest" VTEST_PROGRAM="$(DEP_DIST_ROOT_VTEST)/vtest" $(MAKE) -C "$(HAPROXY_BUILDIR)" -j "$(shell nproc)"  reg-tests REGTESTS_TYPES=default,bug,devel; then $(MAKE) regfail-logs; fi
 
 .PHONY: regfail-logs
 regfail-logs:
-	@ls -lr /tmp/vtest/haregtests-*/vtc.*
+	@for folder in /tmp/vtest/haregtests-*/vtc.*; do \
+		echo "* $${folder}"; \
+		cat $$folder/INFO; \
+		cat $$folder/LOG; \
+		echo ""; \
+	done
 
 .PHONY: $(HAPROXY_DESTDIR)
 $(HAPROXY_DESTDIR):
