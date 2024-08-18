@@ -49,7 +49,6 @@ MAKEARGS = CC=$(CC) \
 			LUA_LIB_NAME="lua" \
 			USE_NS=1 \
 			USE_OPENSSL=1 \
-			USE_PCRE2=1 \
 			USE_PCRE2_JIT=1 \
 			USE_PROMEX=1 \
 			USE_QUIC=1 \
@@ -107,7 +106,7 @@ override_dh_auto_configure:
 
 override_dh_auto_build-arch:
 	$(info Enabling address sanitizer: $(HAPROXY_LIBASAN))
-	$(MAKE) -j $(shell nproc) $(MAKEARGS)
+	$(MAKE) -j $(shell nproc) $(MAKEARGS_LINUX)
 	if [ -d "dev/haring" ]; then $(MAKE) dev/haring/haring; fi
 	if [ -d "admin/systemd" ]; then $(MAKE) -C admin/systemd; fi
 

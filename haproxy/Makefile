@@ -63,7 +63,6 @@ MAKEARGS = CC=$(CC) \
 			LUA_LIB="$(DEP_DIST_ROOT_LUA)/lib" \
 			LUA_LIB_NAME="lua" \
 			USE_OPENSSL=1 \
-			USE_PCRE2=1 \
 			USE_PROMEX=1 \
 			USE_QUIC=1 \
 			USE_SLZ=1 \
@@ -102,6 +101,7 @@ MAKEARGS_LINUX = $(MAKEARGS) \
 MAKEARGS_DARWIN = $(MAKEARGS) \
 					CC=$(shell brew --prefix llvm)/bin/clang \
 					LD=$(shell brew --prefix llvm)/bin/clang \
+					USE_PCRE2=1 \
 					TARGET=osx
 
 all: dist-bin
