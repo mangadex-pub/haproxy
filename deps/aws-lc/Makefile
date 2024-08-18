@@ -1,4 +1,4 @@
-AWSLC_VERSION = 1.31.0
+AWSLC_VERSION = 1.33.0
 BUILD_VERSION_REPOSHA = $(shell git rev-parse --short HEAD)
 AWSLC_BUILD_VERSION = mangadex-$(BUILD_VERSION_REPOSHA)
 AWSLC_TAG = $(AWSLC_VERSION)
@@ -26,7 +26,8 @@ build: $(AWSLC_BUILDIR)
 	cmake \
 		-S $(AWSLC_BUILDIR) \
 		-B $(AWSLC_BUILDIR)/build \
-		-DCMAKE_INSTALL_PREFIX=$(AWSLC_PREFIX) \
+		-DCMAKE_C_STANDARD=17 \
+		-DCMAKE_INSTALL_PREFIX=$(AWSLC_DESTDIR_ABS)/$(AWSLC_PREFIX) \
 		-DBUILD_SHARED_LIBS=FALSE \
 		-DDISABLE_GO=TRUE \
 		-DDISABLE_PERL=TRUE \
@@ -37,14 +38,13 @@ build: $(AWSLC_BUILDIR)
 
 $(AWSLC_DESTDIR): build
 	@if ! [ -d "$(AWSLC_DESTDIR)" ]; then mkdir -v "$(AWSLC_DESTDIR)"; fi
-	$(MAKE) -C "$(AWSLC_BUILDIR)" -j "$(shell nproc)" DESTDIR="$(AWSLC_DESTDIR_ABS)" install_sw
-	$(AWSLC_DESTDIR_ABS)/$(AWSLC_PREFIX)/bin/openssl version
+	make -C $(AWSLC_BUILDIR)/build install -j$(shell nproc)
+	$(AWSLC_DESTDIR_ABS)/$(AWSLC_PREFIX)/bin/bssl version
 
 $(AWSLC_ARCHIVE): $(AWSLC_DESTDIR)
 	tar -C "$(AWSLC_DESTDIR)" -cjf "$(AWSLC_ARCHIVE)" "$(shell ls -1 $(AWSLC_DESTDIR) | head -n1)"
 
 clean:
-	rm -fv "$(AWSLC_TARBALL)"
 	rm -rf "$(AWSLC_BUILDIR)"
 	rm -rf "$(AWSLC_DESTDIR)"
 	rm -fv "$(AWSLC_ARCHIVE)"
