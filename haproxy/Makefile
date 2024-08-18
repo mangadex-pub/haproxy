@@ -1,6 +1,6 @@
 HAPROXY_GITREPO = https://git.haproxy.org/?p=haproxy-3.0.git
 HAPROXY_VERSION = 3.0-stable
-HAPROXY_GITREF = v3.0.0
+HAPROXY_GITREF = v3.0.3
 HAPROXY_SHORTSHA = $(shell echo "$(HAPROXY_GITREF)" | grep -Eo '^.{7}' || echo "$(HAPROXY_GITREF)")
 HAPROXY_VERSION_MINOR = $(shell echo "$(HAPROXY_VERSION)" | cut -d'.' -f1-2)
 
@@ -14,6 +14,7 @@ HAPROXY_ARCHIVE = haproxy-dist.tar.gz
 
 DEP_DIST_ROOT_LUA = $(shell realpath ../deps/lua/dist)
 DEP_DIST_ROOT_PCRE2 = $(shell realpath ../deps/pcre2/dist)
+DEP_DIST_ROOT_AWSLC = $(shell realpath ../deps/aws-lc/dist)
 DEP_DIST_ROOT_QUICTLS = $(shell realpath ../deps/quictls/dist)
 DEP_DIST_ROOT_VTEST = $(shell realpath ../deps/vtest/dist)
 
@@ -47,12 +48,12 @@ ifeq ($(HAPROXY_LIBASAN),true)
 endif
 
 MAKEARGS = CC=$(CC) \
-           DEBUG="-DDEBUG_MEMORY_POOLS -DDEBUG_STRICT" \
+           ERR=0 \
+           DEBUG="-DDEBUG_STRICT -DDEBUG_MEMORY_POOLS -DDEBUG_DONT_SHARE_POOLS -DDEBUG_POOL_INTEGRITY" \
            OPT_CFLAGS="$(OPT_CFLAGS)" \
            DEFINE="-DMAX_SESS_STKCTR=5" \
            IGNOREGIT=true \
            ARCH_FLAGS="$(EXTRA_CFLAGS)" \
-           ADDLIB="-Wl,-rpath,/opt/quictls/lib -ljemalloc" \
            TARGET="linux-glibc" \
            EXTRAVERSION="+mangadex-$(BUILD_VERSION_REPOSHA)" \
            VERDATE="$(shell date -u -I'minutes')" \
@@ -62,13 +63,31 @@ MAKEARGS = CC=$(CC) \
            LUA_LIB="$(DEP_DIST_ROOT_LUA)/lib" \
            LUA_LIB_NAME="lua" \
            USE_OPENSSL=1 \
-           SSL_INC="$(DEP_DIST_ROOT_QUICTLS)/opt/quictls/include" \
-           SSL_LIB="$(DEP_DIST_ROOT_QUICTLS)/opt/quictls/lib" \
            USE_PCRE2=1 \
            USE_PROMEX=1 \
            USE_QUIC=1 \
            USE_SLZ=1 \
            USE_TFO=1
+
+SSL_LIB = quictls
+ifeq ($(SSL_LIB),quictls)
+ADDLIB   += -Wl,-rpath,/opt/quictls/lib
+MAKEARGS += SSL_INC="$(DEP_DIST_ROOT_QUICTLS)/opt/quictls/include" \
+            SSL_LIB="$(DEP_DIST_ROOT_QUICTLS)/opt/quictls/lib"
+endif
+ifeq ($(SSL_LIB),awslc)
+ADDLIB   += -Wl,-rpath,/opt/aws-lc/lib
+# here the SSL_LIB path *must* match the AWS-LC side distpath
+# on some systems, CMAKE_INSTALL_LIBDIR=lib64 because we keep
+# on complicating our life for the 0.00003% of asses still on
+# 32 bits *eyeroll*; so it's explicitly set there
+MAKEARGS += USE_OPENSSL_AWSLC=1 \
+            SSL_INC="$(DEP_DIST_ROOT_AWSLC)/opt/aws-lc/include" \
+            SSL_LIB="$(DEP_DIST_ROOT_AWSLC)/opt/aws-lc/lib"
+endif
+
+ADDLIB += -ljemalloc
+MAKEARGS += ADDLIB="$(ADDLIB)"
 
 MAKEARGS_LINUX = $(MAKEARGS) \
 				 PCRE2_LIB="$(DEP_DIST_ROOT_PCRE2)/lib64" \

@@ -23,11 +23,14 @@ $(AWSLC_BUILDIR): $(AWSLC_TARBALL)
 
 build: $(AWSLC_BUILDIR)
 	sed -i 's/^#define AWSLC_VERSION_NUMBER_STRING .+$\/#define AWSLC_VERSION_NUMBER_STRING "$(AWSLC_VERSION)+$(AWSLC_BUILD_VERSION)"/g' "$(AWSLC_BUILDIR)/include/openssl/base.h"
+	cmake --version
 	cmake \
 		-S $(AWSLC_BUILDIR) \
 		-B $(AWSLC_BUILDIR)/build \
-		-DCMAKE_C_STANDARD=17 \
-		-DCMAKE_INSTALL_PREFIX=$(AWSLC_DESTDIR_ABS)/$(AWSLC_PREFIX) \
+		-DCMAKE_BUILD_TYPE=Release \
+		-DCMAKE_C_STANDARD=11 \
+		-DCMAKE_INSTALL_PREFIX=$(AWSLC_DESTDIR_ABS)$(AWSLC_PREFIX) \
+		-DCMAKE_INSTALL_LIBDIR="lib" \
 		-DBUILD_SHARED_LIBS=FALSE \
 		-DDISABLE_GO=TRUE \
 		-DDISABLE_PERL=TRUE \
@@ -39,7 +42,7 @@ build: $(AWSLC_BUILDIR)
 $(AWSLC_DESTDIR): build
 	@if ! [ -d "$(AWSLC_DESTDIR)" ]; then mkdir -v "$(AWSLC_DESTDIR)"; fi
 	make -C $(AWSLC_BUILDIR)/build install -j$(shell nproc)
-	$(AWSLC_DESTDIR_ABS)/$(AWSLC_PREFIX)/bin/bssl version
+	$(AWSLC_DESTDIR_ABS)$(AWSLC_PREFIX)/bin/bssl version
 
 $(AWSLC_ARCHIVE): $(AWSLC_DESTDIR)
 	tar -C "$(AWSLC_DESTDIR)" -cjf "$(AWSLC_ARCHIVE)" "$(shell ls -1 $(AWSLC_DESTDIR) | head -n1)"
