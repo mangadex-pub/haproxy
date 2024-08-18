@@ -31,9 +31,9 @@ OPT_CFLAGS = -O2
 
 HAPROXY_LIBUBSAN = false
 ifeq ($(HAPROXY_LIBUBSAN),true)
-    OPT_CFLAGS = -O1
-    EXTRA_CFLAGS += -fsanitize=undefined
-    EXTRA_CFLAGS += -static-libsan
+	OPT_CFLAGS = -O1
+	EXTRA_CFLAGS += -fsanitize=undefined
+	EXTRA_CFLAGS += -static-libsan
 endif
 
 HAPROXY_LIBASAN = false
@@ -48,32 +48,32 @@ ifeq ($(HAPROXY_LIBASAN),true)
 endif
 
 MAKEARGS = CC=$(CC) \
-           ERR=0 \
-           DEBUG="-DDEBUG_STRICT -DDEBUG_MEMORY_POOLS -DDEBUG_DONT_SHARE_POOLS -DDEBUG_POOL_INTEGRITY" \
-           OPT_CFLAGS="$(OPT_CFLAGS)" \
-           DEFINE="-DMAX_SESS_STKCTR=5" \
-           IGNOREGIT=true \
-           ARCH_FLAGS="$(EXTRA_CFLAGS)" \
-           TARGET="linux-glibc" \
-           EXTRAVERSION="+mangadex-$(BUILD_VERSION_REPOSHA)" \
-           VERDATE="$(shell date -u -I'minutes')" \
-           USE_LIBCRYPT=1 \
-           USE_LUA=1 \
-           LUA_INC="$(DEP_DIST_ROOT_LUA)/include" \
-           LUA_LIB="$(DEP_DIST_ROOT_LUA)/lib" \
-           LUA_LIB_NAME="lua" \
-           USE_OPENSSL=1 \
-           USE_PCRE2=1 \
-           USE_PROMEX=1 \
-           USE_QUIC=1 \
-           USE_SLZ=1 \
-           USE_TFO=1
+			ERR=0 \
+			DEBUG="-DDEBUG_STRICT -DDEBUG_MEMORY_POOLS -DDEBUG_DONT_SHARE_POOLS -DDEBUG_POOL_INTEGRITY" \
+			OPT_CFLAGS="$(OPT_CFLAGS)" \
+			DEFINE="-DMAX_SESS_STKCTR=5" \
+			IGNOREGIT=true \
+			ARCH_FLAGS="$(EXTRA_CFLAGS)" \
+			TARGET="linux-glibc" \
+			EXTRAVERSION="+mangadex-$(BUILD_VERSION_REPOSHA)" \
+			VERDATE="$(shell date -u -I'minutes')" \
+			USE_LIBCRYPT=1 \
+			USE_LUA=1 \
+			LUA_INC="$(DEP_DIST_ROOT_LUA)/include" \
+			LUA_LIB="$(DEP_DIST_ROOT_LUA)/lib" \
+			LUA_LIB_NAME="lua" \
+			USE_OPENSSL=1 \
+			USE_PCRE2=1 \
+			USE_PROMEX=1 \
+			USE_QUIC=1 \
+			USE_SLZ=1 \
+			USE_TFO=1
 
 HAPROXY_SSL_LIB = awslc
 ifeq ($(HAPROXY_SSL_LIB),quictls)
 ADDLIB   += -Wl,-rpath,/opt/quictls/lib
 MAKEARGS += SSL_INC="$(DEP_DIST_ROOT_QUICTLS)/opt/quictls/include" \
-            SSL_LIB="$(DEP_DIST_ROOT_QUICTLS)/opt/quictls/lib"
+				SSL_LIB="$(DEP_DIST_ROOT_QUICTLS)/opt/quictls/lib"
 endif
 ifeq ($(HAPROXY_SSL_LIB),awslc)
 ADDLIB   += -Wl,-rpath,/opt/awslc/lib
@@ -82,27 +82,27 @@ ADDLIB   += -Wl,-rpath,/opt/awslc/lib
 # on complicating our life for the 0.00003% of asses still on
 # 32 bits *eyeroll*; so it's explicitly set there
 MAKEARGS += USE_OPENSSL_AWSLC=1 \
-            SSL_INC="$(DEP_DIST_ROOT_AWSLC)/opt/awslc/include" \
-            SSL_LIB="$(DEP_DIST_ROOT_AWSLC)/opt/awslc/lib"
+				SSL_INC="$(DEP_DIST_ROOT_AWSLC)/opt/awslc/include" \
+				SSL_LIB="$(DEP_DIST_ROOT_AWSLC)/opt/awslc/lib"
 endif
 
 ADDLIB += -ljemalloc
 MAKEARGS += ADDLIB="$(ADDLIB)"
 
 MAKEARGS_LINUX = $(MAKEARGS) \
-				 PCRE2_LIB="$(DEP_DIST_ROOT_PCRE2)/lib64" \
-				 PCRE2_INC="$(DEP_DIST_ROOT_PCRE2)/include" \
-                 PCRE2_CONFIG="$(DEP_DIST_ROOT_PCRE2)/bin/pcre2-config" \
-           		 USE_PCRE2_JIT=1 \
-           		 USE_STATIC_PCRE2=1 \
-				 USE_NS=1 \
-				 USE_SYSTEMD=1 \
-				 TARGET=linux-glibc
+					PCRE2_LIB="$(DEP_DIST_ROOT_PCRE2)/lib64" \
+					PCRE2_INC="$(DEP_DIST_ROOT_PCRE2)/include" \
+					PCRE2_CONFIG="$(DEP_DIST_ROOT_PCRE2)/bin/pcre2-config" \
+					USE_PCRE2_JIT=1 \
+					USE_STATIC_PCRE2=1 \
+					USE_NS=1 \
+					USE_SYSTEMD=1 \
+					TARGET=linux-glibc
 
 MAKEARGS_DARWIN = $(MAKEARGS) \
-				  CC=$(shell brew --prefix llvm)/bin/clang \
-				  LD=$(shell brew --prefix llvm)/bin/clang \
-				  TARGET=osx
+					CC=$(shell brew --prefix llvm)/bin/clang \
+					LD=$(shell brew --prefix llvm)/bin/clang \
+					TARGET=osx
 
 all: dist-bin
 
