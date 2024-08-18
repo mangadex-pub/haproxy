@@ -157,7 +157,10 @@ vtest:
     - mkdir deps/awslc/dist        && tar -C deps/awslc/dist        -xf deps/awslc/awslc-dist.tar.gz
     - mkdir deps/lua/dist          && tar -C deps/lua/dist          -xf deps/lua/lua-dist.tar.gz
     - mkdir deps/pcre2/dist        && tar -C deps/pcre2/dist        -xf deps/pcre2/pcre2-dist.tar.gz
-    - make -C haproxy HAPROXY_GITREPO="$HAPROXY_GITREPO" HAPROXY_VERSION="$HAPROXY_VERSION" HAPROXY_GITREF="$HAPROXY_GITREF" BUILD_PATCHES_DIR="$BUILD_PATCHES_DIR" HAPROXY_LIBASAN="$HAPROXY_LIBASAN" build test
+    - |
+      set -euo pipefail
+      ulimit -n 65536
+      make -C haproxy HAPROXY_GITREPO="$HAPROXY_GITREPO" HAPROXY_VERSION="$HAPROXY_VERSION" HAPROXY_GITREF="$HAPROXY_GITREF" BUILD_PATCHES_DIR="$BUILD_PATCHES_DIR" HAPROXY_LIBASAN="$HAPROXY_LIBASAN" build test
   needs:
     - *needs-dependencies
     - job: vtest
