@@ -65,6 +65,17 @@ variables: &default-variables
 # Common dependencies
 #----------------------
 
+awslc:
+  <<: *build-job
+  stage: dependencies
+  script: make deps/awslc
+  variables:
+    <<: *default-variables
+    <<: *build-resources-m
+  artifacts:
+    expire_in: 7 days
+    paths: [ "deps/awslc/awslc-dist.tar.gz" ]
+
 dataplaneapi:
   <<: *build-job
   image: docker.io/library/golang:1.22-bookworm
@@ -99,17 +110,6 @@ pcre2:
     expire_in: 7 days
     paths: [ "deps/pcre2/pcre2-dist.tar.gz" ]
 
-quictls:
-  <<: *build-job
-  stage: dependencies
-  script: make deps/quictls
-  variables:
-    <<: *default-variables
-    <<: *build-resources-m
-  artifacts:
-    expire_in: 7 days
-    paths: [ "deps/quictls/quictls-dist.tar.gz" ]
-
 vtest:
   <<: *build-job
   stage: dependencies
@@ -122,13 +122,13 @@ vtest:
     paths: [ "deps/vtest/dist/vtest" ]
 
 .needs-dependencies: &needs-dependencies
+  - job: awslc
+    artifacts: true
   - job: dataplaneapi
     artifacts: true
   - job: lua
     artifacts: true
   - job: pcre2
-    artifacts: true
-  - job: quictls
     artifacts: true
 
 #----------------------
@@ -140,9 +140,9 @@ vtest:
   stage: build
   script:
     - apt install -y --no-install-recommends -qq bzip2 git
+    - mkdir deps/awslc/dist        && tar -C deps/awslc/dist        -xf deps/awslc/awslc-dist.tar.gz
     - mkdir deps/lua/dist          && tar -C deps/lua/dist          -xf deps/lua/lua-dist.tar.gz
     - mkdir deps/pcre2/dist        && tar -C deps/pcre2/dist        -xf deps/pcre2/pcre2-dist.tar.gz
-    - mkdir deps/quictls/dist      && tar -C deps/quictls/dist      -xf deps/quictls/quictls-dist.tar.gz
     - make -C haproxy HAPROXY_GITREPO="$HAPROXY_GITREPO" HAPROXY_VERSION="$HAPROXY_VERSION" HAPROXY_GITREF="$HAPROXY_GITREF" BUILD_PATCHES_DIR="$BUILD_PATCHES_DIR" HAPROXY_LIBASAN="$HAPROXY_LIBASAN"
   needs: *needs-dependencies
   artifacts:
@@ -154,9 +154,9 @@ vtest:
   stage: test
   script:
     - apt install -y --no-install-recommends -qq bzip2 git
+    - mkdir deps/awslc/dist        && tar -C deps/awslc/dist        -xf deps/awslc/awslc-dist.tar.gz
     - mkdir deps/lua/dist          && tar -C deps/lua/dist          -xf deps/lua/lua-dist.tar.gz
     - mkdir deps/pcre2/dist        && tar -C deps/pcre2/dist        -xf deps/pcre2/pcre2-dist.tar.gz
-    - mkdir deps/quictls/dist      && tar -C deps/quictls/dist      -xf deps/quictls/quictls-dist.tar.gz
     - make -C haproxy HAPROXY_GITREPO="$HAPROXY_GITREPO" HAPROXY_VERSION="$HAPROXY_VERSION" HAPROXY_GITREF="$HAPROXY_GITREF" BUILD_PATCHES_DIR="$BUILD_PATCHES_DIR" HAPROXY_LIBASAN="$HAPROXY_LIBASAN" build test
   needs:
     - *needs-dependencies
@@ -168,10 +168,10 @@ vtest:
   stage: publish
   script:
     - apt install -y --no-install-recommends -qq bzip2 devscripts debhelper pkg-config
+    - mkdir deps/awslc/dist        && tar -C deps/awslc/dist        -xf deps/awslc/awslc-dist.tar.gz
     - mkdir deps/dataplaneapi/dist && tar -C deps/dataplaneapi/dist -xf deps/dataplaneapi/dataplaneapi-dist.tar.gz
     - mkdir deps/lua/dist          && tar -C deps/lua/dist          -xf deps/lua/lua-dist.tar.gz
     - mkdir deps/pcre2/dist        && tar -C deps/pcre2/dist        -xf deps/pcre2/pcre2-dist.tar.gz
-    - mkdir deps/quictls/dist      && tar -C deps/quictls/dist      -xf deps/quictls/quictls-dist.tar.gz
     - export BUILD_MESSAGE="$CI_COMMIT_MESSAGE"
     - make -C haproxy dist-deb HAPROXY_GITREPO="$HAPROXY_GITREPO" HAPROXY_VERSION="$HAPROXY_VERSION" HAPROXY_GITREF="$HAPROXY_GITREF" BUILD_PATCHES_DIR="$BUILD_PATCHES_DIR" HAPROXY_LIBASAN="$HAPROXY_LIBASAN"
     - |
@@ -343,9 +343,9 @@ docker:stable:
     <<: *build-resources-m
     <<: *haproxy-stable
   needs:
-    - job: "dataplaneapi"
+    - job: "awslc"
       artifacts: true
-    - job: "quictls"
+    - job: "dataplaneapi"
       artifacts: true
     - job: "regtests:stable"
       artifacts: false
@@ -359,9 +359,9 @@ docker:dev:
     <<: *build-resources-m
     <<: *haproxy-dev
   needs:
-    - job: "dataplaneapi"
+    - job: "awslc"
       artifacts: true
-    - job: "quictls"
+    - job: "dataplaneapi"
       artifacts: true
     - job: "regtests:dev"
       artifacts: false
@@ -390,31 +390,3 @@ debian:dev:
     - *needs-dependencies
     - job: "regtests:dev"
       artifacts: false
-
-quictls:tarball:
-  image: docker.io/curlimages/curl:latest
-  stage: publish
-  script: |
-    set -eu
-
-    PKG_VER="$(cat deps/quictls/Makefile | head -n1 | cut -d'=' -f2 | tr -d ' ')"
-    QUICTLS_VER="$PKG_VER"
-    if [ "$CI_COMMIT_REF_NAME" != "$CI_DEFAULT_BRANCH" ]; then
-      export PKG_VER="branch-$CI_COMMIT_REF_SLUG"
-      echo "Git reference $CI_COMMIT_REF_NAME is not the default branch. Setting version to $PKG_VER"
-    fi
-
-    curl -fsSL \
-      -H"JOB-TOKEN: $CI_JOB_TOKEN" \
-      --upload-file "deps/quictls/quictls-dist.tar.gz" \
-      "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/quictls/$PKG_VER/quictls-$QUICTLS_VER.tar.gz"
-  needs:
-    - job: quictls
-      artifacts: true
-    - job: "regtests:dev"
-      artifacts: false
-    - job: "regtests:stable"
-      artifacts: false
-  variables:
-    <<: *default-variables
-    <<: *build-resources-xs

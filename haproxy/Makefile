@@ -14,7 +14,7 @@ HAPROXY_ARCHIVE = haproxy-dist.tar.gz
 
 DEP_DIST_ROOT_LUA = $(shell realpath ../deps/lua/dist)
 DEP_DIST_ROOT_PCRE2 = $(shell realpath ../deps/pcre2/dist)
-DEP_DIST_ROOT_AWSLC = $(shell realpath ../deps/aws-lc/dist)
+DEP_DIST_ROOT_AWSLC = $(shell realpath ../deps/awslc/dist)
 DEP_DIST_ROOT_QUICTLS = $(shell realpath ../deps/quictls/dist)
 DEP_DIST_ROOT_VTEST = $(shell realpath ../deps/vtest/dist)
 
@@ -69,21 +69,21 @@ MAKEARGS = CC=$(CC) \
            USE_SLZ=1 \
            USE_TFO=1
 
-SSL_LIB = quictls
-ifeq ($(SSL_LIB),quictls)
+HAPROXY_SSL_LIB = awslc
+ifeq ($(HAPROXY_SSL_LIB),quictls)
 ADDLIB   += -Wl,-rpath,/opt/quictls/lib
 MAKEARGS += SSL_INC="$(DEP_DIST_ROOT_QUICTLS)/opt/quictls/include" \
             SSL_LIB="$(DEP_DIST_ROOT_QUICTLS)/opt/quictls/lib"
 endif
-ifeq ($(SSL_LIB),awslc)
-ADDLIB   += -Wl,-rpath,/opt/aws-lc/lib
+ifeq ($(HAPROXY_SSL_LIB),awslc)
+ADDLIB   += -Wl,-rpath,/opt/awslc/lib
 # here the SSL_LIB path *must* match the AWS-LC side distpath
 # on some systems, CMAKE_INSTALL_LIBDIR=lib64 because we keep
 # on complicating our life for the 0.00003% of asses still on
 # 32 bits *eyeroll*; so it's explicitly set there
 MAKEARGS += USE_OPENSSL_AWSLC=1 \
-            SSL_INC="$(DEP_DIST_ROOT_AWSLC)/opt/aws-lc/include" \
-            SSL_LIB="$(DEP_DIST_ROOT_AWSLC)/opt/aws-lc/lib"
+            SSL_INC="$(DEP_DIST_ROOT_AWSLC)/opt/awslc/include" \
+            SSL_LIB="$(DEP_DIST_ROOT_AWSLC)/opt/awslc/lib"
 endif
 
 ADDLIB += -ljemalloc
@@ -164,14 +164,12 @@ prepare-deb: $(HAPROXY_DEBORIG) $(HAPROXY_BUILDIR)
 		cat debian/changelog >> "$(HAPROXY_BUILDIR)/debian/changelog"
 
 build-deb: prepare-deb
-	export HAPROXY_LIBASAN="$(HAPROXY_LIBASAN)" && \
-		cd $(HAPROXY_BUILDIR) && \
+	cd $(HAPROXY_BUILDIR) && \
 		debuild -us -uc --lintian-opts --no-lintian
 	rm -fv $(HAPROXY_TARBALL)
 	rm -rf $(HAPROXY_BUILDIR)
 
 clean:
-	rm -fv "$(HAPROXY_TARBALL)"
 	rm -rf "$(HAPROXY_DEBORIG)"
 	rm -rf "$(HAPROXY_BUILDIR)"
 	rm -rf "$(HAPROXY_DESTDIR)"

@@ -22,5 +22,5 @@ Description: fast and reliable load balancing reverse proxy
  cookies, load balancing, header addition, modification, deletion both ways. It
  has request blocking capabilities and provides interface to display server
  status.
- This package specifically adds the QuicTLS fork of OpenSSL and enables QUIC
+ This package specifically adds the AWS-LC fork of OpenSSL and enables QUIC
  frontend support in HAProxy

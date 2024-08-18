@@ -10,7 +10,7 @@ AWSLC_DESTDIR = dist
 AWSLC_DESTDIR_ABS = $(shell realpath $(AWSLC_DESTDIR))
 AWSLC_ARCHIVE = awslc-dist.tar.gz
 AWSLC_PREFIX_DIR = /opt
-AWSLC_PREFIX = $(AWSLC_PREFIX_DIR)/aws-lc
+AWSLC_PREFIX = $(AWSLC_PREFIX_DIR)/awslc
 
 all: build $(AWSLC_DESTDIR) $(AWSLC_ARCHIVE)
 

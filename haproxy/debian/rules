@@ -1,8 +1,12 @@
 #!/usr/bin/make -f
 
+DH_VERBOSE = 1
+DH_OPTIONS = -v
+
 DEP_DIST_ROOT_DATAPLANEAPI = $(shell realpath ../../deps/dataplaneapi/dist)
 DEP_DIST_ROOT_LUA = $(shell realpath ../../deps/lua/dist)
 DEP_DIST_ROOT_PCRE2 = $(shell realpath ../../deps/pcre2/dist)
+DEP_DIST_ROOT_AWSLC = $(shell realpath ../../deps/awslc/dist)
 DEP_DIST_ROOT_QUICTLS = $(shell realpath ../../deps/quictls/dist)
 
 BUILD_VERSION_REPOSHA = $(shell git rev-parse --short HEAD)
@@ -21,20 +25,20 @@ HAPROXY_LIBASAN = false
 ifeq ($(HAPROXY_LIBASAN),true)
 	# set -O1 rather than the default -O2 since LibAsan builds are debug-purpose anyway
 	OPT_CFLAGS = -O1
-	EXTRA_CFLAGS += -static-libsan
 	EXTRA_CFLAGS += -fsanitize=address
+	EXTRA_CFLAGS += -static-libsan
 	EXTRA_CFLAGS += -fsanitize-address-use-after-scope
 	EXTRA_CFLAGS += -fno-omit-frame-pointer
 	MAKEARGS += USE_OBSOLETE_LINKER="1"
 endif
 
 MAKEARGS = CC=$(CC) \
-           DEBUG="-DDEBUG_MEMORY_POOLS -DDEBUG_STRICT" \
+           ERR=0 \
+           DEBUG="-DDEBUG_STRICT -DDEBUG_MEMORY_POOLS -DDEBUG_DONT_SHARE_POOLS -DDEBUG_POOL_INTEGRITY" \
            OPT_CFLAGS="$(OPT_CFLAGS)" \
            DEFINE="-DMAX_SESS_STKCTR=5" \
            IGNOREGIT=true \
            ARCH_FLAGS="$(EXTRA_CFLAGS)" \
-           ADDLIB="-Wl,-rpath,/opt/quictls/lib -ljemalloc" \
            TARGET="linux-glibc" \
            EXTRAVERSION="+mangadex-$(BUILD_VERSION_REPOSHA)" \
            VERDATE="$(shell date -u -I'minutes')" \
@@ -45,19 +49,49 @@ MAKEARGS = CC=$(CC) \
            LUA_LIB_NAME="lua" \
            USE_NS=1 \
            USE_OPENSSL=1 \
-           SSL_INC="$(DEP_DIST_ROOT_QUICTLS)/opt/quictls/include" \
-           SSL_LIB="$(DEP_DIST_ROOT_QUICTLS)/opt/quictls/lib" \
            USE_PCRE2=1 \
            USE_PCRE2_JIT=1 \
-           USE_STATIC_PCRE2=1 \
-           PCRE2_INC="$(DEP_DIST_ROOT_PCRE2)/include" \
-           PCRE2_LIB="$(DEP_DIST_ROOT_PCRE2)/lib64" \
-           PCRE2_CONFIG="$(DEP_DIST_ROOT_PCRE2)/bin/pcre2-config" \
            USE_PROMEX=1 \
            USE_QUIC=1 \
            USE_SLZ=1 \
-           USE_TFO=1 \
-           USE_SYSTEMD=1
+           USE_TFO=1
+
+HAPROXY_SSL_LIB = awslc
+SSL_LIB_ROOT = $(DEP_DIST_ROOT_QUICTLS)
+ifeq ($(HAPROXY_SSL_LIB),quictls)
+ADDLIB   += -Wl,-rpath,/opt/quictls/lib
+MAKEARGS += SSL_INC="$(SSL_LIB_ROOT)/opt/quictls/include" \
+            SSL_LIB="$(SSL_LIB_ROOT)/opt/quictls/lib"
+endif
+ifeq ($(HAPROXY_SSL_LIB),awslc)
+SSL_LIB_ROOT = $(DEP_DIST_ROOT_AWSLC)
+ADDLIB   += -Wl,-rpath,/opt/awslc/lib
+# here the SSL_LIB path *must* match the AWS-LC side distpath
+# on some systems, CMAKE_INSTALL_LIBDIR=lib64 because we keep
+# on complicating our life for the 0.00003% of asses still on
+# 32 bits *eyeroll*; so it's explicitly set there
+MAKEARGS += USE_OPENSSL_AWSLC=1 \
+            SSL_INC="$(SSL_LIB_ROOT)/opt/awslc/include" \
+            SSL_LIB="$(SSL_LIB_ROOT)/opt/awslc/lib"
+endif
+
+ADDLIB += -ljemalloc
+MAKEARGS += ADDLIB="$(ADDLIB)"
+
+MAKEARGS_LINUX = $(MAKEARGS) \
+				 PCRE2_LIB="$(DEP_DIST_ROOT_PCRE2)/lib64" \
+				 PCRE2_INC="$(DEP_DIST_ROOT_PCRE2)/include" \
+                 PCRE2_CONFIG="$(DEP_DIST_ROOT_PCRE2)/bin/pcre2-config" \
+           		 USE_PCRE2_JIT=1 \
+           		 USE_STATIC_PCRE2=1 \
+				 USE_NS=1 \
+				 USE_SYSTEMD=1 \
+				 TARGET=linux-glibc
+
+MAKEARGS_DARWIN = $(MAKEARGS) \
+				  CC=$(shell brew --prefix llvm)/bin/clang \
+				  LD=$(shell brew --prefix llvm)/bin/clang \
+				  TARGET=osx
 
 # Extra flags necessary for debian packaging
 MAKEARGS += DESTDIR=debian/haproxy
@@ -67,22 +101,22 @@ MAKEARGS += MANDIR=/usr/share/man
 MAKEARGS += DOCDIR=/usr/share/doc/haproxy
 
 %:
-	dh $@
+	dh $@ --parallel
 
 override_dh_auto_configure:
 
 override_dh_auto_build-arch:
 	$(info Enabling address sanitizer: $(HAPROXY_LIBASAN))
 	$(MAKE) -j $(shell nproc) $(MAKEARGS)
-	if [ -d "dev/haring" ]; then $(MAKE) -j $(shell nproc) dev/haring/haring; fi
-	$(MAKE) -j $(shell nproc) -C admin/systemd $(MAKEARGS)
+	if [ -d "dev/haring" ]; then $(MAKE) dev/haring/haring; fi
+	if [ -d "admin/systemd" ]; then $(MAKE) -C admin/systemd; fi
 
 override_dh_auto_clean:
 	$(MAKE) -j $(shell nproc) -C admin/systemd clean
 	dh_auto_clean
 
 override_dh_auto_install-arch:
-	cp -rf $(DEP_DIST_ROOT_QUICTLS)/opt debian/haproxy/opt
+	cp -rf $(SSL_LIB_ROOT)/opt debian/haproxy/opt
 	cp -rf $(DEP_DIST_ROOT_DATAPLANEAPI)/usr debian/haproxy/usr
 	$(MAKE) -j $(shell nproc) $(MAKEARGS) install
 	if [ -f "dev/haring/haring" ]; then install -m 0755 -D dev/haring/haring debian/haproxy/usr/sbin/haring; fi
@@ -112,6 +146,7 @@ override_dh_strip:
 override_dh_dwz:
 	dh_dwz \
 	  --no-dwz-multifile \
+	  --exclude="bssl" \
 	  --exclude="dataplaneapi" \
 	  --exclude="haring" \
 	  --exclude="openssl"

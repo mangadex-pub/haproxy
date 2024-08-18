@@ -1,6 +1,9 @@
 all: deps haproxy
 
-deps: deps/dataplaneapi deps/lua deps/pcre2 deps/quictls deps/vtest
+deps: deps/awslc deps/dataplaneapi deps/lua deps/pcre2 deps/quictls deps/vtest
+
+deps/awslc:
+	$(MAKE) -C "deps/awslc"
 
 deps/dataplaneapi:
 	$(MAKE) -C "deps/dataplaneapi"
@@ -21,6 +24,7 @@ haproxy:
 	$(MAKE) -C "haproxy"
 
 clean:
+	$(MAKE) -C "deps/awslc" clean
 	$(MAKE) -C "deps/dataplaneapi" clean
 	$(MAKE) -C "deps/lua" clean
 	$(MAKE) -C "deps/pcre2" clean
