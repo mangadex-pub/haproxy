@@ -20,6 +20,7 @@ jobs:
     strategy:
       matrix:
         dependency_name:
+          - awslc
           - lua
           - pcre2
           - quictls

@@ -33,6 +33,17 @@ runs:
         mkdir -pv deps/pcre2/dist
         tar -C deps/pcre2/dist -xf deps/pcre2/pcre2-dist.tar.gz
 
+    - name: Dependencies - Fetch - AWS-LC
+      uses: actions/download-artifact@v4
+      with:
+        name: awslc-dist.tar.gz
+        path: deps/awslc
+    - name: Dependencies - Unpack - AWS-LC
+      shell: bash
+      run: |
+        mkdir -pv deps/awslc/dist
+        tar -C deps/awslc/dist -xf deps/awslc/awslc-dist.tar.gz
+
     - name: Dependencies - Fetch - QuicTLS
       uses: actions/download-artifact@v4
       with:
