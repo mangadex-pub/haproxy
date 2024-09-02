@@ -107,17 +107,17 @@ override_dh_auto_configure:
 override_dh_auto_build-arch:
 	$(info Enabling address sanitizer: $(HAPROXY_LIBASAN))
 	$(MAKE) -j $(shell nproc) $(MAKEARGS_LINUX)
-	if [ -d "dev/haring" ]; then $(MAKE) dev/haring/haring; fi
-	if [ -d "admin/systemd" ]; then $(MAKE) -C admin/systemd; fi
+	if [ -d "dev/haring" ]; then $(MAKE) dev/haring/haring $(MAKEARGS_LINUX); fi
+	if [ -d "admin/systemd" ]; then $(MAKE) -C admin/systemd $(MAKEARGS_LINUX); fi
 
 override_dh_auto_clean:
-	$(MAKE) -j $(shell nproc) -C admin/systemd clean
+	$(MAKE) -j $(shell nproc) -C admin/systemd $(MAKEARGS_LINUX) clean
 	dh_auto_clean
 
 override_dh_auto_install-arch:
 	cp -rf $(SSL_LIB_ROOT)/opt debian/haproxy/opt
 	cp -rf $(DEP_DIST_ROOT_DATAPLANEAPI)/usr debian/haproxy/usr
-	$(MAKE) -j $(shell nproc) $(MAKEARGS) install
+	$(MAKE) -j $(shell nproc) $(MAKEARGS_LINUX) install
 	if [ -f "dev/haring/haring" ]; then install -m 0755 -D dev/haring/haring debian/haproxy/usr/sbin/haring; fi
 	install -m 0644 -D debian/rsyslog.conf debian/haproxy/etc/rsyslog.d/49-haproxy.conf
 	install -m 0644 -D debian/logrotate.conf debian/haproxy/etc/logrotate.d/haproxy
