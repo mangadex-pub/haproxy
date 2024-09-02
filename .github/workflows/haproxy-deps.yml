@@ -6,9 +6,6 @@ on:
       DEBIAN_CODENAME:
         required: true
         type: string
-      CLANG_VERSION:
-        required: true
-        type: number
 
 jobs:
   dependency:
