@@ -1,6 +1,6 @@
 HAPROXY_GITREPO = https://git.haproxy.org/?p=haproxy-3.0.git
 HAPROXY_VERSION = 3.0-stable
-HAPROXY_GITREF = v3.0.3
+HAPROXY_GITREF = v3.0.5
 HAPROXY_SHORTSHA = $(shell echo "$(HAPROXY_GITREF)" | grep -Eo '^.{7}' || echo "$(HAPROXY_GITREF)")
 HAPROXY_VERSION_MINOR = $(shell echo "$(HAPROXY_VERSION)" | cut -d'.' -f1-2)
 
@@ -184,10 +184,10 @@ build-deb: prepare-deb
 	rm -rf $(HAPROXY_BUILDIR)
 
 clean:
-	rm -rf "$(HAPROXY_DEBORIG)"
-	rm -rf "$(HAPROXY_BUILDIR)"
-	rm -rf "$(HAPROXY_DESTDIR)"
 	rm -fv "$(HAPROXY_ARCHIVE)"
+	rm -rf "$(HAPROXY_BUILDIR)"
+	rm -rf "$(HAPROXY_DEBORIG)"
+	rm -rf "$(HAPROXY_DESTDIR)"
 	rm -fv "haproxy_"*
 	rm -fv "haproxy-dbgsym_"*
 
