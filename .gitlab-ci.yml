@@ -78,7 +78,7 @@ awslc:
 
 dataplaneapi:
   <<: *build-job
-  image: docker.io/library/golang:1.22-bookworm
+  image: docker.io/library/golang:1.23-bookworm
   stage: dependencies
   script: make deps/dataplaneapi
   variables:
