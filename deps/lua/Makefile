@@ -1,5 +1,5 @@
-LUA_VERSION = 5.4.6
-LUA_SOURCES = https://www.tecgraf.puc-rio.br/lua/mirror/ftp/lua-$(LUA_VERSION).tar.gz
+LUA_VERSION = 5.4.7
+LUA_SOURCES = https://www.lua.org/ftp/lua-$(LUA_VERSION).tar.gz
 LUA_TARBALL = lua-$(LUA_VERSION).tar.gz
 LUA_BUILDIR = src
 LUA_DESTDIR = dist
