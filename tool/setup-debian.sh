@@ -21,7 +21,6 @@ apt -qq -y --no-install-recommends install \
       libjemalloc-dev \
       libpcre2-dev \
       libreadline-dev \
-      libsystemd-dev \
       pkg-config \
       tar \
       zip unzip \

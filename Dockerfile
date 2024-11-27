@@ -39,7 +39,6 @@ RUN apt -q update && \
       libatomic1 \
       libjemalloc2 \
       libssl3 \
-      libsystemd0 \
       procps \
       socat \
       zlib1g && \

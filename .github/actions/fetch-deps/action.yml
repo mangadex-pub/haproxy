@@ -77,5 +77,4 @@ runs:
           pkg-config \
           libpcre2-dev \
           libreadline-dev \
-          libsystemd-dev \
           zlib1g-dev
