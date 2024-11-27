@@ -1,5 +1,6 @@
-VTEST_GITREF = 35b5cae9d8cdd64be07a737449aecde839741c1e
-VTEST_SOURCES = https://github.com/vtest/VTest/archive/$(VTEST_GITREF).zip
+# Temporary edit until https://github.com/haproxy/haproxy/issues/2792 is fixed
+VTEST_GITREF = f374b6495079fa9333f46aa346686ea1602f2e96
+VTEST_SOURCES = https://github.com/wlallemand/VTest/archive/$(VTEST_GITREF).zip
 VTEST_ZIPBALL = VTest-$(VTEST_GITREF).zip
 VTEST_BUILDIR = src
 VTEST_DESTDIR = dist
