@@ -6,7 +6,6 @@ Uploaders: Tristan <tristan@mangadex.org>
 Standards-Version: 4.4.1
 Build-Depends: debhelper-compat (= 12),
                libjemalloc-dev,
-               libsystemd-dev [linux-any],
                pkgconf
 Homepage: http://www.haproxy.org/
 Vcs-Git: https://gitlab.com/mangadex-pub/haproxy.git
