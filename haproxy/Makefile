@@ -134,7 +134,7 @@ build_Darwin:
 	$(MAKE) -C "$(HAPROXY_BUILDIR)" -j "$(shell nproc)" $(MAKEARGS_DARWIN) opts
 	$(MAKE) -C "$(HAPROXY_BUILDIR)" -j "$(shell nproc)" $(MAKEARGS_DARWIN)
 
-test: $(HAPROXY_BUILDIR)
+test: $(HAPROXY_BUILDIR) patches
 	#@if [ "$(shell ulimit -n)" = "1073741816" ]; then \
 	#    echo "Current environment likely has broken file descriptor limit (1073741816). Use ulimit -n 65536 before running regtests."; \
 	#    exit 1; \
