@@ -12,6 +12,9 @@ on:
       HAPROXY_GITREPO:
         required: true
         type: string
+      HAPROXY_OPTIMIZATION:
+        required: true
+        type: string
       HAPROXY_VERSION:
         required: true
         type: string
@@ -48,6 +51,7 @@ jobs:
             HAPROXY_GITREPO="${{ inputs.HAPROXY_GITREPO }}" \
             HAPROXY_VERSION="${{ inputs.HAPROXY_VERSION }}" \
             HAPROXY_GITREF="${{ inputs.HAPROXY_GITREF }}" \
+            HAPROXY_OPTIMIZATION="${{ inputs.HAPROXY_OPTIMIZATION }}" \
             BUILD_PATCHES_DIR="patches-${{ inputs.HAPROXY_FLAVOUR }}" \
             build test
 
@@ -110,6 +114,7 @@ jobs:
             HAPROXY_GITREPO="${{ inputs.HAPROXY_GITREPO }}" \
             HAPROXY_VERSION="${{ inputs.HAPROXY_VERSION }}" \
             HAPROXY_GITREF="${{ inputs.HAPROXY_GITREF }}" \
+            HAPROXY_OPTIMIZATION="${{ inputs.HAPROXY_OPTIMIZATION }}" \
             BUILD_PATCHES_DIR="patches-${{ inputs.HAPROXY_FLAVOUR }}" \
             dist-${{ matrix.dist_type }}
           ls -l haproxy

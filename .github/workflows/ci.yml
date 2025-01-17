@@ -21,6 +21,7 @@ jobs:
       HAPROXY_VERSION: "3.1-stable"
       HAPROXY_GITREF: "v3.1.2"
       HAPROXY_DATAPLANEAPI_VERSION: "v3.0"
+      HAPROXY_OPTIMIZATION: "-O2"
 
   dist-dev:
     needs: [ "haproxy-dependencies" ]
@@ -34,3 +35,4 @@ jobs:
       HAPROXY_VERSION: "3.2-dev"
       HAPROXY_GITREF: "4a5d82a97d9269eb17f9b92af6c8a9cd904705cd"
       HAPROXY_DATAPLANEAPI_VERSION: "master"
+      HAPROXY_OPTIMIZATION: "-Og"

@@ -27,19 +27,22 @@ BUILD_PATCHES_FILES = $(shell ls -1 $(BUILD_PATCHES_DIR_ABS))
 DEBIAN_PATCHES_DIR = "$(HAPROXY_BUILDIR)/debian/patches"
 
 EXTRA_CFLAGS = -g -ggdb3 -gdwarf-4 -Wall -Wextra
-OPT_CFLAGS = -O2
+
+HAPROXY_OPTIMIZATION = -O2
+OPT_CFLAGS = $(HAPROXY_OPTIMIZATION)
 
 HAPROXY_LIBUBSAN = false
 ifeq ($(HAPROXY_LIBUBSAN),true)
-	OPT_CFLAGS = -O1
+	# set -Og (-O1 and some extra debug compat features) rather than the default -O2, since UBsan builds are for debug
+	OPT_CFLAGS = -Og
 	EXTRA_CFLAGS += -fsanitize=undefined
 	EXTRA_CFLAGS += -static-libsan
 endif
 
 HAPROXY_LIBASAN = false
 ifeq ($(HAPROXY_LIBASAN),true)
-	# set -O1 rather than the default -O2 since LibAsan builds are debug-purpose anyway
-	OPT_CFLAGS = -O1
+	# set -Og (-O1 and some extra debug compat features) rather than the default -O2, since LibAsan builds are for debug
+	OPT_CFLAGS = -Og
 	EXTRA_CFLAGS += -fsanitize=address
 	EXTRA_CFLAGS += -static-libsan
 	EXTRA_CFLAGS += -fsanitize-address-use-after-scope

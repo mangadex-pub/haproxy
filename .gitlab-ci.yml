@@ -43,6 +43,7 @@ variables: &default-variables
   BUILD_PATCHES_DIR: "patches-stable"
   HAPROXY_LIBASAN: "false"
   HAPROXY_LIBUBSAN: "false"
+  HAPROXY_OPTIMIZATION: "-O2"
 
 .haproxy_dev: &haproxy-dev
   HAPROXY_GITREPO: "https://git.haproxy.org/?p=haproxy.git"
@@ -52,6 +53,7 @@ variables: &default-variables
   BUILD_PATCHES_DIR: "patches-dev"
   HAPROXY_LIBASAN: "false"
   HAPROXY_LIBUBSAN: "false"
+  HAPROXY_OPTIMIZATION: "-Og"
 
 .build-job: &build-job
   image: ghcr.io/mangadex-pub/debuilder:bookworm-clang18
@@ -143,7 +145,7 @@ vtest:
     - mkdir deps/awslc/dist        && tar -C deps/awslc/dist        -xf deps/awslc/awslc-dist.tar.gz
     - mkdir deps/lua/dist          && tar -C deps/lua/dist          -xf deps/lua/lua-dist.tar.gz
     - mkdir deps/pcre2/dist        && tar -C deps/pcre2/dist        -xf deps/pcre2/pcre2-dist.tar.gz
-    - make -C haproxy HAPROXY_GITREPO="$HAPROXY_GITREPO" HAPROXY_VERSION="$HAPROXY_VERSION" HAPROXY_GITREF="$HAPROXY_GITREF" BUILD_PATCHES_DIR="$BUILD_PATCHES_DIR" HAPROXY_LIBASAN="$HAPROXY_LIBASAN"
+    - make -C haproxy HAPROXY_GITREPO="$HAPROXY_GITREPO" HAPROXY_VERSION="$HAPROXY_VERSION" HAPROXY_GITREF="$HAPROXY_GITREF" BUILD_PATCHES_DIR="$BUILD_PATCHES_DIR" HAPROXY_LIBASAN="$HAPROXY_LIBASAN" HAPROXY_OPTIMIZATION="$HAPROXY_OPTIMIZATION"
   needs: *needs-dependencies
   artifacts:
     expire_in: 7 days
@@ -160,7 +162,7 @@ vtest:
     - |
       set -euo pipefail
       if [ "$(ulimit -n)" = "1073741816" ]; then echo "Bad Docker ulimit: $(ulimit -n)..."; exit 1; else echo "ulimit -n = $(ulimit -n)"; fi
-      make -C haproxy HAPROXY_GITREPO="$HAPROXY_GITREPO" HAPROXY_VERSION="$HAPROXY_VERSION" HAPROXY_GITREF="$HAPROXY_GITREF" BUILD_PATCHES_DIR="$BUILD_PATCHES_DIR" HAPROXY_LIBASAN="$HAPROXY_LIBASAN" build test
+      make -C haproxy HAPROXY_GITREPO="$HAPROXY_GITREPO" HAPROXY_VERSION="$HAPROXY_VERSION" HAPROXY_GITREF="$HAPROXY_GITREF" BUILD_PATCHES_DIR="$BUILD_PATCHES_DIR" HAPROXY_LIBASAN="$HAPROXY_LIBASAN" HAPROXY_OPTIMIZATION="-Og" build test
   needs:
     - *needs-dependencies
     - job: vtest
@@ -176,7 +178,7 @@ vtest:
     - mkdir deps/lua/dist          && tar -C deps/lua/dist          -xf deps/lua/lua-dist.tar.gz
     - mkdir deps/pcre2/dist        && tar -C deps/pcre2/dist        -xf deps/pcre2/pcre2-dist.tar.gz
     - export BUILD_MESSAGE="$CI_COMMIT_MESSAGE"
-    - make -C haproxy dist-deb HAPROXY_GITREPO="$HAPROXY_GITREPO" HAPROXY_VERSION="$HAPROXY_VERSION" HAPROXY_GITREF="$HAPROXY_GITREF" BUILD_PATCHES_DIR="$BUILD_PATCHES_DIR" HAPROXY_LIBASAN="$HAPROXY_LIBASAN"
+    - make -C haproxy dist-deb HAPROXY_GITREPO="$HAPROXY_GITREPO" HAPROXY_VERSION="$HAPROXY_VERSION" HAPROXY_GITREF="$HAPROXY_GITREF" BUILD_PATCHES_DIR="$BUILD_PATCHES_DIR" HAPROXY_LIBASAN="$HAPROXY_LIBASAN" HAPROXY_OPTIMIZATION="$HAPROXY_OPTIMIZATION"
     - |
       set -euo pipefail
 
