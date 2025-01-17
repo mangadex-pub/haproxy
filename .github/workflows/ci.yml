@@ -30,9 +30,9 @@ jobs:
     with:
       DEBIAN_CODENAME: "bookworm"
       HAPROXY_FLAVOUR: "dev"
-      # https://git.haproxy.org/?p=haproxy.git;a=commit;h=4a5d82a97d9269eb17f9b92af6c8a9cd904705cd
+      # https://git.haproxy.org/?p=haproxy.git;a=commit;h=0486b9e4918d271ae2ec52d7deb82d415cf7a34c
       HAPROXY_GITREPO: "https://git.haproxy.org/?p=haproxy.git"
       HAPROXY_VERSION: "3.2-dev"
-      HAPROXY_GITREF: "4a5d82a97d9269eb17f9b92af6c8a9cd904705cd"
+      HAPROXY_GITREF: "0486b9e4918d271ae2ec52d7deb82d415cf7a34c"
       HAPROXY_DATAPLANEAPI_VERSION: "master"
       HAPROXY_OPTIMIZATION: "-Og"
