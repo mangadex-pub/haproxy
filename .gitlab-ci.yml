@@ -55,34 +55,43 @@ variables: &default-variables
   HAPROXY_LIBUBSAN: "false"
   HAPROXY_OPTIMIZATION: "-Og"
 
-.build-job: &build-job
-  image: ghcr.io/mangadex-pub/debuilder:bookworm-clang18
-  needs: [ ]
-  before_script:
-    - apt -qq update
-    - apt install -y --no-install-recommends -qq build-essential ca-certificates cmake curl git libasan6 libjemalloc-dev libpcre2-dev libreadline-dev libsystemd-dev tar zlib1g-dev
-    - cc --version
+.job-debian: &job-debian
+  image: "ghcr.io/mangadex-pub/debuilder:bookworm-clang18"
+  before_script: "./tool/setup-debian.sh"
+
+.job-rockylinux: &job-rockylinux
+  image: "ghcr.io/mangadex-pub/containers-base/rockylinux:9-devel"
+  before_script: "./tool/setup-rockylinux.sh"
 
 #----------------------
 # Common dependencies
 #----------------------
 
-awslc:
-  <<: *build-job
-  stage: dependencies
-  script: make deps/awslc
+.dependencies-common: &dependencies-common
+  stage: "dependencies"
+  script: "make deps/$DEPENDENCY"
   variables:
     <<: *default-variables
     <<: *build-resources-m
+  parallel:
+    matrix:
+      - DEPENDENCY: [ "awslc", "lua", "pcre2", "vtest" ]
   artifacts:
     expire_in: 7 days
-    paths: [ "deps/awslc/awslc-dist.tar.gz" ]
+    paths: [ "deps/$DEPENDENCY/$DEPENDENCY-dist.tar.gz" ]
 
-dataplaneapi:
-  <<: *build-job
-  image: docker.io/library/golang:1.23-bookworm
-  stage: dependencies
-  script: make deps/dataplaneapi
+dependencies:debian:
+  <<: *job-debian
+  <<: *dependencies-common
+
+dependencies:rockylinux:
+  <<: *job-rockylinux
+  <<: *dependencies-common
+
+dependencies:dataplaneapi:
+  image: "docker.io/library/golang:1.24"
+  stage: "dependencies"
+  script: "make deps/dataplaneapi"
   variables:
     <<: *default-variables
     <<: *build-resources-ml
@@ -90,55 +99,25 @@ dataplaneapi:
     expire_in: 7 days
     paths: [ "deps/dataplaneapi/dataplaneapi-dist.tar.gz" ]
 
-lua:
-  <<: *build-job
-  stage: dependencies
-  script: make deps/lua
-  variables:
-    <<: *default-variables
-    <<: *build-resources-xs
-  artifacts:
-    expire_in: 7 days
-    paths: [ "deps/lua/lua-dist.tar.gz" ]
+.needs-debian: &deps-debian
+  - "dependencies:dataplaneapi"
+  - "dependencies:debian: [awslc]"
+  - "dependencies:debian: [lua]"
+  - "dependencies:debian: [pcre2]"
+  - "dependencies:debian: [vtest]"
 
-pcre2:
-  <<: *build-job
-  stage: dependencies
-  script: make deps/pcre2
-  variables:
-    <<: *default-variables
-    <<: *build-resources-xs
-  artifacts:
-    expire_in: 7 days
-    paths: [ "deps/pcre2/pcre2-dist.tar.gz" ]
-
-vtest:
-  <<: *build-job
-  stage: dependencies
-  script: make deps/vtest
-  variables:
-    <<: *default-variables
-    <<: *build-resources-xs
-  artifacts:
-    expire_in: 7 days
-    paths: [ "deps/vtest/dist/vtest" ]
-
-.needs-dependencies: &needs-dependencies
-  - job: awslc
-    artifacts: true
-  - job: dataplaneapi
-    artifacts: true
-  - job: lua
-    artifacts: true
-  - job: pcre2
-    artifacts: true
+.needs-rockylinux: &deps-rockylinux
+  - "dependencies:dataplaneapi"
+  - "dependencies:rockylinux: [awslc]"
+  - "dependencies:rockylinux: [lua]"
+  - "dependencies:rockylinux: [pcre2]"
+  - "dependencies:rockylinux: [vtest]"
 
 #----------------------
 # HAProxy job templates
 #----------------------
 
 .haproxy-build: &haproxy-build
-  <<: *build-job
   stage: build
   script:
     - apt install -y --no-install-recommends -qq bzip2 git
@@ -146,13 +125,11 @@ vtest:
     - mkdir deps/lua/dist          && tar -C deps/lua/dist          -xf deps/lua/lua-dist.tar.gz
     - mkdir deps/pcre2/dist        && tar -C deps/pcre2/dist        -xf deps/pcre2/pcre2-dist.tar.gz
     - make -C haproxy HAPROXY_GITREPO="$HAPROXY_GITREPO" HAPROXY_VERSION="$HAPROXY_VERSION" HAPROXY_GITREF="$HAPROXY_GITREF" BUILD_PATCHES_DIR="$BUILD_PATCHES_DIR" HAPROXY_LIBASAN="$HAPROXY_LIBASAN" HAPROXY_OPTIMIZATION="$HAPROXY_OPTIMIZATION"
-  needs: *needs-dependencies
   artifacts:
     expire_in: 7 days
     paths: [ "haproxy/dist", "haproxy/haproxy-dist.tar.gz" ]
 
 .haproxy-regtests: &haproxy-regtests
-  <<: *build-job
   stage: test
   script:
     - apt install -y --no-install-recommends -qq bzip2 git
@@ -163,13 +140,8 @@ vtest:
       set -euo pipefail
       if [ "$(ulimit -n)" = "1073741816" ]; then echo "Bad Docker ulimit: $(ulimit -n)..."; exit 1; else echo "ulimit -n = $(ulimit -n)"; fi
       make -C haproxy HAPROXY_GITREPO="$HAPROXY_GITREPO" HAPROXY_VERSION="$HAPROXY_VERSION" HAPROXY_GITREF="$HAPROXY_GITREF" BUILD_PATCHES_DIR="$BUILD_PATCHES_DIR" HAPROXY_LIBASAN="$HAPROXY_LIBASAN" HAPROXY_OPTIMIZATION="-Og" build test
-  needs:
-    - *needs-dependencies
-    - job: vtest
-      artifacts: true
 
 .haproxy-debian: &haproxy-debian
-  <<: *build-job
   stage: publish
   script:
     - apt install -y --no-install-recommends -qq bzip2 devscripts debhelper pkg-config
@@ -289,109 +261,153 @@ vtest:
 # HAProxy jobs
 #----------------------
 
-build:stable:
+build:stable:debian:
+  needs: *deps-debian
+  <<: *job-debian
   <<: *haproxy-build
   variables:
     <<: *default-variables
     <<: *build-resources-s
     <<: *haproxy-stable
 
-build:dev:
+build:dev:debian:
+  needs: *deps-debian
+  <<: *job-debian
   <<: *haproxy-build
   variables:
     <<: *default-variables
     <<: *build-resources-s
     <<: *haproxy-dev
 
-regtests:stable:
+build:stable:rockylinux:
+  needs: *deps-rockylinux
+  <<: *job-rockylinux
+  <<: *haproxy-build
+  variables:
+    <<: *default-variables
+    <<: *build-resources-s
+    <<: *haproxy-stable
+
+build:dev:rockylinux:
+  needs: *deps-rockylinux
+  <<: *job-rockylinux
+  <<: *haproxy-build
+  variables:
+    <<: *default-variables
+    <<: *build-resources-s
+    <<: *haproxy-dev
+
+regtests:stable:debian:
+  needs: *deps-debian
+  <<: *job-debian
   <<: *haproxy-regtests
   variables:
     <<: *default-variables
     <<: *build-resources-m
     <<: *haproxy-stable
 
-regtests:dev:
+regtests:dev:debian:
+  needs: *deps-debian
+  <<: *job-debian
   <<: *haproxy-regtests
   variables:
     <<: *default-variables
     <<: *build-resources-m
     <<: *haproxy-dev
 
-haproxy-tarball:stable:
-  <<: *haproxy-tarball
-  variables:
-    <<: *default-variables
-    <<: *build-resources-xs
-    <<: *haproxy-stable
-  needs:
-    - job: "regtests:stable"
-      artifacts: false
-    - job: "build:stable"
-      artifacts: true
-
-haproxy-tarball:dev:
-  <<: *haproxy-tarball
-  variables:
-    <<: *default-variables
-    <<: *build-resources-xs
-    <<: *haproxy-dev
-  needs:
-    - job: "regtests:dev"
-      artifacts: false
-    - job: "build:dev"
-      artifacts: true
-
-docker:stable:
-  <<: *haproxy-docker
+regtests:stable:rockylinux:
+  needs: *deps-rockylinux
+  <<: *job-rockylinux
+  <<: *haproxy-regtests
   variables:
     <<: *default-variables
     <<: *build-resources-m
     <<: *haproxy-stable
-  needs:
-    - job: "awslc"
-      artifacts: true
-    - job: "dataplaneapi"
-      artifacts: true
-    - job: "regtests:stable"
-      artifacts: false
-    - job: "build:stable"
-      artifacts: true
 
-docker:dev:
-  <<: *haproxy-docker
+regtests:dev:rockylinux:
+  needs: *deps-rockylinux
+  <<: *job-rockylinux
+  <<: *haproxy-regtests
   variables:
     <<: *default-variables
     <<: *build-resources-m
     <<: *haproxy-dev
-  needs:
-    - job: "awslc"
-      artifacts: true
-    - job: "dataplaneapi"
-      artifacts: true
-    - job: "regtests:dev"
-      artifacts: false
-    - job: "build:dev"
-      artifacts: true
 
-debian:stable:
-  <<: *haproxy-debian
-  variables:
-    <<: *default-variables
-    <<: *build-resources-m
-    <<: *haproxy-stable
-  allow_failure: true
-  needs:
-    - *needs-dependencies
-    - job: "regtests:stable"
-      artifacts: false
+#haproxy-tarball:stable:
+#  <<: *haproxy-tarball
+#  variables:
+#    <<: *default-variables
+#    <<: *build-resources-xs
+#    <<: *haproxy-stable
+#  needs:
+#    - job: "regtests:stable"
+#      artifacts: false
+#    - job: "build:stable"
+#      artifacts: true
 
-debian:dev:
-  <<: *haproxy-debian
-  variables:
-    <<: *default-variables
-    <<: *build-resources-m
-    <<: *haproxy-dev
-  needs:
-    - *needs-dependencies
-    - job: "regtests:dev"
-      artifacts: false
+#haproxy-tarball:dev:
+#  <<: *haproxy-tarball
+#  variables:
+#    <<: *default-variables
+#    <<: *build-resources-xs
+#    <<: *haproxy-dev
+#  needs:
+#    - job: "regtests:dev"
+#      artifacts: false
+#    - job: "build:dev"
+#      artifacts: true
+
+#docker:stable:
+#  <<: *haproxy-docker
+#  variables:
+#    <<: *default-variables
+#    <<: *build-resources-m
+#    <<: *haproxy-stable
+#  needs:
+#    - job: "awslc"
+#      artifacts: true
+#    - job: "dataplaneapi"
+#      artifacts: true
+#    - job: "regtests:stable"
+#      artifacts: false
+#    - job: "build:stable"
+#      artifacts: true
+
+#docker:dev:
+#  <<: *haproxy-docker
+#  variables:
+#    <<: *default-variables
+#    <<: *build-resources-m
+#    <<: *haproxy-dev
+#  needs:
+#    - job: "awslc"
+#      artifacts: true
+#    - job: "dataplaneapi"
+#      artifacts: true
+#    - job: "regtests:dev"
+#      artifacts: false
+#    - job: "build:dev"
+#      artifacts: true
+
+#debian:stable:
+#  <<: *haproxy-debian
+#  variables:
+#    <<: *default-variables
+#    <<: *build-resources-m
+#    <<: *haproxy-stable
+#  allow_failure: true
+#  needs:
+#    - *needs-dependencies
+#    - job: "regtests:stable"
+#      artifacts: false
+
+#debian:dev:
+#  <<: *haproxy-debian
+#  variables:
+#    <<: *default-variables
+#    <<: *build-resources-m
+#    <<: *haproxy-dev
+#  needs:
+#    - *needs-dependencies
+#    - job: "regtests:dev"
+#      artifacts: false

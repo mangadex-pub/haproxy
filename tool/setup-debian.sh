@@ -25,3 +25,5 @@ apt -qq -y --no-install-recommends install \
       tar \
       zip unzip \
       zlib1g-dev
+
+cc --version
