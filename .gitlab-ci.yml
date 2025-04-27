@@ -18,6 +18,7 @@ default:
 variables: &default-variables
   TZ: "UTC"
   GIT_DEPTH: "1"
+  FF_TIMESTAMPS: true
 
 .build-resources-xs: &build-resources-xs
   KUBERNETES_MEMORY_REQUEST: 512Mi
@@ -53,11 +54,15 @@ variables: &default-variables
 
 .job-debian: &job-debian
   image: "ghcr.io/mangadex-pub/debuilder:bookworm-clang18"
-  before_script: "./tool/setup-debian.sh"
+  before_script:
+    - "source ./tool/ci-tools.sh"
+    - "section_start 'tools' 'Setup Debian build dependencies' && ./tool/setup-debian.sh && section_end 'tools'"
 
 .job-rockylinux: &job-rockylinux
   image: "ghcr.io/mangadex-pub/containers-base/rockylinux:9-develroot"
-  before_script: "./tool/setup-rockylinux.sh"
+  before_script:
+    - "source ./tool/ci-tools.sh"
+    - "section_start 'tools' 'Setup Rocky Linux build dependencies' && ./tool/setup-rockylinux.sh && section_end 'tools'"
 
 #----------------------
 # Common dependencies
@@ -66,10 +71,10 @@ variables: &default-variables
 .dependencies-common: &dependencies-common
   stage: "dependencies"
   script:
-    - "make deps/awslc"
-    - "make deps/lua"
-    - "make deps/pcre2"
-    - "make deps/vtest"
+    - "section_start 'awslc' 'Build AWS-LC' && make deps/awslc && section_end 'awslc'"
+    - "section_start 'lua'   'Build LUA'    && make deps/lua   && section_end 'lua'"
+    - "section_start 'pcre2' 'Build PCRE2'  && make deps/pcre2 && section_end 'pcre2'"
+    - "section_start 'vtest' 'Build Vtest'  && make deps/vtest && section_end 'vtest'"
   variables:
     <<: *default-variables
     <<: *build-resources-m
@@ -118,17 +123,19 @@ dataplaneapi:
   |
   #!/usr/env/bin bash
   set -euo pipefail
-  echo "Importing dependencies built from previous stages..."
+
+  section_start 'import-artifacts' 'Importing dependencies built from previous stages...'
   mkdir deps/awslc/dist && tar -C deps/awslc/dist -xf deps/awslc/awslc-dist.tar.gz
   mkdir deps/lua/dist   && tar -C deps/lua/dist   -xf deps/lua/lua-dist.tar.gz
   mkdir deps/pcre2/dist && tar -C deps/pcre2/dist -xf deps/pcre2/pcre2-dist.tar.gz
-  mkdir deps/vtest/dist && tar -C deps/vtest/dist -xf deps/pcre2/vtest-dist.tar.gz
+  mkdir deps/vtest/dist && tar -C deps/vtest/dist -xf deps/vtest/vtest-dist.tar.gz
+  section_end 'import-artifacts'
 
 .haproxy-build: &haproxy-build
   stage: "build"
   script:
     - *haproxy-build-import-artifacts
-    - set -euo pipefail && make -C haproxy
+    - make -C haproxy
   artifacts:
     expire_in: 7 days
     paths: [ "haproxy/dist", "haproxy/haproxy-dist.tar.gz" ]
@@ -137,7 +144,8 @@ dataplaneapi:
   stage: "test"
   script:
     - *haproxy-build-import-artifacts
-    - set -euo pipefail && ./tool/check-docker-ulimit.sh && make -C haproxy build test
+    - section_start 'validate-ulimit' 'Validate ulimit is not stupid' && ./tool/check-docker-ulimit.sh && section_end 'validate-ulimit'
+    - make -C haproxy build test
   artifacts:
     expire_in: 7 days
     paths: [ "/tmp/vtest" ]
