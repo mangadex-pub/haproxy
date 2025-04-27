@@ -85,8 +85,11 @@ dependencies:rockylinux:
   <<: *dependencies-common
 
 dependencies:dataplaneapi:
-  image: "docker.io/library/golang:1.24"
+  image: "docker.io/library/golang:1.24-alpine"
   stage: "dependencies"
+  before_script:
+    - "apk add --no-cache curl bzip2 git make tar"
+    - "git config --global --add safe.directory $CI_PROJECT_DIR" # stupid stupid stupid
   script: "make deps/dataplaneapi"
   variables:
     <<: *default-variables
