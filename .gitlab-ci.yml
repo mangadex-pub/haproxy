@@ -56,17 +56,11 @@ variables: &default-variables
   HAPROXY_OPTIMIZATION: "-Og"
 
 .job-debian: &job-debian
-  image:
-    name: "ghcr.io/mangadex-pub/debuilder:bookworm-clang18"
-    docker:
-      user: root
+  image: "ghcr.io/mangadex-pub/debuilder:bookworm-clang18"
   before_script: "./tool/setup-debian.sh"
 
 .job-rockylinux: &job-rockylinux
-  image:
-    name: "ghcr.io/mangadex-pub/containers-base/rockylinux:9-devel"
-    docker:
-      user: root
+  image: "ghcr.io/mangadex-pub/containers-base/rockylinux:9-develroot"
   before_script: "./tool/setup-rockylinux.sh"
 
 #----------------------
