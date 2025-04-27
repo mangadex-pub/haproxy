@@ -1,9 +1,17 @@
-HAPROXY_GITREPO = https://git.haproxy.org/?p=haproxy-3.1.git
-HAPROXY_VERSION = 3.1-stable
-HAPROXY_GITREF = v3.1.3
+# source inputs
+HAPROXY_GITREPO ?= https://git.haproxy.org/?p=haproxy-3.1.git
+HAPROXY_VERSION ?= 3.1-stable
+HAPROXY_GITREF  ?= v3.1.3
+
+# build flavour options
+BUILD_PATCHES_DIR    ?= $(shell realpath patches-stable)
+HAPROXY_LIBASAN      ?= false
+HAPROXY_LIBUBSAN     ?= false
+HAPROXY_OPTIMIZATION ?= -O2
+
+# resolved configuration
 HAPROXY_SHORTSHA = $(shell echo "$(HAPROXY_GITREF)" | grep -Eo '^.{7}' || echo "$(HAPROXY_GITREF)")
 HAPROXY_VERSION_MINOR = $(shell echo "$(HAPROXY_VERSION)" | cut -d'.' -f1-2)
-
 HAPROXY_SOURCES = $(HAPROXY_GITREPO);a=snapshot;h=$(HAPROXY_GITREF);sf=tgz
 HAPROXY_TARBALL = haproxy-$(HAPROXY_VERSION)-$(HAPROXY_SHORTSHA).tar.gz
 HAPROXY_DEBORIG = haproxy_$(HAPROXY_VERSION)-$(HAPROXY_SHORTSHA).orig.tar.gz
@@ -20,7 +28,6 @@ DEP_DIST_ROOT_VTEST = $(shell realpath ../deps/vtest/dist)
 
 BUILD_VERSION_REPOSHA = $(shell git rev-parse --short HEAD)
 
-BUILD_PATCHES_DIR = $(shell realpath patches-stable)
 # re-deref ensures overrides using relative paths get expanded
 BUILD_PATCHES_DIR_ABS = $(shell realpath $(BUILD_PATCHES_DIR))
 BUILD_PATCHES_FILES = $(shell ls -1 $(BUILD_PATCHES_DIR_ABS))
@@ -28,10 +35,8 @@ DEBIAN_PATCHES_DIR = "$(HAPROXY_BUILDIR)/debian/patches"
 
 EXTRA_CFLAGS = -g -ggdb3 -gdwarf-4 -Wall -Wextra
 
-HAPROXY_OPTIMIZATION = -O2
 OPT_CFLAGS = $(HAPROXY_OPTIMIZATION)
 
-HAPROXY_LIBUBSAN = false
 ifeq ($(HAPROXY_LIBUBSAN),true)
 	# set -Og (-O1 and some extra debug compat features) rather than the default -O2, since UBsan builds are for debug
 	OPT_CFLAGS = -Og
@@ -39,7 +44,6 @@ ifeq ($(HAPROXY_LIBUBSAN),true)
 	EXTRA_CFLAGS += -static-libsan
 endif
 
-HAPROXY_LIBASAN = false
 ifeq ($(HAPROXY_LIBASAN),true)
 	# set -Og (-O1 and some extra debug compat features) rather than the default -O2, since LibAsan builds are for debug
 	OPT_CFLAGS = -Og
