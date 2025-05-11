@@ -22,7 +22,9 @@ render-pipeline:
     key: "pkl-${PKL_VERSION}"
     paths: [ "/opt/pkl" ]
   artifacts:
-    paths: [ ".gitlab/ci.rendered.yml" ]
+    paths:
+      - ".gitlab/debian.ci.yml"
+      - ".gitlab/rockylinux.ci.yml"
 
 trigger-dynamic:
   stage: "trigger"
