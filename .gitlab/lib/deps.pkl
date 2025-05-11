@@ -6,12 +6,11 @@ import "util/shell.pkl"
 class Dependency {
     name: String
     nameCanonical: String = name.replaceAll("-", "").toLowerCase()
-
     path: String = "deps/\(nameCanonical)"
 
     buildSh: String = shell.command(nameCanonical, name, "make \(path)")
-    artifact: String = "\(path)/\(nameCanonical)-dist.tar.gz"
 
+    artifact: String = "\(path)/\(nameCanonical)-dist.tar.gz"
     fetchSh: String = shell.commands(nameCanonical, "Fetch \(name) artifact", new Listing {
         "if ! [ -d '\(path)/dist' ]; then mkdir -pv '\(path)/dist'; fi"
         "tar -C '\(path)/dist' -xvf '\(artifact)'"

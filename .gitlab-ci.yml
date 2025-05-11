@@ -8,14 +8,21 @@ render-pipeline:
   script: |
     set -euo pipefail
 
+    source ./tool/ci-tools.sh
+
+    section_start 'install-pkl' 'Install Pkl v${PKL_VERSION}'
     if ! [ -f "./pkl-${PKL_VERSION}" ]; then
       echo "Install PKL v${PKL_VERSION}"
       wget -O ./pkl-${PKL_VERSION} "https://github.com/apple/pkl/releases/download/${PKL_VERSION}/pkl-alpine-linux-amd64"
       chmod +x ./pkl-${PKL_VERSION}
     fi
+    section_end 'install-pkl'
 
-    ./pkl-${PKL_VERSION} eval -w ".gitlab" -f yaml "ci-debian.pkl" | tee ".gitlab/debian.ci.yml"
-    ./pkl-${PKL_VERSION} eval -w ".gitlab" -f yaml "ci-rockylinux.pkl" | tee ".gitlab/rockylinux.ci.yml"
+    for distribution in debian rockylinux; do
+      section_start "render-$distribution" "Render pipeline for $distribution"
+      ./pkl-${PKL_VERSION} eval -w ".gitlab" -f "yaml" "ci-$distribution.pkl" | tee ".gitlab/$distribution.ci.yml"
+      section_end "render-$distribution"
+    done
   variables:
     PKL_VERSION: "0.28.2"
   cache:
