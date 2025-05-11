@@ -1,5 +1,5 @@
 render-pipeline:
-  stage: "prepare"
+  stage: ".pre"
   image: "alpine:latest"
   script: |
     set -euo pipefail
@@ -21,7 +21,7 @@ render-pipeline:
     paths: [ ".gitlab/ci.rendered.yml" ]
 
 trigger-dynamic:
-  stage: "run"
+  stage: ".post"
   needs: [ "render-pipeline" ]
   parallel:
     matrix:
