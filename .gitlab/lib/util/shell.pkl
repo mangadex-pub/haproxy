@@ -1,5 +1,6 @@
-function section(sectionId: String, sectionName: String, commands: Listing<String>): String = new Listing<String> {
-    "section_start '\(sectionId)' '\(sectionName)'"
+function section(id: String, name: String, commands: Listing<String>): String = new Listing<String> {
+    "set -euo pipefail"
+    "section_start '\(id)' '\(name)'"
     ...commands
-    "section_end '\(sectionId)'"
+    "section_end '\(id)'"
 }.join(" && ")

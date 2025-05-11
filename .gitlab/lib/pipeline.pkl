@@ -26,18 +26,12 @@ stages {
     "package"
 }
 
-local resolveDeps = new Listing<String> {
-    "section_start 'tools' 'Setup build dependencies'"
-    "./tool/setup-\(os_family).sh"
-    "section_end 'tools'"
-}
-
 local defaultJob = new Ci.JobTemplate {
     image = os_image
-    before_script = new Listing {
+    before_script = shell.section("tools", "Setup build dependencies", new Listing {
         "source ./tool/ci-tools.sh"
-        resolveDeps.join(" && ")
-    }
+        "./tool/setup-\(os_family).sh"
+    })
     variables = module.variables
 }
 
