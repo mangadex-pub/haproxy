@@ -54,25 +54,6 @@ dependencies = (deps.dependencies(defaultJob, dependencyList)) {
     }
 }
 
-dataplaneapi = (defaultJob) {
-    image = "docker.io/library/golang:1.24-alpine"
-    needs = new {}
-    stage = "dependencies"
-    before_script = new Listing {
-        "apk add --no-cache bash bzip2 curl git make tar"
-        "git config --global --add safe.directory $CI_PROJECT_DIR"
-    }
-    script = "make deps/dataplaneapi"
-    variables {
-        ["GOMEMLIMIT"] = "2097152"
-        ...k8s.resources.lg
-    }
-    artifacts {
-        expire_in = "7 days"
-        paths { "deps/dataplaneapi/dataplaneapi-dist.tar.gz" }
-    }
-}
-
 function haproxyVars(target: inputs.Build) = (k8s.resources.sm) {
     ["HAPROXY_GITREPO"] = target.params.git_repo
     ["HAPROXY_GITREF"] = target.params.git_ref
@@ -85,6 +66,7 @@ function haproxyVars(target: inputs.Build) = (k8s.resources.sm) {
 
 local buildJob = (defaultJob) {
     stage = "build"
+    needs { "dependencies" }
     script = new Listing {
         ...dependencyList.map((dep) -> dep.fetchSh)
         "make -C haproxy"
@@ -97,6 +79,7 @@ local buildJob = (defaultJob) {
 
 local regtestJob = (defaultJob) {
     stage = "test"
+    needs { "dependencies" }
     script = new Listing {
         ...dependencyList.map((dep) -> dep.fetchSh)
         shell.section("ulimit", "Validate ulimit", new Listing { "./tool/check-docker-ulimit.sh" })
