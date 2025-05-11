@@ -65,7 +65,7 @@ local packageJob = (defaultJob) {
     script = new Listing {
         ...dependencyList.map((dep) -> dep.fetchSh)
         "gem install fpm"
-        "make -C haproxy dist-\(os_family)"
+        "make -C haproxy dist-\(os_packaging)"
     }
     artifacts {
         expire_in = "7 days"
