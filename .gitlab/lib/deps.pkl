@@ -13,8 +13,8 @@ class Dependency {
     artifact: String = "\(path)/\(nameCanonical)-dist.tar.gz"
 
     fetchSh: String = shell.section(nameCanonical, "Fetch \(name) artifact", new Listing {
-        "mkdir \(path)"
-        "tar -C \(path)/dist -xf \(artifact)"
+        "if ! [ -d '\(path)' ]; then mkdir -v '\(path)'; fi"
+        "tar -C '\(path)/dist' -xf '\(artifact)'"
     })
 }
 
