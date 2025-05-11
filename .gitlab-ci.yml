@@ -2,7 +2,7 @@ stages:
   - "render"
   - "trigger"
 
-render-pipeline:
+render:
   stage: "render"
   image: "alpine:latest"
   script: |
@@ -33,9 +33,9 @@ render-pipeline:
       - ".gitlab/debian.ci.yml"
       - ".gitlab/rockylinux.ci.yml"
 
-trigger-dynamic:
+trigger:
   stage: "trigger"
-  needs: [ "render-pipeline" ]
+  needs: [ "render" ]
   parallel:
     matrix:
       - OS_FAMILY: [ "debian", "rockylinux" ]
