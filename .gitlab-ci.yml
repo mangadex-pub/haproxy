@@ -10,17 +10,17 @@ render-pipeline:
 
     if ! [ -f "/opt/pkl" ]; then
       echo "Install PKL v${PKL_VERSION}"
-      wget -O /opt/pkl "https://github.com/apple/pkl/releases/download/${PKL_VERSION}/pkl-alpine-linux-amd64"
-      chmod +x /opt/pkl
+      wget -O ./pkl-${PKL_VERSION} "https://github.com/apple/pkl/releases/download/${PKL_VERSION}/pkl-alpine-linux-amd64"
+      chmod +x ./pkl-${PKL_VERSION}
     fi
 
-    /opt/pkl eval -w ".gitlab" -f yaml "ci-debian.pkl" | tee ".gitlab/debian.ci.yml"
-    /opt/pkl eval -w ".gitlab" -f yaml "ci-rockylinux.pkl" | tee ".gitlab/rockylinux.ci.yml"
+    ./pkl-${PKL_VERSION} eval -w ".gitlab" -f yaml "ci-debian.pkl" | tee ".gitlab/debian.ci.yml"
+    ./pkl-${PKL_VERSION} eval -w ".gitlab" -f yaml "ci-rockylinux.pkl" | tee ".gitlab/rockylinux.ci.yml"
   variables:
     PKL_VERSION: "0.28.2"
   cache:
     key: "pkl-${PKL_VERSION}"
-    paths: [ "/opt/pkl" ]
+    paths: [ "pkl-${PKL_VERSION}" ]
   artifacts:
     paths:
       - ".gitlab/debian.ci.yml"
