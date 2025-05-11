@@ -110,10 +110,7 @@ MAKEARGS_DARWIN = $(MAKEARGS) \
 					USE_PCRE2=1 \
 					TARGET=osx
 
-all: dist-bin
-
-dist-bin: build $(HAPROXY_DESTDIR) $(HAPROXY_ARCHIVE)
-dist-deb: build-deb
+all: build
 
 $(HAPROXY_TARBALL):
 	curl -sfS -o "$(HAPROXY_TARBALL)" "$(HAPROXY_SOURCES)"
@@ -173,7 +170,7 @@ $(HAPROXY_ARCHIVE): $(HAPROXY_DESTDIR)
 $(HAPROXY_DEBORIG): $(HAPROXY_TARBALL)
 	cp -fv "$(HAPROXY_TARBALL)" "$(HAPROXY_DEBORIG)"
 
-prepare-deb: $(HAPROXY_DEBORIG) $(HAPROXY_BUILDIR)
+prepare-debian: $(HAPROXY_DEBORIG) $(HAPROXY_BUILDIR)
 	cp -rf debian $(HAPROXY_BUILDIR)/
 	@for patch in $(BUILD_PATCHES_FILES); do cp -v "$(BUILD_PATCHES_DIR_ABS)/$${patch}" "$(DEBIAN_PATCHES_DIR)/$${patch}"; done
 	@for patch in $(BUILD_PATCHES_FILES); do echo "$${patch}" >> "$(DEBIAN_PATCHES_DIR)/series"; done
@@ -185,7 +182,7 @@ prepare-deb: $(HAPROXY_DEBORIG) $(HAPROXY_BUILDIR)
 		envsubst < changelog.debian | tee "$(HAPROXY_BUILDIR)/debian/changelog" && \
 		cat debian/changelog >> "$(HAPROXY_BUILDIR)/debian/changelog"
 
-build-deb: prepare-deb
+dist-debian: prepare-debian
 	cd $(HAPROXY_BUILDIR) && \
 		debuild -us -uc --lintian-opts --no-lintian
 	rm -fv $(HAPROXY_TARBALL)
@@ -199,4 +196,4 @@ clean:
 	rm -fv "haproxy_"*
 	rm -fv "haproxy-dbgsym_"*
 
-.PHONY: clean patches build test prepare-deb
+.PHONY: clean patches build test

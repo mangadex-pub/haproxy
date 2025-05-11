@@ -3,7 +3,6 @@
 DH_VERBOSE = 1
 DH_OPTIONS = -v
 
-DEP_DIST_ROOT_DATAPLANEAPI = $(shell realpath ../../deps/dataplaneapi/dist)
 DEP_DIST_ROOT_LUA = $(shell realpath ../../deps/lua/dist)
 DEP_DIST_ROOT_PCRE2 = $(shell realpath ../../deps/pcre2/dist)
 DEP_DIST_ROOT_AWSLC = $(shell realpath ../../deps/awslc/dist)
@@ -118,7 +117,6 @@ override_dh_auto_clean:
 
 override_dh_auto_install-arch:
 	cp -rf $(SSL_LIB_ROOT)/opt debian/haproxy/opt
-	cp -rf $(DEP_DIST_ROOT_DATAPLANEAPI)/usr debian/haproxy/usr
 	$(MAKE) -j $(shell nproc) $(MAKEARGS_LINUX) install
 	if [ -f "dev/haring/haring" ]; then install -m 0755 -D dev/haring/haring debian/haproxy/usr/sbin/haring; fi
 	install -m 0644 -D debian/rsyslog.conf debian/haproxy/etc/rsyslog.d/49-haproxy.conf
@@ -148,6 +146,5 @@ override_dh_dwz:
 	dh_dwz \
 	  --no-dwz-multifile \
 	  --exclude="bssl" \
-	  --exclude="dataplaneapi" \
 	  --exclude="haring" \
 	  --exclude="openssl"
