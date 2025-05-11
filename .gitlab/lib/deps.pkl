@@ -9,10 +9,10 @@ class Dependency {
 
     path: String = "deps/\(nameCanonical)"
 
-    buildSh: String = shell.section(nameCanonical, name, new Listing { "make \(path)" })
+    buildSh: String = shell.command(nameCanonical, name, "make \(path)")
     artifact: String = "\(path)/\(nameCanonical)-dist.tar.gz"
 
-    fetchSh: String = shell.section(nameCanonical, "Fetch \(name) artifact", new Listing {
+    fetchSh: String = shell.commands(nameCanonical, "Fetch \(name) artifact", new Listing {
         "if ! [ -d '\(path)/dist' ]; then mkdir -pv '\(path)/dist'; fi"
         "tar -C '\(path)/dist' -xvf '\(artifact)'"
     })
