@@ -53,10 +53,6 @@ function haproxyVars(target: inputs.Build) = (k8s.resources.sm) {
     ["HAPROXY_GITREPO"] = target.params.git_repo
     ["HAPROXY_GITREF"] = target.params.git_ref
     ["HAPROXY_VERSION"] = target.params.version
-
-    when (target.name == "dev") {
-        ["HAPROXY_OPTIMIZATION"] = "-Og"
-    }
 }
 
 local packageJob = (defaultJob) {
@@ -92,6 +88,7 @@ local regtestJob = (defaultJob) {
 `regtests:stable` = (regtestJob) {
     variables {
         ...haproxyVars(stable)
+        ["HAPROXY_OPTIMIZATION"] = "-Og"
     }
 }
 
@@ -107,6 +104,7 @@ local regtestJob = (defaultJob) {
 `regtests:dev` = (regtestJob) {
     variables {
         ...haproxyVars(dev)
+        ["HAPROXY_OPTIMIZATION"] = "-Og"
     }
 }
 
@@ -116,5 +114,6 @@ local regtestJob = (defaultJob) {
     }
     variables {
         ...haproxyVars(dev)
+        ["HAPROXY_OPTIMIZATION"] = "-Og"
     }
 }
