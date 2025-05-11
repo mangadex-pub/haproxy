@@ -21,7 +21,6 @@ variables = new Mapping {
 
 stages {
     "dependencies"
-    "build"
     "test"
     "package"
 }
@@ -58,12 +57,12 @@ function haproxyVars(target: inputs.Build) = (k8s.resources.sm) {
     }
 }
 
-local buildJob = (defaultJob) {
-    stage = "build"
+local packageJob = (defaultJob) {
+    stage = "package"
     needs { "dependencies" }
     script = new Listing {
         ...dependencyList.map((dep) -> dep.fetchSh)
-        "make -C haproxy"
+        "make -C haproxy dist-\(os_family)"
     }
     artifacts {
         expire_in = "7 days"
@@ -85,25 +84,31 @@ local regtestJob = (defaultJob) {
     }
 }
 
-`build:stable` = (buildJob) {
-    variables {
-        ...haproxyVars(stable)
-    }
-}
-
 `regtests:stable` = (regtestJob) {
     variables {
         ...haproxyVars(stable)
     }
 }
 
-`build:dev` = (buildJob) {
+`package:stable` = (packageJob) {
+    needs {
+        "regtests:stable"
+    }
+    variables {
+        ...haproxyVars(stable)
+    }
+}
+
+`regtests:dev` = (regtestJob) {
     variables {
         ...haproxyVars(dev)
     }
 }
 
-`regtests:dev` = (regtestJob) {
+`package:dev` = (packageJob) {
+    needs {
+        "regtests:dev"
+    }
     variables {
         ...haproxyVars(dev)
     }
