@@ -1,0 +1,29 @@
+module Dependencies
+
+import "schema/Ci.pkl"
+import "util/shell.pkl"
+
+class Dependency {
+    name: String
+    nameCanonical: String = name.replaceAll("-", "").toLowerCase()
+
+    path: String = "deps/\(nameCanonical)"
+
+    buildSh: String = shell.section(nameCanonical, name, new Listing { "make \(path)" })
+    artifact: String = "\(path)/\(nameCanonical)-dist.tar.gz"
+
+    fetchSh: String = shell.section(nameCanonical, "Fetch \(name) artifact", new Listing {
+        "mkdir \(path)"
+        "tar -C \(path)/dist -xf \(artifact)"
+    })
+}
+
+function dependencies(defaultJob: Ci.JobTemplate, dependencies: List<Dependency>): Ci.JobTemplate = (defaultJob) {
+    needs = new {}
+    stage = "dependencies"
+    script = dependencies.map((dep) -> dep.buildSh).toListing()
+    artifacts {
+        expire_in = "7 days"
+        paths = dependencies.map((dep) -> dep.artifact).toListing()
+    }
+}

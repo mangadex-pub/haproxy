@@ -1,0 +1,1083 @@
+/// This module was generated from JSON Schema from
+/// <https://gitlab.com/gitlab-org/gitlab/-/raw/master/app/assets/javascripts/editor/schema/ci.json>.
+///
+/// WARN: both properties and at least one of additionalProperties and patternProperties are set. This is
+/// ambiguously defined; can either be defined as a `Mapping` or a class.
+module Ci
+
+$schema: Uri?
+
+spec: Spec?
+
+image: Image?
+
+services: Services?
+
+before_script: (If|Listing<If|Listing<If>>)?
+
+after_script: (If|Listing<If|Listing<If>>)?
+
+variables: GlobalVariables?
+
+cache: Cache?
+
+`!reference`: refType?
+
+default: Default?
+
+/// Default if undefined: `{ "build" "test" "deploy" }`
+stages: Listing<If|Listing<If>>(!isEmpty, isDistinct)?
+
+include: (IncludeItem|Listing<IncludeItem>)?
+
+pages: Job?
+
+workflow: Workflow?
+
+class Spec {
+  inputs: InputParameters?
+}
+
+class Default {
+  after_script: (If|Listing<If|Listing<If>>)?
+
+  artifacts: Artifacts?
+
+  before_script: (If|Listing<If|Listing<If>>)?
+
+  hooks: Hooks?
+
+  cache: Cache?
+
+  image: Image?
+
+  interruptible: Interruptible?
+
+  id_tokens: ItemIdTokens?
+
+  identity: Identity?
+
+  retry: Retry?
+
+  services: Services?
+
+  tags: Tags?
+
+  timeout: StartIn?
+
+  `!reference`: refType?
+}
+
+class Workflow {
+  name: WorkflowName?
+
+  auto_cancel: WorkflowAutoCancel?
+
+  rules: Listing<Rule>?
+}
+
+class Rule {
+  `if`: If?
+
+  changes: Changes?
+
+  exists: Exists?
+
+  variables: RulesVariables?
+
+  `when`: ("always"|"never")?
+
+  auto_cancel: WorkflowAutoCancel?
+}
+
+class Artifacts {
+  paths: Listing<If>(!isEmpty)?
+
+  exclude: Listing<If>(!isEmpty)?
+
+  expose_as: If?
+
+  name: If?
+
+  /// Default if undefined: `false`
+  untracked: Interruptible?
+
+  /// Default if undefined: `"on_success"`
+  `when`: ("on_success"|"on_failure"|"always")?
+
+  /// Default if undefined: `"all"`
+  access: ("none"|"developer"|"all")?
+
+  /// Default if undefined: `"30 days"`
+  expire_in: String?
+
+  reports: Reports?
+}
+
+class Reports {
+  /// Path to JSON file with annotations report.
+  annotations: String?
+
+  /// Path for file(s) that should be parsed as JUnit XML result
+  junit: (String|Listing<If>(!isEmpty))?
+
+  /// Path to a single file with browser performance metric report(s).
+  browser_performance: String?
+
+  /// Used to collect coverage reports from the job.
+  coverage_report: CoverageReport?
+
+  /// Path to file or list of files with code quality report(s) (such as Code Climate).
+  codequality: StringFileList?
+
+  /// Path to file or list of files containing runtime-created variables for this job.
+  dotenv: StringFileList?
+
+  /// Path to file or list of files containing code intelligence (Language Server Index Format).
+  lsif: StringFileList?
+
+  /// Path to file or list of files with SAST vulnerabilities report(s).
+  sast: StringFileList?
+
+  /// Path to file or list of files with Dependency scanning vulnerabilities report(s).
+  dependency_scanning: StringFileList?
+
+  /// Path to file or list of files with Container scanning vulnerabilities report(s).
+  container_scanning: StringFileList?
+
+  /// Path to file or list of files with DAST vulnerabilities report(s).
+  dast: StringFileList?
+
+  /// Deprecated in 12.8: Path to file or list of files with license report(s).
+  license_management: StringFileList?
+
+  /// Path to file or list of files with license report(s).
+  license_scanning: StringFileList?
+
+  /// Path to file or list of files with requirements report(s).
+  requirements: StringFileList?
+
+  /// Path to file or list of files with secret detection report(s).
+  secret_detection: StringFileList?
+
+  /// Path to file or list of files with custom metrics report(s).
+  metrics: StringFileList?
+
+  /// Path to file or list of files with terraform plan(s).
+  terraform: StringFileList?
+
+  cyclonedx: StringFileList?
+
+  load_performance: StringFileList?
+
+  /// Path to file or list of files with Repository X-Ray report(s).
+  repository_xray: StringFileList?
+}
+
+/// Used to collect coverage reports from the job.
+class CoverageReport {
+  /// Code coverage format used by the test framework.
+  coverage_format: ("cobertura"|"jacoco")?
+
+  /// Path to the coverage report file that should be parsed.
+  path: String(!isEmpty)?
+}
+
+class InputParametersAlternate0 {
+  /// Default if undefined: `"string"`
+  type: ("array"|"boolean"|"number"|"string")?
+
+  description: String(length <= 1024)?
+
+  options: Listing<If|Number|Boolean>?
+
+  regex: If?
+
+  default: Any?
+}
+
+class IncludeItemAlternate1 {
+  /// Relative path from local repository root (`/`) to the `yaml`/`yml` file template. The file must be
+  /// on the same branch, and does not work across git submodules.
+  `local`: String(matches(Regex(#"\.ya?ml$"#)))
+
+  rules: IncludeRules?
+
+  inputs: Inputs?
+}
+
+class IncludeItemAlternate2 {
+  /// Path to the project, e.g. `group/project`, or `group/sub-group/project` [Learn
+  /// more](https://docs.gitlab.com/ci/yaml/#includeproject).
+  project: String(matches(Regex(#"(?:\S/\S|\$\S+)"#)))
+
+  /// Branch/Tag/Commit-hash for the target project.
+  ref: String?
+
+  file: String(matches(Regex(#"\.ya?ml$"#)))|Listing<String(matches(Regex(#"\.ya?ml$"#)))>
+
+  rules: IncludeRules?
+
+  inputs: Inputs?
+}
+
+class IncludeItemAlternate3 {
+  /// Use a `.gitlab-ci.yml` template as a base, e.g. `Nodejs.gitlab-ci.yml`.
+  template: String(matches(Regex(#"\.ya?ml$"#)))
+
+  rules: IncludeRules?
+
+  inputs: Inputs?
+}
+
+class IncludeItemAlternate4 {
+  /// Local path to component directory or full path to external component directory.
+  component: String
+
+  rules: IncludeRules?
+
+  inputs: Inputs?
+}
+
+class IncludeItemAlternate5 {
+  /// URL to a `yaml`/`yml` template file using HTTP/HTTPS.
+  remote: String(matches(Regex(#"^https?://.+\.ya?ml$"#)))
+
+  /// SHA256 integrity hash of the remote file content.
+  integrity: String(matches(Regex("^sha256-[A-Za-z0-9+/]{43}=$")))?
+
+  rules: IncludeRules?
+
+  inputs: Inputs?
+}
+
+/// Specifies the docker image to use for the job or globally for all jobs. Job configuration takes
+/// precedence over global setting. Requires a certain kind of GitLab runner executor.
+class ImageAlternate1 {
+  /// Full name of the image that should be used. It should contain the Registry part if needed.
+  name: String(!isEmpty)
+
+  /// Command or script that should be executed as the container's entrypoint. It will be translated to
+  /// Docker's --entrypoint option while creating the container. The syntax is similar to Dockerfile's
+  /// ENTRYPOINT directive, where each shell token is a separate string in the array.
+  entrypoint: Listing(!isEmpty)?
+
+  docker: `[]Alternate1Docker`?
+
+  kubernetes: `[]Alternate1Kubernetes`?
+
+  /// Default if undefined: `"always"`
+  pull_policy: ("always"|"never"|"if-not-present"|Listing<"always"|"never"|"if-not-present">(!isEmpty, isDistinct))?
+}
+
+class `[]Alternate1Docker` {
+  /// Image architecture to pull.
+  platform: String(!isEmpty)?
+
+  /// Username or UID to use for the container.
+  user: String(length.isBetween(1, 255))?
+}
+
+class `[]Alternate1Kubernetes` {
+  /// Username or UID to use for the container. It also supports the UID:GID format.
+  user: String(length.isBetween(1, 255))?
+}
+
+class `[]Alternate1` {
+  /// Full name of the image that should be used. It should contain the Registry part if needed.
+  name: String(!isEmpty)
+
+  entrypoint: Listing<If>(!isEmpty)?
+
+  docker: `[]Alternate1Docker`?
+
+  kubernetes: `[]Alternate1Kubernetes`?
+
+  /// Default if undefined: `"always"`
+  pull_policy: ("always"|"never"|"if-not-present"|Listing<"always"|"never"|"if-not-present">(!isEmpty, isDistinct))?
+
+  command: Listing<If>(!isEmpty)?
+
+  alias: StartIn?
+
+  variables: JobVariables?
+}
+
+class IdTokens {
+  aud: If|Listing<If>(!isEmpty, isDistinct)
+}
+
+class Secrets {
+  vault: (If|VaultAlternate1)?
+
+  gcp_secret_manager: GcpSecretManager?
+
+  azure_key_vault: AzureKeyVault?
+
+  akeyless: Akeyless?
+
+  /// Default if undefined: `true`
+  file: Boolean?
+
+  /// Specifies the JWT variable that should be used to authenticate with the secret provider.
+  token: String?
+}
+
+class VaultAlternate1 {
+  engine: Engine
+
+  path: If
+
+  field: If
+}
+
+class Engine {
+  name: If
+
+  path: If
+}
+
+class GcpSecretManager {
+  name: If
+
+  /// Default if undefined: `"version"`
+  version: (If|Int)?
+}
+
+class AzureKeyVault {
+  name: If
+
+  version: If?
+}
+
+class Akeyless {
+  name: If?
+
+  data_key: If?
+
+  cert_user_name: If?
+
+  public_key_data: If?
+
+  csr_data: If?
+}
+
+class `[]Alternate0` {
+  `if`: If?
+
+  changes: Changes?
+
+  exists: Exists?
+
+  variables: RulesVariables?
+
+  `when`: When?
+
+  start_in: StartIn?
+
+  allow_failure: AllowFailure?
+
+  needs: RulesNeeds?
+
+  interruptible: Interruptible?
+}
+
+class `IncludeRule[]Alternate0` {
+  `if`: If?
+
+  changes: Changes?
+
+  exists: Exists?
+
+  `when`: ("never"|"always"|Any)?
+}
+
+/// Define the rules for when pipeline should be automatically cancelled.
+class WorkflowAutoCancel {
+  /// Default if undefined: `"none"`
+  on_job_failure: ("none"|"all")?
+
+  on_new_commit: ("conservative"|"interruptible"|"none")?
+}
+
+class GlobalVariablesAlternate1 {
+  value: If?
+
+  options: Listing<If>(!isEmpty, isDistinct)?
+
+  description: If?
+
+  expand: Boolean?
+}
+
+class JobVariablesAlternate1 {
+  value: If?
+
+  expand: Boolean?
+}
+
+class ChangesAlternate0 {
+  /// List of file paths.
+  paths: Listing<If>
+
+  /// Ref for comparing changes.
+  compare_to: String?
+}
+
+class ExistsAlternate1 {
+  /// List of file paths.
+  paths: Listing<If>
+
+  /// Path of the project to search in.
+  project: String?
+}
+
+class ExistsAlternate2 {
+  /// List of file paths.
+  paths: Listing<If>
+
+  /// Path of the project to search in.
+  project: String
+
+  /// Ref of the project to search in.
+  ref: String?
+}
+
+class `RulesNeed[]Alternate1` {
+  /// Name of a job that is defined in the pipeline.
+  job: String(!isEmpty)
+
+  /// Download artifacts of the job in needs.
+  artifacts: Boolean?
+
+  /// Whether the job needs to be present in the pipeline to run ahead of the current job.
+  optional: Boolean?
+}
+
+/// Exit code that are not considered failure. The job fails for any other exit code.
+class AllowFailureAlternate1 {
+  exit_codes: Int
+}
+
+/// You can list which exit codes are not considered failures. The job fails for any other exit code.
+class AllowFailureAlternate2 {
+  exit_codes: Listing<Int>(!isEmpty, isDistinct)
+}
+
+class ParallelMatrixAlternate0 {
+  /// Defines different variables for jobs that are running in parallel.
+  matrix: Listing<Mapping<String, If|Number|Listing>>(length <= 200)
+}
+
+class CacheItem {
+  key: (String(matches(Regex("^[^/]*[^./][^/]*$")))|KeyAlternate1)?
+
+  paths: Listing<If>?
+
+  /// Default if undefined: `"pull-push"`
+  policy: String(matches(Regex(#"pull-push|pull|push|\$\w{1,255}"#)))?
+
+  /// Default if undefined: `false`
+  unprotect: Interruptible?
+
+  /// Default if undefined: `false`
+  untracked: Interruptible?
+
+  /// Default if undefined: `"on_success"`
+  `when`: ("on_success"|"on_failure"|"always")?
+
+  fallback_keys: Listing<If>(length <= 5)?
+}
+
+class KeyAlternate1 {
+  files: Listing<If>(length.isBetween(1, 2))?
+
+  prefix: If?
+}
+
+class FilterAlternate2 {
+  refs: FilterRefs?
+
+  /// Filter job based on if Kubernetes integration is active.
+  kubernetes: "active"?
+
+  variables: Listing<If>?
+
+  /// Filter job creation based on files that were modified in a git push.
+  changes: Listing<If>?
+}
+
+class RetryAlternate1 {
+  max: RetryMax?
+
+  `when`: (RetryErrors|Listing<RetryErrors>)?
+
+  exit_codes: (Listing<Int>(!isEmpty, isDistinct)|Int)?
+}
+
+class JobTemplate {
+  image: Image?
+
+  services: Services?
+
+  before_script: (If|Listing<If|Listing<If>>)?
+
+  after_script: (If|Listing<If|Listing<If>>)?
+
+  hooks: Hooks?
+
+  rules: Rules?
+
+  variables: JobVariables?
+
+  cache: Cache?
+
+  id_tokens: ItemIdTokens?
+
+  identity: Identity?
+
+  secrets: ItemSecrets?
+
+  script: Script?
+
+  run: Steps?
+
+  /// Define what stage the job will run in.
+  stage: (StartIn|Listing<If>(!isEmpty))?
+
+  /// Job will run *only* when these filtering options match.
+  only: Filter?
+
+  /// The name of one or more jobs to inherit configuration from.
+  `extends`: (If|Listing<If>(!isEmpty))?
+
+  /// The list of jobs in previous stages whose sole completion is needed to start the current job.
+  needs: Listing<If|`Need[]Alternate1`|`[]Alternate2`|`[]Alternate3`|refType>?
+
+  /// Job will run *except* for when these filtering options match.
+  except: Filter?
+
+  tags: Tags?
+
+  allow_failure: AllowFailure?
+
+  timeout: StartIn?
+
+  `when`: When?
+
+  start_in: StartIn?
+
+  manual_confirmation: If?
+
+  /// Specify a list of job names from earlier stages from which artifacts should be loaded. By default,
+  /// all previous artifacts are passed. Use an empty array to skip downloading artifacts.
+  dependencies: Listing<If>?
+
+  artifacts: Artifacts?
+
+  /// Used to associate environment metadata with a deploy. Environment can have a name and URL attached
+  /// to it, and will be displayed under /environments under the project.
+  environment: (If|EnvironmentAlternate1)?
+
+  /// Indicates that the job creates a Release.
+  release: Release?
+
+  /// Must be a regular expression, optionally but recommended to be quoted, and must be surrounded with
+  /// '/'. Example: '/Code coverage: \d+\.\d+/'
+  coverage: String(matches(Regex("^/.+/$")), isRegex)?
+
+  retry: Retry?
+
+  parallel: Parallel?
+
+  interruptible: Interruptible?
+
+  /// Limit job concurrency. Can be used to ensure that the Runner will not run certain jobs
+  /// simultaneously.
+  resource_group: String?
+
+  trigger: (TriggerAlternate0|TriggerAlternate1|String(matches(Regex(#"(?:\S/\S|\$\S+)"#))))?
+
+  inherit: Inherit?
+
+  /// Deprecated. Use `pages.publish` instead. A path to a directory that contains the files to be
+  /// published with Pages.
+  publish: String?
+
+  pages: (PagesAlternate0|Interruptible)?
+}
+
+class `Need[]Alternate1` {
+  job: If
+
+  artifacts: Boolean?
+
+  optional: Boolean?
+
+  parallel: ParallelMatrix?
+}
+
+class `[]Alternate2` {
+  pipeline: If
+
+  job: If
+
+  artifacts: Boolean?
+
+  parallel: ParallelMatrix?
+}
+
+class `[]Alternate3` {
+  job: If
+
+  project: If
+
+  ref: If
+
+  artifacts: Boolean?
+
+  parallel: ParallelMatrix?
+}
+
+class EnvironmentAlternate1 {
+  /// The name of the environment, e.g. 'qa', 'staging', 'production'.
+  name: String(!isEmpty)
+
+  /// When set, this will expose buttons in various places for the current environment in GitLab, that
+  /// will take you to the defined URL.
+  url: Uri(matches(Regex(#"^(https?://.+|\$[A-Za-z]+)"#)))?
+
+  /// The name of a job to execute when the environment is about to be stopped.
+  on_stop: String?
+
+  /// Specifies what this job will do. 'start' (default) indicates the job will start the deployment.
+  /// 'prepare'/'verify'/'access' indicates this will not affect the deployment. 'stop' indicates this
+  /// will stop the deployment.
+  ///
+  /// Default if undefined: `"start"`
+  action: ("start"|"prepare"|"stop"|"verify"|"access")?
+
+  /// The amount of time it should take before GitLab will automatically stop the environment. Supports a
+  /// wide variety of formats, e.g. '1 week', '3 mins 4 sec', '2 hrs 20 min', '2h20min', '6 mos 1 day',
+  /// '47 yrs 6 mos and 4d', '3 weeks and 2 days'.
+  auto_stop_in: String?
+
+  /// Used to configure the kubernetes deployment for this environment. This is currently not supported
+  /// for kubernetes clusters that are managed by GitLab.
+  kubernetes: Kubernetes?
+
+  /// Explicitly specifies the tier of the deployment environment if non-standard environment name is
+  /// used.
+  deployment_tier: ("production"|"staging"|"testing"|"development"|"other")?
+}
+
+/// Used to configure the kubernetes deployment for this environment. This is currently not supported for
+/// kubernetes clusters that are managed by GitLab.
+class Kubernetes {
+  /// The kubernetes namespace where this environment should be deployed to.
+  namespace: String(!isEmpty)?
+
+  /// Specifies the GitLab Agent for Kubernetes. The format is `path/to/agent/project:agent-name`.
+  agent: String?
+
+  /// The Flux resource path to associate with this environment. This must be the full resource path. For
+  /// example, 'helm.toolkit.fluxcd.io/v2/namespaces/gitlab-agent/helmreleases/gitlab-agent'.
+  flux_resource_path: String?
+}
+
+/// Indicates that the job creates a Release.
+class Release {
+  /// The tag_name must be specified. It can refer to an existing Git tag or can be specified by the
+  /// user.
+  tag_name: String(!isEmpty)
+
+  /// Message to use if creating a new annotated tag.
+  tag_message: String?
+
+  /// Specifies the longer description of the Release.
+  description: String(!isEmpty)
+
+  /// The Release name. If omitted, it is populated with the value of release: tag_name.
+  name: String?
+
+  /// If the release: tag_name doesn’t exist yet, the release is created from ref. ref can be a commit
+  /// SHA, another tag name, or a branch name.
+  ref: String?
+
+  /// The title of each milestone the release is associated with.
+  milestones: Listing<If>?
+
+  /// The date and time when the release is ready. Defaults to the current date and time if not defined.
+  /// Should be enclosed in quotes and expressed in ISO 8601 format.
+  released_at: String(matches(Regex(#"^(?:[1-9]\d{3}-(?:(?:0[1-9]|1[0-2])-(?:0[1-9]|1\d|2[0-8])|(?:0[13-9]|1[0-2])-(?:29|30)|(?:0[13578]|1[02])-31)|(?:[1-9]\d(?:0[48]|[2468][048]|[13579][26])|(?:[2468][048]|[13579][26])00)-02-29)T(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d(?:Z|[+-][01]\d:[0-5]\d)$"#)))?
+
+  assets: Assets?
+}
+
+class Assets {
+  /// Include asset links in the release.
+  links: Listing<Link>(!isEmpty)
+}
+
+class Link {
+  /// The name of the link.
+  name: String(!isEmpty)
+
+  /// The URL to download a file.
+  url: String(!isEmpty)
+
+  /// The redirect link to the url.
+  filepath: String?
+
+  /// The content kind of what users can download via url.
+  link_type: ("runbook"|"package"|"image"|"other")?
+}
+
+class TriggerAlternate0 {
+  /// Path to the project, e.g. `group/project`, or `group/sub-group/project`.
+  project: String(matches(Regex(#"(?:\S/\S|\$\S+)"#)))
+
+  /// The branch name that a downstream pipeline will use
+  branch: String?
+
+  /// You can mirror the pipeline status from the triggered pipeline to the source bridge job by using
+  /// strategy: depend
+  strategy: "depend"?
+
+  inputs: Inputs?
+
+  /// Specify what to forward to the downstream pipeline.
+  forward: TriggerAlternate1Forward?
+}
+
+/// Specify what to forward to the downstream pipeline.
+class TriggerAlternate1Forward {
+  /// Variables defined in the trigger job are passed to downstream pipelines.
+  ///
+  /// Default if undefined: `true`
+  yaml_variables: Boolean?
+
+  /// Variables added for manual pipeline runs and scheduled pipelines are passed to downstream
+  /// pipelines.
+  ///
+  /// Default if undefined: `false`
+  pipeline_variables: Boolean?
+}
+
+/// Trigger a child pipeline. [Learn
+/// More](https://docs.gitlab.com/ci/pipelines/downstream_pipelines/#parent-child-pipelines).
+class TriggerAlternate1 {
+  include: (
+    String(matches(Regex(#"\.ya?ml$"#)))
+    |Listing<
+    `IncludeAlternate1[]Alternate0`
+    |`IncludeAlternate1[]Alternate1`
+    |`IncludeAlternate1[]Alternate2`
+    |`IncludeAlternate1[]Alternate3`
+    |`[]Alternate4`
+    |`[]Alternate5`>(length <= 3))?
+
+  /// You can mirror the pipeline status from the triggered pipeline to the source bridge job by using
+  /// strategy: depend
+  strategy: "depend"?
+
+  /// Specify what to forward to the downstream pipeline.
+  forward: TriggerAlternate1Forward?
+}
+
+class `IncludeAlternate1[]Alternate0` {
+  /// Relative path from local repository root (`/`) to the local YAML file to define the pipeline
+  /// configuration.
+  `local`: String(matches(Regex(#"\.ya?ml$"#)))
+
+  inputs: Inputs?
+}
+
+class `IncludeAlternate1[]Alternate1` {
+  /// Name of the template YAML file to use in the pipeline configuration.
+  template: String(matches(Regex(#"\.ya?ml$"#)))
+
+  inputs: Inputs?
+}
+
+class `IncludeAlternate1[]Alternate2` {
+  /// Relative path to the generated YAML file which is extracted from the artifacts and used as the
+  /// configuration for triggering the child pipeline.
+  artifact: String(matches(Regex(#"\.ya?ml$"#)))
+
+  /// Job name which generates the artifact
+  job: String
+
+  inputs: Inputs?
+}
+
+class `IncludeAlternate1[]Alternate3` {
+  /// Path to another private project under the same GitLab instance, like `group/project` or
+  /// `group/sub-group/project`.
+  project: String(matches(Regex(#"(?:\S/\S|\$\S+)"#)))
+
+  /// Branch/Tag/Commit hash for the target project.
+  ref: String(!isEmpty)?
+
+  /// Relative path from repository root (`/`) to the pipeline configuration YAML file.
+  file: String(matches(Regex(#"\.ya?ml$"#)))
+
+  inputs: Inputs?
+}
+
+class `[]Alternate4` {
+  /// Local path to component directory or full path to external component directory.
+  component: String
+
+  inputs: Inputs?
+}
+
+class `[]Alternate5` {
+  /// URL to a `yaml`/`yml` template file using HTTP/HTTPS.
+  remote: String(matches(Regex(#"^https?://.+\.ya?ml$"#)))
+
+  inputs: Inputs?
+}
+
+class Inherit {
+  default: (
+    Boolean
+    |Listing<
+    "after_script"
+    |"artifacts"
+    |"before_script"
+    |"cache"
+    |"image"
+    |"interruptible"
+    |"retry"
+    |"services"
+    |"tags"
+    |"timeout">)?
+
+  variables: (Boolean|Listing<If>)?
+}
+
+class PagesAlternate0 {
+  path_prefix: If?
+
+  expire_in: If?
+
+  publish: If?
+}
+
+class JobTemplateAlternate0 {
+  `when`: "delayed"
+}
+
+class JobTemplateAlternate1 {
+  `when`: Any(this != "delayed")?
+}
+
+class Hooks {
+  pre_get_sources_script: OptionalScript?
+}
+
+/// Run a referenced step.
+class StepAlternate0 {
+  name: StepName
+
+  env: StepNamedStrings?
+
+  inputs: StepNamedValues?
+
+  step: If|StepGitReference|StepOciReference
+}
+
+/// Run an action.
+class StepAlternate2 {
+  name: StepName
+
+  env: StepNamedStrings?
+
+  inputs: StepNamedValues?
+
+  action: StartIn
+}
+
+/// Run a script.
+class StepAlternate3 {
+  name: StepName
+
+  env: StepNamedStrings?
+
+  script: StartIn
+}
+
+/// Exec a binary.
+class StepAlternate4 {
+  env: StepNamedStrings?
+
+  /// Exec is a command to run.
+  exec: StepExec
+}
+
+/// GitReference is a reference to a step in a Git repository.
+class StepGitReference {
+  git: Git
+}
+
+class Git {
+  url: If
+
+  dir: If?
+
+  rev: If
+
+  file: If?
+}
+
+/// OCIReference is a reference to a step hosted in an OCI repository.
+class StepOciReference {
+  oci: Oci
+}
+
+class Oci {
+  /// The <host>[:<port>] of the container registry server.
+  registry: String
+
+  /// A path within the registry containing related OCI images. Typically the namespace, project, and
+  /// image name.
+  repository: String
+
+  /// A pointer to the image manifest hosted in the OCI repository.
+  tag: String
+
+  /// A directory inside the OCI image where the step can be found.
+  dir: String?
+
+  /// The name of the file that defines the step, defaults to step.yml.
+  file: String?
+}
+
+class StepExec {
+  /// Command are the parameters to the system exec API. It does not invoke a shell.
+  command: Listing<If>(!isEmpty)
+
+  /// WorkDir is the working directly in which `command` will be exec'ed.
+  work_dir: String?
+}
+
+typealias StringFileList = If|Listing<If>
+
+typealias InputParameters = Mapping<String(matches(Regex(".*"))), InputParametersAlternate0|Any>
+
+typealias IncludeItem =
+  (Any)(matches(Regex(#"\w\.ya?ml$"#)))
+  |IncludeItemAlternate1
+  |IncludeItemAlternate2
+  |IncludeItemAlternate3
+  |IncludeItemAlternate4
+  |IncludeItemAlternate5
+
+typealias refType = Listing<StartIn>
+
+typealias Image = String(!isEmpty)|ImageAlternate1
+
+typealias Services = Listing<String(!isEmpty)|`[]Alternate1`>
+
+typealias ItemIdTokens = Mapping<String(matches(Regex(".*"))), IdTokens>
+
+typealias Identity = "google_cloud"
+
+typealias ItemSecrets = Mapping<String(matches(Regex(".*"))), Secrets>
+
+typealias Script = StartIn|Listing<If|Listing<If>>(!isEmpty)
+
+typealias Steps = Listing<Step>
+
+typealias OptionalScript = If|Listing<If|Listing<If>>
+
+typealias Rules = Listing<`[]Alternate0`|StartIn|Listing<If>(!isEmpty)>?
+
+typealias IncludeRules = Listing<`IncludeRule[]Alternate0`|StartIn|Listing<If>(!isEmpty)>?
+
+typealias WorkflowName = String(length.isBetween(1, 255))
+
+typealias GlobalVariables = Mapping<String(matches(Regex(".*"))), Boolean|Number|If|GlobalVariablesAlternate1>
+
+typealias JobVariables = Mapping<String(matches(Regex(".*"))), Boolean|Number|If|JobVariablesAlternate1>
+
+typealias RulesVariables = Mapping<String(matches(Regex(".*"))), Boolean|Number|If>
+
+typealias If = String
+
+typealias Changes = ChangesAlternate0|Listing<If>
+
+typealias Exists = Listing<If>|ExistsAlternate1|ExistsAlternate2
+
+typealias StartIn = String(!isEmpty)
+
+typealias RulesNeeds = Listing<If|`RulesNeed[]Alternate1`>
+
+typealias AllowFailure = Boolean|AllowFailureAlternate1|AllowFailureAlternate2
+
+/// Splits up a single job into multiple that run in parallel. Provides `CI_NODE_INDEX` and
+/// `CI_NODE_TOTAL` environment variables to the jobs.
+typealias Parallel = Int(isBetween(1, 200))|ParallelMatrixAlternate0
+
+/// Use the `needs:parallel:matrix` keyword to specify parallelized jobs needed to be completed for the
+/// job to run. [Learn More](https://docs.gitlab.com/ci/yaml/#needsparallelmatrix)
+typealias ParallelMatrix = ParallelMatrixAlternate0
+
+/// Default if undefined: `"on_success"`
+typealias When = "on_success"|"on_failure"|"always"|"never"|"manual"|"delayed"
+
+typealias Cache = CacheItem|Listing<CacheItem>
+
+/// Filter job by different keywords that determine origin or state, or by supplying string/regex to
+/// check against branch/tag names.
+typealias FilterRefs = Listing<"branches"|"tags"|"api"|"external"|"pipelines"|"pushes"|"schedules"|"triggers"|"web"|String>
+
+typealias Filter = Any|FilterRefs|FilterAlternate2
+
+typealias Retry = RetryMax|RetryAlternate1
+
+/// The number of times the job will be retried if it fails. Defaults to 0 and can max be retried 2 times
+/// (3 times total).
+///
+/// Default if undefined: `0`
+typealias RetryMax = Int(isBetween(0, 2))
+
+typealias RetryErrors =
+  "always"
+  |"unknown_failure"
+  |"script_failure"
+  |"api_failure"
+  |"stuck_or_timeout_failure"
+  |"runner_system_failure"
+  |"runner_unsupported"
+  |"stale_schedule"
+  |"job_execution_timeout"
+  |"archived_failure"
+  |"unmet_prerequisites"
+  |"scheduler_failure"
+  |"data_integrity_failure"
+
+/// Default if undefined: `false`
+typealias Interruptible = Boolean
+
+typealias Inputs = Mapping<String(matches(Regex("^[a-zA-Z0-9_-]+$"))),
+  String(length <= 1024)
+  |Number
+  |Boolean
+  |Listing<If|Number|Boolean|Mapping<String, Any>|Listing<Mapping<String, Any>>>
+  |Mapping<String, Any>
+  |Any>
+
+typealias Job = JobTemplateAlternate0|JobTemplateAlternate1
+
+typealias Tags = Listing<StartIn|Listing<If>(!isEmpty)>(!isEmpty)
+
+/// Any of these step use cases are valid.
+typealias Step = StepAlternate0|StepAlternate2|StepAlternate3|StepAlternate4
+
+typealias StepName = String(matches(Regex("^[a-zA-Z_][a-zA-Z0-9_]*$")))
+
+typealias StepNamedStrings = Mapping<String(matches(Regex("^[a-zA-Z_][a-zA-Z0-9_]*$"))), If>
+
+typealias StepNamedValues = Mapping<String(matches(Regex("^[a-zA-Z_][a-zA-Z0-9_]*$"))), (If|Number|Boolean|Listing|Dynamic)?>

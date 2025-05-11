@@ -1,0 +1,12 @@
+module Build
+
+class BuildVars {
+    git_repo: String
+    git_ref: String
+    version: String
+}
+
+class Build {
+    name: String
+    params: BuildVars
+}

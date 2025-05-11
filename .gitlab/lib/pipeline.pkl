@@ -1,0 +1,133 @@
+abstract module Pipeline
+
+import "deps.pkl"
+import "inputs.pkl"
+import "schema/Ci.pkl"
+import "util/k8s.pkl"
+import "util/shell.pkl"
+
+// input properties
+hidden fixed os_family: String
+hidden fixed os_image: String
+hidden fixed stable: inputs.Build
+hidden fixed dev: inputs.Build
+
+// rendered pipeline
+variables = new Mapping {
+    ["TZ"] = "UTC"
+    ["GIT_DEPTH"] = "1"
+    ["FF_TIMESTAMPS"] = true
+}
+
+stages {
+    "dependencies"
+    "build"
+    "test"
+    "package"
+}
+
+local resolveDeps = new Listing<String> {
+    "section_start 'tools' 'Setup build dependencies'"
+    "./tool/setup-\(os_family).sh"
+    "section_end 'tools'"
+}
+
+local defaultJob = new Ci.JobTemplate {
+    image = os_image
+    before_script = new Listing {
+        "source ./tool/ci-tools.sh"
+        resolveDeps.join(" && ")
+    }
+    variables = module.variables
+}
+
+local dependencyList = List(
+    new deps.Dependency { name = "AWS-LC" },
+    new deps.Dependency { name = "LUA" },
+    new deps.Dependency { name = "PCRE2" },
+    new deps.Dependency { name = "VTest" }
+)
+
+dependencies = (deps.dependencies(defaultJob, dependencyList)) {
+    variables {
+        ...k8s.resources.md
+    }
+}
+
+dataplaneapi = (defaultJob) {
+    image = "docker.io/library/golang:1.24-alpine"
+    needs = new {}
+    stage = "dependencies"
+    before_script {
+        "apk add --no-cache curl bzip2 git make tar"
+        "git config --global --add safe.directory $CI_PROJECT_DIR"
+    }
+    script = "make deps/dataplaneapi"
+    variables {
+        ["GOMEMLIMIT"] = "2097152"
+        ...k8s.resources.lg
+    }
+    artifacts {
+        expire_in = "7 days"
+        paths { "deps/dataplaneapi/dataplaneapi-dist.tar.gz" }
+    }
+}
+
+function haproxyVars(target: inputs.Build) = (k8s.resources.sm) {
+    ["HAPROXY_GITREPO"] = target.params.git_repo
+    ["HAPROXY_GITREF"] = target.params.git_ref
+    ["HAPROXY_VERSION"] = target.params.version
+
+    when (target.name == "dev") {
+        ["HAPROXY_OPTIMIZATION"] = "-Og"
+    }
+}
+
+local buildJob = (defaultJob) {
+    stage = "build"
+    script = new Listing {
+        ...dependencyList.map((dep) -> dep.fetchSh)
+        "make -C haproxy"
+    }
+    artifacts {
+        expire_in = "7 days"
+        paths { "haproxy/haproxy-dist.tar.gz" }
+    }
+}
+
+local regtestJob = (defaultJob) {
+    stage = "test"
+    script = new Listing {
+        ...dependencyList.map((dep) -> dep.fetchSh)
+        shell.section("ulimit", "Validate ulimit", new Listing { "./tool/check-docker-ulimit.sh" })
+        "make -C haproxy build test"
+    }
+    artifacts {
+        expire_in = "7 days"
+        paths { "/tmp/vtest" }
+    }
+}
+
+`build:stable` = (buildJob) {
+    variables {
+        ...haproxyVars(stable)
+    }
+}
+
+`regtests:stable` = (regtestJob) {
+    variables {
+        ...haproxyVars(stable)
+    }
+}
+
+`build:dev` = (buildJob) {
+    variables {
+        ...haproxyVars(dev)
+    }
+}
+
+`regtests:dev` = (regtestJob) {
+    variables {
+        ...haproxyVars(dev)
+    }
+}

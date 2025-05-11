@@ -1,0 +1,19 @@
+abstract module CIBase extends "lib/pipeline.pkl"
+
+fixed stable {
+    name = "stable"
+    params {
+        git_repo = "https://git.haproxy.org/?p=haproxy-3.1.git"
+        git_ref = "v3.1.7"
+        version = git_ref
+    }
+}
+
+fixed dev {
+    name = "dev"
+    params {
+        git_repo = "https://git.haproxy.org/?p=haproxy.git"
+        git_ref = "master"
+        version = git_ref
+    }
+}

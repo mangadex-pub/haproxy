@@ -1,0 +1,25 @@
+typealias CPUAmount = String(matches(Regex("^\\d+m?")))
+typealias MemoryAmount = String(matches(Regex("^\\d+(Mi|Gi)$")))
+
+class Resources {
+    cpu: CPUAmount?
+    memory: MemoryAmount?
+
+    fixed vars: Mapping<String, String> = new {
+        when (cpu != null) {
+            ["KUBERNETES_CPU_LIMIT"] = cpu
+        }
+
+        when (memory != null) {
+            ["KUBERNETES_MEMORY_REQUEST"] = memory
+            ["KUBERNETES_MEMORY_LIMIT"] = memory
+        }
+    }
+}
+
+hidden resources = new {
+    xs = new Resources { memory = "512Mi" }.vars
+    sm = new Resources { memory = "1Gi" }.vars
+    md = new Resources { memory = "2Gi" }.vars
+    lg = new Resources { memory = "3Gi" }.vars
+}
