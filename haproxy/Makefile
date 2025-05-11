@@ -28,6 +28,11 @@ DEP_DIST_ROOT_VTEST = $(shell realpath ../deps/vtest/dist)
 
 BUILD_VERSION_REPOSHA = $(shell git rev-parse --short HEAD)
 
+# rpm versioning
+RPM_UPSTREAM_VERSION = $(shell tr -d '-' <<< $(HAPROXY_VERSION)+$(HAPROXY_GITREF))
+RPM_RELEASE_VERSION = mangadex+$(BUILD_VERSION_REPOSHA)
+RPM_FULL_VERSION = $(RPM_UPSTREAM_VERSION)~$(RPM_RELEASE_VERSION)
+
 # re-deref ensures overrides using relative paths get expanded
 BUILD_PATCHES_DIR_ABS = $(shell realpath $(BUILD_PATCHES_DIR))
 BUILD_PATCHES_FILES = $(shell ls -1 $(BUILD_PATCHES_DIR_ABS))
@@ -80,6 +85,7 @@ ifeq ($(HAPROXY_SSL_LIB),quictls)
 ADDLIB   += -Wl,-rpath,/opt/quictls/lib
 MAKEARGS += SSL_INC="$(DEP_DIST_ROOT_QUICTLS)/opt/quictls/include" \
 				SSL_LIB="$(DEP_DIST_ROOT_QUICTLS)/opt/quictls/lib"
+DEP_DIST_SSL_CURRENT=$(DEP_DIST_ROOT_QUICTLS)
 endif
 ifeq ($(HAPROXY_SSL_LIB),awslc)
 ADDLIB   += -Wl,-rpath,/opt/awslc/lib
@@ -90,6 +96,7 @@ ADDLIB   += -Wl,-rpath,/opt/awslc/lib
 MAKEARGS += USE_OPENSSL_AWSLC=1 \
 				SSL_INC="$(DEP_DIST_ROOT_AWSLC)/opt/awslc/include" \
 				SSL_LIB="$(DEP_DIST_ROOT_AWSLC)/opt/awslc/lib"
+DEP_DIST_SSL_CURRENT=$(DEP_DIST_ROOT_AWSLC)
 endif
 
 ADDLIB += -ljemalloc
@@ -127,6 +134,7 @@ build: $(HAPROXY_BUILDIR) patches
 	$(info Enabling address sanitizer: $(HAPROXY_LIBASAN))
 	$(MAKE) build_$(shell uname -s)
 	if [ -d "$(HAPROXY_BUILDIR)/dev/haring" ]; then $(MAKE) -C "$(HAPROXY_BUILDIR)" -j "$(shell nproc)" dev/haring/haring; fi
+	if [ -d "$(HAPROXY_BUILDIR)/admin/systemd" ]; then $(MAKE) -C "$(HAPROXY_BUILDIR)/admin/systemd" -j "$(shell nproc)"; fi
 
 .PHONY: build_Linux
 build_Linux:
@@ -160,7 +168,11 @@ $(HAPROXY_DESTDIR):
 	@if [ -d "$(HAPROXY_DESTDIR)" ]; then rm -rf $(HAPROXY_DESTDIR); fi
 	@mkdir -pv "$(HAPROXY_DESTDIR)"
 	$(MAKE) -C "$(HAPROXY_BUILDIR)" -j "$(shell nproc)" DESTDIR="$(HAPROXY_DESTDIR_ABS)" install
+
+	@# install haring and systemd integration
 	if [ -f "$(HAPROXY_BUILDIR)/dev/haring/haring" ]; then install -m 0755 -D "$(HAPROXY_BUILDIR)/dev/haring/haring" "$(HAPROXY_DESTDIR_ABS)/usr/local/sbin/haring"; fi
+	if [ -f "$(HAPROXY_BUILDIR)/admin/systemd/haproxy.service" ]; then install -m 0644 -D "$(HAPROXY_BUILDIR)/admin/systemd/haproxy.service" "$(HAPROXY_DESTDIR_ABS)/usr/lib/systemd/system/haproxy.service"; fi
+
 	if ! $(HAPROXY_DESTDIR_ABS)/usr/local/sbin/haproxy -vv; then ls -alh; fi
 	ldd $(HAPROXY_DESTDIR_ABS)/usr/local/sbin/haproxy
 
@@ -170,7 +182,7 @@ $(HAPROXY_ARCHIVE): $(HAPROXY_DESTDIR)
 $(HAPROXY_DEBORIG): $(HAPROXY_TARBALL)
 	cp -fv "$(HAPROXY_TARBALL)" "$(HAPROXY_DEBORIG)"
 
-prepare-debian: $(HAPROXY_DEBORIG) $(HAPROXY_BUILDIR)
+prepare-deb: $(HAPROXY_DEBORIG) $(HAPROXY_BUILDIR)
 	cp -rf debian $(HAPROXY_BUILDIR)/
 	@for patch in $(BUILD_PATCHES_FILES); do cp -v "$(BUILD_PATCHES_DIR_ABS)/$${patch}" "$(DEBIAN_PATCHES_DIR)/$${patch}"; done
 	@for patch in $(BUILD_PATCHES_FILES); do echo "$${patch}" >> "$(DEBIAN_PATCHES_DIR)/series"; done
@@ -182,11 +194,32 @@ prepare-debian: $(HAPROXY_DEBORIG) $(HAPROXY_BUILDIR)
 		envsubst < changelog.debian | tee "$(HAPROXY_BUILDIR)/debian/changelog" && \
 		cat debian/changelog >> "$(HAPROXY_BUILDIR)/debian/changelog"
 
-dist-debian: prepare-debian
+dist-deb: prepare-deb
 	cd $(HAPROXY_BUILDIR) && \
 		debuild -us -uc --lintian-opts --no-lintian
 	rm -fv $(HAPROXY_TARBALL)
 	rm -rf $(HAPROXY_BUILDIR)
+
+prepare-rpm: build $(HAPROXY_DESTDIR)
+	@if ! command -v fpm >/dev/null; then echo "fpm not found, install it 'gem install fpm'"; exit 1; else fpm --version; fi
+	cp -rf $(DEP_DIST_SSL_CURRENT)/* $(HAPROXY_DESTDIR)/
+
+dist-rpm: prepare-rpm
+	@if [ -f "haproxy-$(RPM_FULL_VERSION).rpm" ]; then rm -v "haproxy-$(RPM_FULL_VERSION).rpm"; fi
+	fpm --input-type dir \
+		--output-type rpm \
+		--package "haproxy-$(RPM_FULL_VERSION).rpm" \
+		--name "haproxy" \
+		--architecture "native" \
+		--license "mit+gpl2+lgpl" \
+		--version "$(RPM_FULL_VERSION)" \
+		--depends "jemalloc" \
+		--description "HAProxy mainline build with QUIC (via $(HAPROXY_SSL_LIB))" \
+		--url "https://gitlab.com/mangadex-pub/haproxy" \
+		--maintainer "MangaDex <opensource@mangadex.org>" \
+		"$(HAPROXY_DESTDIR)/opt/=/opt" "$(HAPROXY_DESTDIR)/usr/=/usr"
+
+	rpm -qpl "haproxy-$(RPM_FULL_VERSION).rpm"
 
 clean:
 	rm -fv "$(HAPROXY_ARCHIVE)"
@@ -195,5 +228,6 @@ clean:
 	rm -rf "$(HAPROXY_DESTDIR)"
 	rm -fv "haproxy_"*
 	rm -fv "haproxy-dbgsym_"*
+	rm -fv "haproxy"*.rpm
 
 .PHONY: clean patches build test

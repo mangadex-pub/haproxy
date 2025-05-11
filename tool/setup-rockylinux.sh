@@ -9,6 +9,13 @@ dnf -y install \
         jemalloc \
         jemalloc-devel \
         pcre2 \
-        pcre2-devel
+        pcre2-devel \
+        perl-FindBin \
+        rpmdevtools \
+        rpmlint \
+        ruby \
+        ruby-devel \
+        rubygems \
+        rubygem-json
 
 cc --version

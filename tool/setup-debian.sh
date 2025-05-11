@@ -22,6 +22,8 @@ apt -qq -y --no-install-recommends install \
       libpcre2-dev \
       libreadline-dev \
       pkg-config \
+      ruby \
+      rubygems \
       tar \
       zip unzip \
       zlib1g-dev

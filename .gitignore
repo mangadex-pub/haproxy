@@ -1,11 +1,9 @@
 **/dist
 **/src
 **/*.build
+**/*.deb
 **/*.dsc
+**/*.rpm
 **/*.tar.gz
 **/*.xz
 **/*.zip
-
-# deb build artifacts
-haproxy/haproxy_*~*
-haproxy/haproxy-dbg*_*~*

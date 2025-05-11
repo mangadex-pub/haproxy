@@ -9,6 +9,7 @@ import "util/shell.pkl"
 // input properties
 hidden fixed os_family: String
 hidden fixed os_image: String
+hidden fixed os_packaging: String
 hidden fixed stable: inputs.Build
 hidden fixed dev: inputs.Build
 
@@ -30,6 +31,7 @@ local defaultJob = new Ci.JobTemplate {
     before_script = new Listing {
         "source ./tool/ci-tools.sh"
         shell.command("tools", "Setup build dependencies", "./tool/setup-\(os_family).sh")
+        "git config --global --add safe.directory '*'"
     }
     variables = module.variables
 }
@@ -62,11 +64,14 @@ local packageJob = (defaultJob) {
     needs { "dependencies" }
     script = new Listing {
         ...dependencyList.map((dep) -> dep.fetchSh)
+        "gem install fpm"
         "make -C haproxy dist-\(os_family)"
     }
     artifacts {
         expire_in = "7 days"
-        paths { "haproxy/haproxy-dist.tar.gz" }
+        paths {
+            "haproxy/*.\(os_packaging)"
+        }
     }
 }
 
