@@ -28,10 +28,10 @@ DEP_DIST_ROOT_VTEST = $(shell realpath ../deps/vtest/dist)
 
 BUILD_VERSION_REPOSHA = $(shell git rev-parse --short HEAD)
 
-# rpm versioning
-RPM_UPSTREAM_VERSION = $(shell tr -d '-' <<< $(HAPROXY_VERSION)+$(HAPROXY_GITREF))
-RPM_RELEASE_VERSION = mangadex+$(BUILD_VERSION_REPOSHA)
-RPM_FULL_VERSION = $(RPM_UPSTREAM_VERSION)~$(RPM_RELEASE_VERSION)
+# distfile versioning
+DIST_UPSTREAM_VERSION = $(shell echo "$(HAPROXY_VERSION)+$(HAPROXY_GITREF)" | tr -d "-")
+DIST_RELEASE_VERSION = mangadex+$(BUILD_VERSION_REPOSHA)
+DIST_FULL_VERSION = $(DIST_UPSTREAM_VERSION)~$(DIST_RELEASE_VERSION)
 
 # re-deref ensures overrides using relative paths get expanded
 BUILD_PATCHES_DIR_ABS = $(shell realpath $(BUILD_PATCHES_DIR))
@@ -173,6 +173,10 @@ $(HAPROXY_DESTDIR):
 	if [ -f "$(HAPROXY_BUILDIR)/dev/haring/haring" ]; then install -m 0755 -D "$(HAPROXY_BUILDIR)/dev/haring/haring" "$(HAPROXY_DESTDIR_ABS)/usr/local/sbin/haring"; fi
 	if [ -f "$(HAPROXY_BUILDIR)/admin/systemd/haproxy.service" ]; then install -m 0644 -D "$(HAPROXY_BUILDIR)/admin/systemd/haproxy.service" "$(HAPROXY_DESTDIR_ABS)/usr/lib/systemd/system/haproxy.service"; fi
 
+	install -m 0644 -D "haproxy.default" "$(HAPROXY_DESTDIR_ABS)/etc/default/haproxy"
+	install -m 0644 -D "haproxy.cfg" "$(HAPROXY_DESTDIR_ABS)/etc/haproxy/haproxy.cfg"
+	install -m 0644 -D "haproxy.tmpfile" "$(HAPROXY_DESTDIR_ABS)/usr/lib/tmpfiles.d/haproxy.conf"
+
 	if ! $(HAPROXY_DESTDIR_ABS)/usr/local/sbin/haproxy -vv; then ls -alh; fi
 	ldd $(HAPROXY_DESTDIR_ABS)/usr/local/sbin/haproxy
 
@@ -182,52 +186,66 @@ $(HAPROXY_ARCHIVE): $(HAPROXY_DESTDIR)
 $(HAPROXY_DEBORIG): $(HAPROXY_TARBALL)
 	cp -fv "$(HAPROXY_TARBALL)" "$(HAPROXY_DEBORIG)"
 
-prepare-deb: $(HAPROXY_DEBORIG) $(HAPROXY_BUILDIR)
-	cp -rf debian $(HAPROXY_BUILDIR)/
-	@for patch in $(BUILD_PATCHES_FILES); do cp -v "$(BUILD_PATCHES_DIR_ABS)/$${patch}" "$(DEBIAN_PATCHES_DIR)/$${patch}"; done
-	@for patch in $(BUILD_PATCHES_FILES); do echo "$${patch}" >> "$(DEBIAN_PATCHES_DIR)/series"; done
-	export BUILD_DATE="$(shell date -u +'%a, %e %b %Y %H:%m:%S %z')" && \
-		export BUILD_VERSION="$(HAPROXY_VERSION)-$(HAPROXY_SHORTSHA)-1~mangadex+$(BUILD_VERSION_REPOSHA)" && \
-		export BUILD_MESSAGE="$(shell echo "$${BUILD_MESSAGE:-"No build message"}" | head -n1)" && \
-		export HAPROXY_OPTIMIZATION="$(HAPROXY_OPTIMIZATION)" && \
-		envsubst < rules.debian > "$(HAPROXY_BUILDIR)/debian/rules" && \
-		envsubst < changelog.debian | tee "$(HAPROXY_BUILDIR)/debian/changelog" && \
-		cat debian/changelog >> "$(HAPROXY_BUILDIR)/debian/changelog"
-
-dist-deb: prepare-deb
-	cd $(HAPROXY_BUILDIR) && \
-		debuild -us -uc --lintian-opts --no-lintian
-	rm -fv $(HAPROXY_TARBALL)
-	rm -rf $(HAPROXY_BUILDIR)
-
-prepare-rpm: build $(HAPROXY_DESTDIR)
+prepare-dist: build $(HAPROXY_DESTDIR)
 	@if ! command -v fpm >/dev/null; then echo "fpm not found, install it 'gem install fpm'"; exit 1; else fpm --version; fi
 	cp -rf $(DEP_DIST_SSL_CURRENT)/* $(HAPROXY_DESTDIR)/
+	@mkdir -pv $(HAPROXY_DESTDIR)/etc/haproxy
+	@mkdir -pv $(HAPROXY_DESTDIR)/var/lib/haproxy
 
-dist-rpm: prepare-rpm
-	@if [ -f "haproxy-$(RPM_FULL_VERSION).rpm" ]; then rm -v "haproxy-$(RPM_FULL_VERSION).rpm"; fi
+dist-deb: prepare-dist
+	@if [ -f "haproxy-$(DIST_FULL_VERSION).deb" ]; then rm -v "haproxy-$(DIST_FULL_VERSION).deb"; fi
 	fpm --input-type dir \
-		--output-type rpm \
-		--package "haproxy-$(RPM_FULL_VERSION).rpm" \
+		--output-type deb \
+		--package "haproxy-$(DIST_FULL_VERSION).deb" \
 		--name "haproxy" \
 		--architecture "native" \
 		--license "mit+gpl2+lgpl" \
-		--version "$(RPM_FULL_VERSION)" \
-		--depends "jemalloc" \
+		--version "$(DIST_FULL_VERSION)" \
+		--depends "libatomic1" \
+		--depends "libjemalloc2" \
+		--depends "socat" \
+		--depends "zlib1g" \
 		--description "HAProxy mainline build with QUIC (via $(HAPROXY_SSL_LIB))" \
 		--url "https://gitlab.com/mangadex-pub/haproxy" \
 		--maintainer "MangaDex <opensource@mangadex.org>" \
-		"$(HAPROXY_DESTDIR)/opt/=/opt" "$(HAPROXY_DESTDIR)/usr/=/usr"
+		--config-files "/etc" \
+		--before-install "toil/deb-adduser.sh" \
+		--after-remove "toil/deb-deluser.sh" \
+		"$(HAPROXY_DESTDIR)/etc/=/etc" \
+		"$(HAPROXY_DESTDIR)/opt/=/opt" \
+		"$(HAPROXY_DESTDIR)/usr/=/usr"
 
-	rpm -qpl "haproxy-$(RPM_FULL_VERSION).rpm"
+	dpkg -c "haproxy-$(DIST_FULL_VERSION).deb"
+
+dist-rpm: prepare-dist
+	@if [ -f "haproxy-$(DIST_FULL_VERSION).rpm" ]; then rm -v "haproxy-$(DIST_FULL_VERSION).rpm"; fi
+	fpm --input-type dir \
+		--output-type rpm \
+		--package "haproxy-$(DIST_FULL_VERSION).rpm" \
+		--name "haproxy" \
+		--architecture "native" \
+		--license "mit+gpl2+lgpl" \
+		--version "$(DIST_FULL_VERSION)" \
+		--depends "jemalloc" \
+		--depends "socat" \
+		--description "HAProxy mainline build with QUIC (via $(HAPROXY_SSL_LIB))" \
+		--url "https://gitlab.com/mangadex-pub/haproxy" \
+		--maintainer "MangaDex <opensource@mangadex.org>" \
+		--config-files "/etc" \
+		--before-install "toil/rpm-adduser.sh" \
+		--after-remove "toil/rpm-deluser.sh" \
+		"$(HAPROXY_DESTDIR)/etc/=/etc" \
+		"$(HAPROXY_DESTDIR)/opt/=/opt" \
+		"$(HAPROXY_DESTDIR)/usr/=/usr"
+
+	rpm -qpl "haproxy-$(DIST_FULL_VERSION).rpm"
 
 clean:
 	rm -fv "$(HAPROXY_ARCHIVE)"
 	rm -rf "$(HAPROXY_BUILDIR)"
 	rm -rf "$(HAPROXY_DEBORIG)"
 	rm -rf "$(HAPROXY_DESTDIR)"
-	rm -fv "haproxy_"*
-	rm -fv "haproxy-dbgsym_"*
-	rm -fv "haproxy"*.rpm
+	# rm -fv "haproxy"*.deb
+	# rm -fv "haproxy"*.rpm
 
 .PHONY: clean patches build test

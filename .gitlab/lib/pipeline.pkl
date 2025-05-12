@@ -24,6 +24,7 @@ stages {
     "dependencies"
     "test"
     "package"
+    "publish"
 }
 
 local defaultJob = new Ci.JobTemplate {
@@ -55,6 +56,20 @@ function haproxyVars(target: inputs.Build) = (k8s.resources.sm) {
     ["HAPROXY_VERSION"] = target.params.version
 }
 
+local regtestJob = (defaultJob) {
+    stage = "test"
+    needs { "dependencies" }
+    script = new Listing {
+        ...dependencyList.map((dep) -> dep.fetchSh)
+        shell.command("ulimit", "Validate ulimit", "./tool/check-docker-ulimit.sh")
+        "make -C haproxy build test"
+    }
+    artifacts {
+        expire_in = "7 days"
+        paths { "/tmp/vtest" }
+    }
+}
+
 local packageJob = (defaultJob) {
     stage = "package"
     needs { "dependencies" }
@@ -67,21 +82,47 @@ local packageJob = (defaultJob) {
         expire_in = "7 days"
         paths {
             "haproxy/*.\(os_packaging)"
+            "haproxy/*.tar.gz"
         }
     }
 }
 
-local regtestJob = (defaultJob) {
-    stage = "test"
-    needs { "dependencies" }
-    script = new Listing {
-        ...dependencyList.map((dep) -> dep.fetchSh)
-        shell.command("ulimit", "Validate ulimit", "./tool/check-docker-ulimit.sh")
-        "make -C haproxy build test"
+local mainBranch = read?("env:CI_DEFAULT_BRANCH") ?? "main"
+local buildBranch = read?("env:CI_COMMIT_REF_NAME") ?? "local"
+local buildSha = read?("env:CI_COMMIT_SHORT_SHA") ?? "SNAPSHOT"
+
+function dockerJob(build: inputs.Build) = (defaultJob) {
+    stage = "publish"
+    needs { "package:\(build.name)" }
+    before_script = new Listing {
+        "mkdir -p /kaniko/.docker"
+        """
+        echo "{\\\"auths\\\":{\\\"$CI_REGISTRY\\\":{\\\"username\\\":\\\"gitlab-ci-token\\\",\\\"password\\\":\\\"$CI_JOB_TOKEN\\\"}}}" > /kaniko/.docker/config.json
+        """
     }
-    artifacts {
-        expire_in = "7 days"
-        paths { "/tmp/vtest" }
+    script = new Listing {
+        local canonical = "\(build.params.version)-\(os_family)-hap-\(build.params.git_ref)-mdx-\(buildSha)"
+        local tags = List(
+            canonical, // 3.2-dev-debian-hap-123beef-mdx-456foof
+            "\(build.params.version)-\(os_family)" // 3.2-dev-debian
+        )
+
+        local tagArgs = tags
+            .map((tag) -> (if (mainBranch == buildBranch) "" else ("branch-\(buildBranch)-")) + tag)
+            .map((tag) -> "--destination \"$CI_REGISTRY_IMAGE:\(tag)\"")
+            .join(" ")
+
+            """
+            (
+                set -x;
+                /kaniko/executor \\
+                --context . \\
+                --dockerfile \(os_family).dockerfile \\
+                --build-arg "CANONICAL_VERSION=\(canonical)" \\
+                --single-snapshot \\
+                \(tagArgs)
+            )
+            """
     }
 }
 
@@ -101,6 +142,8 @@ local regtestJob = (defaultJob) {
     }
 }
 
+`docker:stable` = dockerJob(stable)
+
 `regtests:dev` = (regtestJob) {
     variables {
         ...haproxyVars(dev)
@@ -117,3 +160,5 @@ local regtestJob = (defaultJob) {
         ["HAPROXY_OPTIMIZATION"] = "-Og"
     }
 }
+
+`docker:dev` = dockerJob(dev)
