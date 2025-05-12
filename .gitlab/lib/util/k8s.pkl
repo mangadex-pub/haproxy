@@ -21,5 +21,4 @@ hidden resources = new {
     xs = new Resources { memory = "512Mi" }.vars
     sm = new Resources { memory = "1Gi" }.vars
     md = new Resources { memory = "2Gi" }.vars
-    lg = new Resources { memory = "3Gi" }.vars
 }

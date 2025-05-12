@@ -128,6 +128,11 @@ function dockerJob(build: inputs.Build) = (defaultJob) {
         )
         """
     }.join("")
+
+    variables {
+        // dnf struggles a lot on limited ram
+        ...k8s.resources.md
+    }
 }
 
 `regtests:stable` = (regtestJob) {
