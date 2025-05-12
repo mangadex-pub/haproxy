@@ -1,19 +1,20 @@
 abstract module CIBase extends "lib/pipeline.pkl"
 
+import "pkl:json"
+import "lib/inputs.pkl"
+
+local jsonParser = new json.Parser {
+    useMapping = true
+}
+
+local ciVersions = jsonParser.parse(read("file:ci.json")) as Mapping<String, Mapping>
+
 fixed stable {
     name = "stable"
-    params {
-        git_repo = "https://git.haproxy.org/?p=haproxy-3.1.git"
-        git_ref = "v3.1.7"
-        version = "3.1-stable"
-    }
+    params = ciVersions["stable"].toMap().toTyped(inputs.BuildVars)
 }
 
 fixed dev {
     name = "dev"
-    params {
-        git_repo = "https://git.haproxy.org/?p=haproxy.git"
-        git_ref = "master"
-        version = "3.2-dev"
-    }
+    params = ciVersions["dev"].toMap().toTyped(inputs.BuildVars)
 }

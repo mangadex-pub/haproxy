@@ -1,0 +1,12 @@
+{
+  "dev": {
+    "git_repo": "https://git.haproxy.org/?p=haproxy.git",
+    "git_ref": "master",
+    "version": "3.2-dev"
+  },
+  "stable": {
+    "git_repo": "https://git.haproxy.org/?p=haproxy-3.1.git",
+    "git_ref": "v3.1.7",
+    "version": "3.1-stable"
+  }
+}
