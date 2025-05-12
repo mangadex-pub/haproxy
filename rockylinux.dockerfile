@@ -10,11 +10,9 @@ LABEL Version="${CANONICAL_VERSION}"
 COPY --chown=root:root haproxy/*.rpm /tmp
 
 RUN microdnf -y update && \
-    microdnf -y install dnf && \
-    dnf -y install epel-release && \
-    /usr/bin/crb enable && \
-    dnf -y distro-sync && \
-    dnf -y install \
+    microdnf -y install epel-release && \
+    microdnf --enablerepo=crb -y distro-sync && \
+    microdnf --enablerepo=crb -y install \
       ca-certificates \
       curl \
       libatomic \
@@ -22,10 +20,9 @@ RUN microdnf -y update && \
       procps-ng \
       socat \
       zlib zlib-ng && \
-    dnf -y install /tmp/*.rpm && \
+    rpm -ivh /tmp/*.rpm && \
     rm -v /tmp/*.rpm && \
-    dnf -y autoremove && \
-    dnf -y clean all && \
+    microdnf -y clean all && \
     /usr/local/sbin/haproxy -vv
 
 # slight docker-specific working around
