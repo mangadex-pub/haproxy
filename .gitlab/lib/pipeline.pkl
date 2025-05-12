@@ -93,6 +93,10 @@ local buildSha = read?("env:CI_COMMIT_SHORT_SHA") ?? "SNAPSHOT"
 
 function dockerJob(build: inputs.Build) = (defaultJob) {
     stage = "publish"
+    image = new Ci.ImageAlternate1 { // gitlab pls
+        name = "gcr.io/kaniko-project/executor:debug"
+        entrypoint = new Listing { "" }
+    }
     needs { "package:\(build.name)" }
     before_script = new Listing {
         "mkdir -p /kaniko/.docker"
@@ -112,18 +116,18 @@ function dockerJob(build: inputs.Build) = (defaultJob) {
             .map((tag) -> "--destination \"$CI_REGISTRY_IMAGE:\(tag)\"")
             .join(" ")
 
-            """
-            (
-                set -x;
-                /kaniko/executor \\
-                --context . \\
-                --dockerfile \(os_family).dockerfile \\
-                --build-arg "CANONICAL_VERSION=\(canonical)" \\
-                --single-snapshot \\
-                \(tagArgs)
-            )
-            """
-    }
+        """
+        (
+            set -x;
+            /kaniko/executor \\
+            --context . \\
+            --dockerfile \(os_family).dockerfile \\
+            --build-arg "CANONICAL_VERSION=\(canonical)" \\
+            --single-snapshot \\
+            \(tagArgs)
+        )
+        """
+    }.join("")
 }
 
 `regtests:stable` = (regtestJob) {
