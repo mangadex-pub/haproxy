@@ -42,5 +42,5 @@ trigger:
   trigger:
     strategy: "depend"
     include:
-      - job: "render-pipeline"
+      - job: "render"
         artifact: ".gitlab/$OS_FAMILY.ci.yml"
