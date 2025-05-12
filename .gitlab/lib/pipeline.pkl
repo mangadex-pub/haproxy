@@ -78,22 +78,19 @@ local packageJob = (defaultJob) {
         "gem install fpm"
         "make -C haproxy dist-\(os_packaging)"
 
-        local pkgver =
-            if (mainBranch == buildBranch)
-                "$HAPROXY_VERSION-$HAPROXY_GITREF-mangadex-\(buildSha)"
-            else
-                "branch-$CI_COMMIT_REF_SLUG"
+        local glrepo = if (mainBranch == buildBranch) "haproxy" else "haproxy-branches"
+        local glvers = if (mainBranch == buildBranch) "$HAPROXY_VERSION-$HAPROXY_GITREF-mangadex-\(buildSha)" else "branch-$CI_COMMIT_REF_SLUG"
 
         """
-        export GLREPO="haproxy-\(os_family)"
-        export GLVERS="\(pkgver)"
+        export GLREPO="\(glrepo)"
+        export GLVERS="\(glvers)"
         for artifact in haproxy/haproxy*.\(os_packaging); do
             fname=$(basename "${artifact}")
             glfname=$(echo "${fname}" | tr '~' '-' | tr '+' '-')
             echo "Uploading ${GLREPO}@${GLVERS} - ${glfname} = ${fname}"
             curl -fsSL -H"JOB-TOKEN: $CI_JOB_TOKEN" \\
                 --upload-file "${artifact}" \\
-                "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/haproxy/${GLVERS}/${glfname}"
+                "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/${GLREPO}/${GLVERS}/${glfname}"
             echo "OK"
         done
         """
