@@ -77,6 +77,26 @@ local packageJob = (defaultJob) {
         ...dependencyList.map((dep) -> dep.fetchSh)
         "gem install fpm"
         "make -C haproxy dist-\(os_packaging)"
+
+        local pkgver =
+            if (mainBranch == buildBranch)
+                "$HAPROXY_VERSION-$HAPROXY_GITREF-mangadex-\(buildSha)"
+            else
+                "branch-$CI_COMMIT_REF_SLUG"
+
+        """
+        export GLREPO="haproxy-\(os_family)"
+        export GLVERS="\(pkgver)"
+        for artifact in haproxy/haproxy*.\(os_packaging); do
+            fname=$(basename "${artifact}")
+            glfname=$(echo "${fname}" | tr '~' '-' | tr '+' '-')
+            echo "Uploading ${GLREPO}@${GLVERS} - ${glfname} = ${fname}"
+            curl -fsSL -H"JOB-TOKEN: $CI_JOB_TOKEN" \\
+                --upload-file "${artifact}" \\
+                "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/haproxy/${GLVERS}/${glfname}"
+            echo "OK"
+        done
+        """
     }
     artifacts {
         expire_in = "7 days"
