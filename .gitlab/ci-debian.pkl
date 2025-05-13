@@ -1,4 +1,4 @@
-module Debian extends "ci-base.pkl"
+module Debian extends "lib/pipeline.pkl"
 
 fixed os_family = "debian"
 fixed os_image = "ghcr.io/mangadex-pub/debuilder:bookworm-clang18"

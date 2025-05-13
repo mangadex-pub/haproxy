@@ -1,4 +1,4 @@
-module RockyLinux extends "ci-base.pkl"
+module RockyLinux extends "lib/pipeline.pkl"
 
 fixed os_family = "rockylinux"
 fixed os_image = "ghcr.io/mangadex-pub/containers-base/rockylinux:9-develroot"

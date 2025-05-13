@@ -1,5 +1,7 @@
 abstract module Pipeline
 
+import "pkl:json"
+
 import "deps.pkl"
 import "inputs.pkl"
 import "schema/Ci.pkl"
@@ -10,8 +12,18 @@ import "util/shell.pkl"
 hidden fixed os_family: String
 hidden fixed os_image: String
 hidden fixed os_packaging: String
-hidden fixed stable: inputs.Build
-hidden fixed dev: inputs.Build
+
+local ciVersions = (new json.Parser { useMapping = true }).parse(read("file:ci.json")) as Mapping<String, Mapping>
+
+local stable = new inputs.Build {
+    name = "stable"
+    params = ciVersions["stable"].toMap().toTyped(inputs.BuildVars)
+}
+local dev = new inputs.Build {
+    name = "dev"
+    params = ciVersions["dev"].toMap().toTyped(inputs.BuildVars)
+}
+
 
 // rendered pipeline
 variables = new Mapping {
