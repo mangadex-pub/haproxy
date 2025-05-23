@@ -4,35 +4,16 @@ on:
     tags: [ "*" ]
 
 jobs:
-  haproxy-dependencies:
-    uses: "./.github/workflows/haproxy-deps.yml"
+  debian:
+    uses: "./.github/workflows/pipeline.yml"
     with:
-      DEBIAN_CODENAME: "bookworm"
+      OS_FAMILY: "debian"
+      OS_IMAGE: "ghcr.io/mangadex-pub/debuilder:bookworm-clang18"
+      OS_PACKAGING: "deb"
 
-  dist-stable:
-    needs: [ "haproxy-dependencies" ]
-    uses: "./.github/workflows/haproxy-dist.yml"
-    secrets: "inherit" # for Docker image publication
+  rockylinux:
+    uses: "./.github/workflows/pipeline.yml"
     with:
-      DEBIAN_CODENAME: "bookworm"
-      HAPROXY_FLAVOUR: "stable"
-      # https://git.haproxy.org/?p=haproxy-3.1.git;a=commit;h=v3.1.3
-      HAPROXY_GITREPO: "https://git.haproxy.org/?p=haproxy-3.1.git"
-      HAPROXY_VERSION: "3.1-stable"
-      HAPROXY_GITREF: "v3.1.3"
-      HAPROXY_DATAPLANEAPI_VERSION: "v3.0"
-      HAPROXY_OPTIMIZATION: "-O2"
-
-  dist-dev:
-    needs: [ "haproxy-dependencies" ]
-    uses: "./.github/workflows/haproxy-dist.yml"
-    secrets: "inherit" # for Docker image publication
-    with:
-      DEBIAN_CODENAME: "bookworm"
-      HAPROXY_FLAVOUR: "dev"
-      # https://git.haproxy.org/?p=haproxy.git;a=commit;h=8235a24782e528b9bf8ca9dd69c0a147556dfcb5
-      HAPROXY_GITREPO: "https://git.haproxy.org/?p=haproxy.git"
-      HAPROXY_VERSION: "3.2-dev"
-      HAPROXY_GITREF: "8235a24782e528b9bf8ca9dd69c0a147556dfcb5"
-      HAPROXY_DATAPLANEAPI_VERSION: "master"
-      HAPROXY_OPTIMIZATION: "-Og"
+      OS_FAMILY: "rockylinux"
+      OS_IMAGE: "ghcr.io/mangadex-pub/containers-base/rockylinux:9-develroot"
+      OS_PACKAGING: "rpm"

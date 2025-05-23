@@ -1,0 +1,60 @@
+on:
+  workflow_call:
+    inputs:
+      OS_FAMILY: { type: "string", required: true }
+      OS_IMAGE: { type: "string", required: true }
+      OS_PACKAGING: { type: "string", required: true }
+
+defaults:
+  run:
+    shell: "bash"
+
+jobs:
+  dependencies:
+    runs-on: "ubuntu-latest"
+    container: "${{ inputs.OS_IMAGE }}"
+    permissions:
+      contents: "read"
+      packages: "write"
+    steps:
+      - { uses: "actions/checkout@v4" }
+      - { uses: "./.github/actions/setup-os", with: { OS_FAMILY: "${{ inputs.OS_FAMILY }}" } }
+      - name: "Build dependencies"
+        run: "make deps"
+      - { uses: "./.github/actions/archive-deps", with: { OS_FAMILY: "${{ inputs.OS_FAMILY }}" } }
+
+  regtests:
+    runs-on: "ubuntu-latest"
+    container: "${{ inputs.OS_IMAGE }}"
+    needs: [ "dependencies" ]
+    permissions: { contents: "read" }
+    strategy:
+      matrix: { BUILD_FLAVOUR: [ "dev", "stable" ] }
+    steps:
+      - { uses: "actions/checkout@v4" }
+      - { uses: "./.github/actions/setup-os", with: { OS_FAMILY: "${{ inputs.OS_FAMILY }}" } }
+      - { uses: "./.github/actions/retrieve-deps", with: { OS_FAMILY: "${{ inputs.OS_FAMILY }}" } }
+      - name: "Run regtests"
+        run: "make -C haproxy build test"
+        env:
+          HAPROXY_OPTIMIZATION: "-Og"
+
+  package:
+    runs-on: "ubuntu-latest"
+    container: "${{ inputs.OS_IMAGE }}"
+    needs: [ "dependencies" ]
+    permissions: { contents: "read", packages: "write" }
+    strategy:
+      matrix: { BUILD_FLAVOUR: [ "dev", "stable" ] }
+    steps:
+      - { uses: "actions/checkout@v4" }
+      - { uses: "./.github/actions/setup-os", with: { OS_FAMILY: "${{ inputs.OS_FAMILY }}" } }
+      - { uses: "./.github/actions/retrieve-deps", with: { OS_FAMILY: "${{ inputs.OS_FAMILY }}" } }
+      - { name: "Install FPM", run: "gem install fpm" }
+      - name: "Build package"
+        run: "make -C haproxy build dist-${{ inputs.OS_PACKAGING }}"
+      - name: "Archive package"
+        uses: "actions/upload-artifact@v4"
+        with:
+          name: "haproxy-${{ matrix.BUILD_FLAVOUR }}.${{ inputs.OS_PACKAGING }}"
+          path: "deps/haproxy/*.${{ inputs.OS_PACKAGING }}"

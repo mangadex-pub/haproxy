@@ -1,14 +1,16 @@
-name: Setup Debian-based OS dependencies
-description: |
-  Because we live in a dumb world where I have to care about the source OS' libc version of the programs I compile...
+name: Setup OS dependencies
 
-  Fuck static linking forever
+inputs:
+  OS_FAMILY:
+    description: "Dependency build OS family"
+    required: true
 
 runs:
   using: "composite"
-
   steps:
-    - name: Install OS dependencies
-      shell: bash
-      run: |
-        ./tool/setup-debian.sh
+    - name: "Install OS dependencies"
+      shell: "bash"
+      run: "./tool/setup-${{ inputs.OS_FAMILY }}.sh"
+    - name: "Ensure execution environment has sane ulimits"
+      shell: "bash"
+      run: "./tool/check-docker-ulimit.sh"

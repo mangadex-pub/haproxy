@@ -1,0 +1,40 @@
+name: "Archive Dependencies"
+description: "Archive dependencies for use in subsequent steps"
+
+inputs:
+  OS_FAMILY:
+    description: "Dependency build OS family"
+    required: true
+
+runs:
+  using: "composite"
+  steps:
+    - name: "Dependencies - Archive - LUA"
+      uses: "actions/upload-artifact@v4"
+      with:
+        name: "lua-dist-${{ inputs.OS_FAMILY }}.tar.gz"
+        path: "deps/lua/lua-dist.tar.gz"
+
+    - name: "Dependencies - Archive - PCRE2"
+      uses: "actions/upload-artifact@v4"
+      with:
+        name: "pcre2-dist-${{ inputs.OS_FAMILY }}.tar.gz"
+        path: "deps/pcre2/pcre2-dist.tar.gz"
+
+    - name: "Dependencies - Archive - AWS-LC"
+      uses: "actions/upload-artifact@v4"
+      with:
+        name: "awslc-dist-${{ inputs.OS_FAMILY }}.tar.gz"
+        path: "deps/awslc/awslc-dist.tar.gz"
+
+    - name: "Dependencies - Archive - QuicTLS"
+      uses: "actions/upload-artifact@v4"
+      with:
+        name: "quictls-dist-${{ inputs.OS_FAMILY }}.tar.gz"
+        path: "deps/quictls/quictls-dist.tar.gz"
+
+    - name: "Dependencies - Archive - VTest"
+      uses: "actions/upload-artifact@v4"
+      with:
+        name: "vtest-dist-${{ inputs.OS_FAMILY }}.tar.gz"
+        path: "deps/vtest/vtest-dist.tar.gz"

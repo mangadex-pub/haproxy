@@ -1,0 +1,64 @@
+name: "Retrieve Dependencies"
+description: "Retrieve previously built dependencies"
+
+inputs:
+  OS_FAMILY:
+    description: "Dependency build OS family"
+    required: true
+
+runs:
+  using: "composite"
+  steps:
+    - name: "Dependencies - Retrieve - LUA"
+      uses: "actions/download-artifact@v4"
+      with:
+        name: "lua-dist-${{ inputs.OS_FAMILY }}.tar.gz"
+        path: "deps/lua"
+
+    - name: "Dependencies - Retrieve - PCRE2"
+      uses: "actions/download-artifact@v4"
+      with:
+        name: "pcre2-dist-${{ inputs.OS_FAMILY }}.tar.gz"
+        path: "deps/pcre2"
+
+    - name: "Dependencies - Retrieve - AWS-LC"
+      uses: "actions/download-artifact@v4"
+      with:
+        name: "awslc-dist-${{ inputs.OS_FAMILY }}.tar.gz"
+        path: "deps/awslc"
+
+    - name: "Dependencies - Retrieve - QuicTLS"
+      uses: "actions/download-artifact@v4"
+      with:
+        name: "quictls-dist-${{ inputs.OS_FAMILY }}.tar.gz"
+        path: "deps/quictls"
+
+    - name: "Dependencies - Retrieve - VTest"
+      uses: "actions/download-artifact@v4"
+      with:
+        name: "vtest-dist-${{ inputs.OS_FAMILY }}.tar.gz"
+        path: "deps/vtest"
+
+    - name: "Dependencies - Unpack"
+      shell: "bash"
+      run: |
+        set -euo pipefail
+
+        function unpack_dep() {
+          local dep="$1"
+          local tarball="deps/$dep/$dep-dist-${{ inputs.OS_FAMILY }}.tar.gz"
+          echo "Unpacking dependency name=$dep tarball=$tarball"
+          if ! [ -f "$tarball" ]; then
+            echo "tarball not found in deps/$dep:"
+            ls -l "deps/$dep"
+            exit 1
+          fi
+          mkdir -pv "deps/$dep/dist"
+          tar -C "deps/$dep/dist" -xf "$tarball"
+        }
+
+        unpack_dep "lua"
+        unpack_dep "pcre2"
+        unpack_dep "awslc"
+        unpack_dep "quictls"
+        unpack_dep "vtest"
