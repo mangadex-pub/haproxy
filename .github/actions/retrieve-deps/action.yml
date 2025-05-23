@@ -46,7 +46,7 @@ runs:
 
         function unpack_dep() {
           local dep="$1"
-          local tarball="deps/$dep/$dep-dist-${{ inputs.OS_FAMILY }}.tar.gz"
+          local tarball="deps/$dep/$dep-dist.tar.gz"
           echo "Unpacking dependency name=$dep tarball=$tarball"
           if ! [ -f "$tarball" ]; then
             echo "tarball not found in deps/$dep:"

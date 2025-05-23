@@ -14,3 +14,6 @@ runs:
     - name: "Ensure execution environment has sane ulimits"
       shell: "bash"
       run: "./tool/check-docker-ulimit.sh"
+    - name: "Allow Git read operations"
+      shell: "bash"
+      run: "git config --global --add safe.directory '*'"
