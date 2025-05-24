@@ -4,7 +4,7 @@ AWSLC_BUILD_VERSION = mangadex-$(BUILD_VERSION_REPOSHA)
 AWSLC_TAG = $(AWSLC_VERSION)
 
 AWSLC_SOURCES = https://github.com/aws/aws-lc/archive/refs/tags/v$(AWSLC_VERSION).tar.gz
-AWSLC_TARBALL = awslc-$(AWSLC_VERSION).tar.gz
+AWSLC_TARBALL = awslc-$(AWSLC_VERSION).src.tar.gz
 AWSLC_BUILDIR = src
 AWSLC_DESTDIR = dist
 AWSLC_DESTDIR_ABS = $(shell realpath $(AWSLC_DESTDIR))

@@ -1,6 +1,6 @@
 PCRE2_VERSION = 10.44
 PCRE2_SOURCES = https://github.com/PCRE2Project/pcre2/releases/download/pcre2-$(PCRE2_VERSION)/pcre2-$(PCRE2_VERSION).tar.gz
-PCRE2_TARBALL = pcre2-$(PCRE2_VERSION).tar.gz
+PCRE2_TARBALL = pcre2-$(PCRE2_VERSION).src.tar.gz
 PCRE2_BUILDIR = src
 PCRE2_DESTDIR = dist
 PCRE2_DESTDIR_ABS = $(shell realpath $(PCRE2_DESTDIR))

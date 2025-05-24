@@ -60,6 +60,17 @@ dependencies = (deps.dependencies(defaultJob, dependencyList)) {
     variables {
         ...k8s.resources.md
     }
+    cache = new Ci.CacheItem {
+        key = new Ci.KeyAlternate1 {
+            prefix = "deps-"
+            files { "deps/*/Makefile" }
+        }
+        paths {
+            "deps/*/*.src.tar.gz"
+            "deps/*/*.src.zip"
+        }
+        `when` = "on_success"
+    }
 }
 
 function haproxyVars(target: inputs.Build) = (k8s.resources.sm) {

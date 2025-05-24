@@ -34,6 +34,12 @@ jobs:
       packages: "write"
     steps:
       - { uses: "actions/checkout@v4" }
+      - uses: "actions/cache@v4"
+        with:
+          key: "${{ runner.os }}-${{ runner.arch }}-deps-${{ hashFiles('deps/*/Makefile') }}"
+          path: |
+            deps/*/*.src.tar.gz
+            deps/*/*.src.zip
       - { uses: "./.github/actions/setup-os", with: { OS_FAMILY: "${{ inputs.OS_FAMILY }}" } }
       - name: "Build dependencies"
         run: |

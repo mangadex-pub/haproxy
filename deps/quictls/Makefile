@@ -4,7 +4,7 @@ QUICTLS_BUILD_VERSION = quic-mangadex-$(BUILD_VERSION_REPOSHA)
 QUICTLS_TAG = OpenSSL_$(subst .,_,$(OPENSSL_VERSION))-quic1
 
 QUICTLS_SOURCES = https://codeload.github.com/quictls/openssl/tar.gz/$(QUICTLS_TAG)
-QUICTLS_TARBALL = quictls-$(OPENSSL_VERSION).tar.gz
+QUICTLS_TARBALL = quictls-$(OPENSSL_VERSION).src.tar.gz
 QUICTLS_BUILDIR = src
 QUICTLS_DESTDIR = dist
 QUICTLS_DESTDIR_ABS = $(shell realpath $(QUICTLS_DESTDIR))
