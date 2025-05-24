@@ -1,5 +1,5 @@
 module Debian extends "lib/pipeline.pkl"
 
 fixed os_family = "debian"
-fixed os_image = "ghcr.io/mangadex-pub/debuilder:bookworm-clang18"
+fixed os_image = "ghcr.io/mangadex-pub/containers-base/debian:bookworm-develroot"
 fixed os_packaging = "deb"

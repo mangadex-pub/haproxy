@@ -8,7 +8,7 @@ jobs:
     uses: "./.github/workflows/pipeline.yml"
     with:
       OS_FAMILY: "debian"
-      OS_IMAGE: "ghcr.io/mangadex-pub/debuilder:bookworm-clang18"
+      OS_IMAGE: "ghcr.io/mangadex-pub/containers-base/debian:bookworm-develroot"
       OS_PACKAGING: "deb"
 
   rockylinux:
