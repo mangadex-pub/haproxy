@@ -118,10 +118,11 @@ jobs:
           images: "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}"
           tags: |
             type=raw,event=push,enable=true,value=branch-{{ branch }}-${{ env.HAPROXY_VERSION }}-${{ inputs.OS_FAMILY }}
-            type=sha,event=push,enable=true,prefix=branch-{{ branch }}-${{ env.HAPROXY_VERSION }}-${{ inputs.OS_FAMILY }}-hap-${{ steps.buildvars.haproxy_gitref }}-mdx-,format=short
+            type=sha,event=push,enable=true,prefix=branch-{{ branch }}-${{ env.HAPROXY_VERSION }}-${{ inputs.OS_FAMILY }}-hap-${{ env.HAPROXY_GITREF }}-mdx-,format=short
             type=raw,event=push,enable={{ is_default_branch }},value=${{ env.HAPROXY_VERSION }}-${{ inputs.OS_FAMILY }}
-            type=sha,event=push,enable={{ is_default_branch }},prefix=${{ env.HAPROXY_VERSION }}-${{ inputs.OS_FAMILY }}-hap-${{ steps.buildvars.haproxy_gitref }}-mdx-,format=short
+            type=sha,event=push,enable={{ is_default_branch }},prefix=${{ env.HAPROXY_VERSION }}-${{ inputs.OS_FAMILY }}-hap-${{ env.HAPROXY_GITREF }}-mdx-,format=short
         env:
+          HAPROXY_GITREF: "${{ fromJSON(needs.buildvars.outputs.cijson)[matrix.BUILD_FLAVOUR]['git_ref'] }}"
           HAPROXY_VERSION: "${{ fromJSON(needs.buildvars.outputs.cijson)[matrix.BUILD_FLAVOUR]['version'] }}"
       - name: "Fetch package"
         uses: "actions/download-artifact@v4"
