@@ -9,8 +9,8 @@ LABEL Version="${CANONICAL_VERSION}"
 
 COPY --chown=root:root haproxy/*.deb /tmp
 
-RUN apt -q update && \
-    apt -qq -y --no-install-recommends install \
+RUN apt-get -q update && \
+    apt-get -qq -y --no-install-recommends install \
       ca-certificates \
       curl \
       libatomic1 \
@@ -21,9 +21,9 @@ RUN apt -q update && \
       zlib1g && \
     dpkg -i /tmp/*.deb && \
     rm -v /tmp/*.deb && \
-    apt -qq -y install -f && \
-    apt -qq -y --purge autoremove && \
-    apt -qq -y clean && \
+    apt-get -qq -y install -f && \
+    apt-get -qq -y --purge autoremove && \
+    apt-get -qq -y clean && \
     rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* /var/cache/* /var/log/* && \
     /usr/local/sbin/haproxy -vv
 

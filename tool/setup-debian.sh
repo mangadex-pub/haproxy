@@ -4,10 +4,10 @@ set -euo pipefail
 
 export DEBIAN_FRONTEND=noninteractive
 
-apt -qq update
-apt -qq -y --no-install-recommends install apt-utils apt-transport-https ca-certificates
-apt -qq update
-apt -qq -y --no-install-recommends install \
+apt-get -q update
+apt-get -qq -y --no-install-recommends install apt-utils apt-transport-https ca-certificates
+apt-get -q update
+apt-get -qq -y --no-install-recommends install \
       build-essential \
       bzip2 \
       ca-certificates \
