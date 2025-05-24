@@ -83,7 +83,7 @@ jobs:
       - name: "Build package"
         run: |
           set -euo pipefail
-          if [ "${{ matrix.BUILD_FLAVOUR }}" == "dev" ]; then export HAPROXY_OPTIMIZATION="-Og" fi
+          if [ "${{ matrix.BUILD_FLAVOUR }}" = "dev" ]; then export HAPROXY_OPTIMIZATION="-Og"; fi
           make -C haproxy build dist-${{ inputs.OS_PACKAGING }}
         env:
           HAPROXY_GITREPO: "${{ fromJSON(needs.buildvars.outputs.cijson)[matrix.BUILD_FLAVOUR]['git_repo'] }}"
