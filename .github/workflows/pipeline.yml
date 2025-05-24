@@ -14,6 +14,14 @@ env:
   IMAGE_NAME: "${{ github.repository }}"
 
 jobs:
+  buildvars:
+    runs-on: "ubuntu-latest"
+    outputs:
+      cijson: "${{ steps.cijson.outputs.cijson }}"
+    steps:
+      - id: cijson
+        run: 'echo "cijson=$(jq -c . ci.json)" | tee -a "$GITHUB_OUTPUT"'
+
   dependencies:
     runs-on: "ubuntu-latest"
     container: "${{ inputs.OS_IMAGE }}"
@@ -30,7 +38,7 @@ jobs:
   regtests:
     runs-on: "ubuntu-latest"
     container: "${{ inputs.OS_IMAGE }}"
-    needs: [ "dependencies" ]
+    needs: [ "buildvars", "dependencies" ]
     permissions: { contents: "read" }
     strategy:
       matrix: { BUILD_FLAVOUR: [ "dev", "stable" ] }
@@ -39,20 +47,17 @@ jobs:
       - { uses: "./.github/actions/setup-os", with: { OS_FAMILY: "${{ inputs.OS_FAMILY }}" } }
       - { uses: "./.github/actions/retrieve-deps", with: { OS_FAMILY: "${{ inputs.OS_FAMILY }}" } }
       - name: "Run regtests"
-        run: |
-          set -euo pipefail
-
-          export HAPROXY_GITREPO=$(jq -r '.${{ matrix.BUILD_FLAVOUR }}.git_repo' ci.json)
-          export HAPROXY_GITREF=$(jq -r '.${{ matrix.BUILD_FLAVOUR }}.git_ref' ci.json)
-          export HAPROXY_VERSION=$(jq -r '.${{ matrix.BUILD_FLAVOUR }}.version' ci.json)
-          export HAPROXY_OPTIMIZATION="-Og"
-
-          make -C haproxy build test
+        run: "make -C haproxy build test"
+        env:
+          HAPROXY_GITREPO: "${{ fromJSON(needs.buildvars.cijson)[matrix.BUILD_FLAVOUR]['git_repo'] }}"
+          HAPROXY_GITREF: "${{ fromJSON(needs.buildvars.cijson)[matrix.BUILD_FLAVOUR]['git_ref'] }}"
+          HAPROXY_VERSION: "${{ fromJSON(needs.buildvars.cijson)[matrix.BUILD_FLAVOUR]['version'] }}"
+          HAPROXY_OPTIMIZATION: "-Og"
 
   package:
     runs-on: "ubuntu-latest"
     container: "${{ inputs.OS_IMAGE }}"
-    needs: [ "regtests" ]
+    needs: [ "buildvars", "regtests" ]
     permissions: { contents: "read", packages: "write" }
     strategy:
       matrix: { BUILD_FLAVOUR: [ "dev", "stable" ] }
@@ -63,16 +68,14 @@ jobs:
       - { name: "Install FPM", run: "gem install fpm" }
       - name: "Build package"
         run: |
-          set -euo pipefail
-
-          export HAPROXY_GITREPO=$(jq -r '.${{ matrix.BUILD_FLAVOUR }}.git_repo' ci.json)
-          export HAPROXY_GITREF=$(jq -r '.${{ matrix.BUILD_FLAVOUR }}.git_ref' ci.json)
-          export HAPROXY_VERSION=$(jq -r '.${{ matrix.BUILD_FLAVOUR }}.version' ci.json)
           if [ "${{ matrix.BUILD_FLAVOUR }}" == "dev" ]; then
             export HAPROXY_OPTIMIZATION="-Og"
           fi
-
           make -C haproxy build dist-${{ inputs.OS_PACKAGING }}
+        env:
+          HAPROXY_GITREPO: "${{ fromJSON(needs.buildvars.cijson)[matrix.BUILD_FLAVOUR]['git_repo'] }}"
+          HAPROXY_GITREF: "${{ fromJSON(needs.buildvars.cijson)[matrix.BUILD_FLAVOUR]['git_ref'] }}"
+          HAPROXY_VERSION: "${{ fromJSON(needs.buildvars.cijson)[matrix.BUILD_FLAVOUR]['version'] }}"
       - name: "Archive package"
         uses: "actions/upload-artifact@v4"
         with:
@@ -81,7 +84,7 @@ jobs:
 
   docker:
     runs-on: "ubuntu-latest"
-    needs: [ "package" ]
+    needs: [ "buildvars", "package" ]
     permissions: { contents: "read", packages: "write" }
     strategy:
       matrix: { BUILD_FLAVOUR: [ "dev", "stable" ] }
@@ -101,10 +104,12 @@ jobs:
         with:
           images: "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}"
           tags: |
-            type=raw,event=push,enable=true,value=branch-{{ branch }}-${{ steps.buildvars.haproxy_version }}-${{ inputs.OS_FAMILY }}
-            type=sha,event=push,enable=true,prefix=branch-{{ branch }}-${{ steps.buildvars.haproxy_version }}-${{ inputs.OS_FAMILY }}-hap-${{ steps.buildvars.haproxy_gitref }}-mdx-,format=short
-            type=raw,event=push,enable={{ is_default_branch }},value=${{ steps.buildvars.haproxy_version }}-${{ inputs.OS_FAMILY }}
-            type=sha,event=push,enable={{ is_default_branch }},prefix=${{ steps.buildvars.haproxy_version }}-${{ inputs.OS_FAMILY }}-hap-${{ steps.buildvars.haproxy_gitref }}-mdx-,format=short
+            type=raw,event=push,enable=true,value=branch-{{ branch }}-${{ env.HAPROXY_VERSION }}-${{ inputs.OS_FAMILY }}
+            type=sha,event=push,enable=true,prefix=branch-{{ branch }}-${{ env.HAPROXY_VERSION }}-${{ inputs.OS_FAMILY }}-hap-${{ steps.buildvars.haproxy_gitref }}-mdx-,format=short
+            type=raw,event=push,enable={{ is_default_branch }},value=${{ env.HAPROXY_VERSION }}-${{ inputs.OS_FAMILY }}
+            type=sha,event=push,enable={{ is_default_branch }},prefix=${{ env.HAPROXY_VERSION }}-${{ inputs.OS_FAMILY }}-hap-${{ steps.buildvars.haproxy_gitref }}-mdx-,format=short
+        env:
+          HAPROXY_VERSION: "${{ fromJSON(needs.buildvars.cijson)[matrix.BUILD_FLAVOUR]['version'] }}"
       - name: "Fetch package"
         uses: "actions/download-artifact@v4"
         with:
