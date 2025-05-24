@@ -16,11 +16,15 @@ env:
 jobs:
   buildvars:
     runs-on: "ubuntu-latest"
+    container: "${{ inputs.OS_IMAGE }}"
+    steps:
+      - { uses: "actions/checkout@v4" }
+      - id: "cijson"
+        run: |
+          set -euo pipefail
+          echo "cijson=$(jq -c . ci.json)" | tee -a "$GITHUB_OUTPUT"
     outputs:
       cijson: "${{ steps.cijson.outputs.cijson }}"
-    steps:
-      - id: cijson
-        run: 'echo "cijson=$(jq -c . ci.json)" | tee -a "$GITHUB_OUTPUT"'
 
   dependencies:
     runs-on: "ubuntu-latest"
@@ -32,7 +36,9 @@ jobs:
       - { uses: "actions/checkout@v4" }
       - { uses: "./.github/actions/setup-os", with: { OS_FAMILY: "${{ inputs.OS_FAMILY }}" } }
       - name: "Build dependencies"
-        run: "make deps"
+        run: |
+          set -euo pipefail
+          make deps
       - { uses: "./.github/actions/archive-deps", with: { OS_FAMILY: "${{ inputs.OS_FAMILY }}" } }
 
   regtests:
@@ -47,7 +53,9 @@ jobs:
       - { uses: "./.github/actions/setup-os", with: { OS_FAMILY: "${{ inputs.OS_FAMILY }}" } }
       - { uses: "./.github/actions/retrieve-deps", with: { OS_FAMILY: "${{ inputs.OS_FAMILY }}" } }
       - name: "Run regtests"
-        run: "make -C haproxy build test"
+        run: |
+          set -euo pipefail
+          make -C haproxy build test
         env:
           HAPROXY_GITREPO: "${{ fromJSON(needs.buildvars.cijson)[matrix.BUILD_FLAVOUR]['git_repo'] }}"
           HAPROXY_GITREF: "${{ fromJSON(needs.buildvars.cijson)[matrix.BUILD_FLAVOUR]['git_ref'] }}"
@@ -68,9 +76,8 @@ jobs:
       - { name: "Install FPM", run: "gem install fpm" }
       - name: "Build package"
         run: |
-          if [ "${{ matrix.BUILD_FLAVOUR }}" == "dev" ]; then
-            export HAPROXY_OPTIMIZATION="-Og"
-          fi
+          set -euo pipefail
+          if [ "${{ matrix.BUILD_FLAVOUR }}" == "dev" ]; then export HAPROXY_OPTIMIZATION="-Og" fi
           make -C haproxy build dist-${{ inputs.OS_PACKAGING }}
         env:
           HAPROXY_GITREPO: "${{ fromJSON(needs.buildvars.cijson)[matrix.BUILD_FLAVOUR]['git_repo'] }}"
