@@ -57,9 +57,9 @@ jobs:
           set -euo pipefail
           make -C haproxy build test
         env:
-          HAPROXY_GITREPO: "${{ fromJSON(needs.buildvars.cijson)[matrix.BUILD_FLAVOUR]['git_repo'] }}"
-          HAPROXY_GITREF: "${{ fromJSON(needs.buildvars.cijson)[matrix.BUILD_FLAVOUR]['git_ref'] }}"
-          HAPROXY_VERSION: "${{ fromJSON(needs.buildvars.cijson)[matrix.BUILD_FLAVOUR]['version'] }}"
+          HAPROXY_GITREPO: "${{ fromJSON(needs.buildvars.outputs.cijson)[matrix.BUILD_FLAVOUR]['git_repo'] }}"
+          HAPROXY_GITREF: "${{ fromJSON(needs.buildvars.outputs.cijson)[matrix.BUILD_FLAVOUR]['git_ref'] }}"
+          HAPROXY_VERSION: "${{ fromJSON(needs.buildvars.outputs.cijson)[matrix.BUILD_FLAVOUR]['version'] }}"
           HAPROXY_OPTIMIZATION: "-Og"
 
   package:
@@ -80,9 +80,9 @@ jobs:
           if [ "${{ matrix.BUILD_FLAVOUR }}" == "dev" ]; then export HAPROXY_OPTIMIZATION="-Og" fi
           make -C haproxy build dist-${{ inputs.OS_PACKAGING }}
         env:
-          HAPROXY_GITREPO: "${{ fromJSON(needs.buildvars.cijson)[matrix.BUILD_FLAVOUR]['git_repo'] }}"
-          HAPROXY_GITREF: "${{ fromJSON(needs.buildvars.cijson)[matrix.BUILD_FLAVOUR]['git_ref'] }}"
-          HAPROXY_VERSION: "${{ fromJSON(needs.buildvars.cijson)[matrix.BUILD_FLAVOUR]['version'] }}"
+          HAPROXY_GITREPO: "${{ fromJSON(needs.buildvars.outputs.cijson)[matrix.BUILD_FLAVOUR]['git_repo'] }}"
+          HAPROXY_GITREF: "${{ fromJSON(needs.buildvars.outputs.cijson)[matrix.BUILD_FLAVOUR]['git_ref'] }}"
+          HAPROXY_VERSION: "${{ fromJSON(needs.buildvars.outputs.cijson)[matrix.BUILD_FLAVOUR]['version'] }}"
       - name: "Archive package"
         uses: "actions/upload-artifact@v4"
         with:
@@ -116,7 +116,7 @@ jobs:
             type=raw,event=push,enable={{ is_default_branch }},value=${{ env.HAPROXY_VERSION }}-${{ inputs.OS_FAMILY }}
             type=sha,event=push,enable={{ is_default_branch }},prefix=${{ env.HAPROXY_VERSION }}-${{ inputs.OS_FAMILY }}-hap-${{ steps.buildvars.haproxy_gitref }}-mdx-,format=short
         env:
-          HAPROXY_VERSION: "${{ fromJSON(needs.buildvars.cijson)[matrix.BUILD_FLAVOUR]['version'] }}"
+          HAPROXY_VERSION: "${{ fromJSON(needs.buildvars.outputs.cijson)[matrix.BUILD_FLAVOUR]['version'] }}"
       - name: "Fetch package"
         uses: "actions/download-artifact@v4"
         with:
